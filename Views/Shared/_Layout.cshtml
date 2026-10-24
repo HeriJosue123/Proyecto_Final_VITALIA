@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - VITALIA</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/VITALIA.styles.css" asp-append-version="true" />
+    <style>
+        .badge-pending {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.45rem;
+            border-radius: 6px;
+            background-color: #f1f3f5;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+        .nav-link:hover .badge-pending {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <header class="sticky-top shadow-sm">
+        <nav class="navbar navbar-expand-xl navbar-light bg-white border-bottom py-2">
+            <div class="container-fluid px-3 px-lg-4">
+                <a class="navbar-brand d-flex align-items-center fw-bold text-primary fs-4" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-3 p-2 me-2" style="width: 38px; height: 38px;">
+                        <i class="bi bi-heart-pulse-fill fs-5"></i>
+                    </span>
+                    <span>VITALIA</span>
+                </a>
+
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#vitaliaNav" aria-controls="vitaliaNav"
+                        aria-expanded="false" aria-label="Alternar navegación">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="vitaliaNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-xl-0 gap-1">
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold px-2" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door me-1 text-primary"></i> Inicio
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold px-2 text-dark" asp-area="" asp-controller="Residentes" asp-action="Index">
+                                <i class="bi bi-people me-1 text-primary"></i> Residentes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold px-2 text-dark" asp-area="" asp-controller="Habitaciones" asp-action="Index">
+                                <i class="bi bi-door-open me-1 text-primary"></i> Habitaciones
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="flex-grow-1">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top bg-white text-muted py-3 mt-auto">
+        <div class="container-fluid px-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small">
+            <div>
+                &copy; 2026 <strong>VITALIA</strong> — Plataforma Integral de Gestión, Cuidado y Bienestar del Adulto Mayor
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

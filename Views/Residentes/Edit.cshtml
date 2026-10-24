@@ -1,0 +1,158 @@
+@model VITALIA.Models.ViewModels.ResidenteFormViewModel
+
+@{
+    ViewData["Title"] = $"Editar Residente {Model.Nombre} {Model.Apellido}";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2 small">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Residentes</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Editar Residente</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="card-header bg-primary text-white py-3 px-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-pencil-square fs-4 me-2"></i>
+                        <div>
+                            <h2 class="h5 mb-0 fw-bold">Editar Residente: @Model.Nombre @Model.Apellido</h2>
+                            <small class="text-white-50">Modifique los datos del expediente o reasigne la habitación</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="IdResidente" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 py-2 small" role="alert"></div>
+
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                            <i class="bi bi-person-vcard text-primary me-1"></i> Datos Personales
+                        </h6>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Nombre" class="form-label fw-semibold text-dark">
+                                    Nombre <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Nombre" class="form-control bg-light" maxlength="50" />
+                                <span asp-validation-for="Nombre" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Apellido" class="form-label fw-semibold text-dark">
+                                    Apellido <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Apellido" class="form-control bg-light" maxlength="50" />
+                                <span asp-validation-for="Apellido" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FechaNacimiento" class="form-label fw-semibold text-dark">
+                                    Fecha de Nacimiento <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="FechaNacimiento" type="date" class="form-control bg-light" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Sexo" class="form-label fw-semibold text-dark">
+                                    Sexo <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="Sexo" class="form-select bg-light">
+                                    <option value="Femenino" selected="@(Model.Sexo == "Femenino" ? "selected" : null)">Femenino</option>
+                                    <option value="Masculino" selected="@(Model.Sexo == "Masculino" ? "selected" : null)">Masculino</option>
+                                    <option value="Otro" selected="@(Model.Sexo == "Otro" ? "selected" : null)">Otro</option>
+                                </select>
+                                <span asp-validation-for="Sexo" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Telefono" class="form-label fw-semibold text-dark">
+                                    Teléfono de Contacto
+                                </label>
+                                <input asp-for="Telefono" class="form-control bg-light" maxlength="20" />
+                                <span asp-validation-for="Telefono" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Direccion" class="form-label fw-semibold text-dark">
+                                    Dirección de Procedencia
+                                </label>
+                                <input asp-for="Direccion" class="form-control bg-light" maxlength="150" />
+                                <span asp-validation-for="Direccion" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                            <i class="bi bi-hospital text-primary me-1"></i> Asignación Habitacional
+                        </h6>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="FechaIngreso" class="form-label fw-semibold text-dark">
+                                    Fecha de Ingreso <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="FechaIngreso" type="date" class="form-control bg-light" />
+                                <span asp-validation-for="FechaIngreso" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="IdHabitacion" class="form-label fw-semibold text-dark">
+                                    Habitación Asignada <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="IdHabitacion" class="form-select bg-light">
+                                    @foreach (var hab in Model.HabitacionesDisponibles)
+                                    {
+                                        bool esHabitacionActual = hab.IdHabitacion == Model.IdHabitacion;
+                                        int plazasDisponibles = hab.Capacidad - hab.ResidentesAsignados;
+                                        bool puedeElegir = esHabitacionActual || (hab.EstadoCoherente == "Disponible" && plazasDisponibles > 0);
+
+                                        if (puedeElegir)
+                                        {
+                                            <option value="@hab.IdHabitacion" selected="@(esHabitacionActual ? "selected" : null)">
+                                                Habitación @hab.Numero — @plazasDisponibles plaza(s) libre(s) de @hab.Capacidad @(esHabitacionActual ? "(Habitación Actual)" : "")
+                                            </option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@hab.IdHabitacion" disabled="disabled">
+                                                Habitación @hab.Numero — @(plazasDisponibles <= 0 ? "Sin plazas libres" : "Estado: " + hab.EstadoCoherente) (No disponible)
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="IdHabitacion" class="text-danger small"></span>
+                                <div class="form-text small">Para traslados, solo se admiten habitaciones en estado <em>Disponible</em> con cupo libre.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm">
+                                <i class="bi bi-save me-1"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

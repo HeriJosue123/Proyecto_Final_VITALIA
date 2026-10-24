@@ -1,0 +1,85 @@
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="container-fluid px-3 px-lg-4 py-3">
+    <!-- Hero Banner Compacto -->
+    <div class="p-3 p-md-4 mb-4 rounded-4 bg-white border shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h1 class="h3 fw-bold text-dark mb-1 d-flex align-items-center">
+                    <i class="bi bi-heart-pulse-fill text-primary me-2"></i>VITALIA
+                </h1>
+                <p class="text-secondary small mb-0">
+                    Plataforma Integral de Gestión, Cuidado y Bienestar del Adulto Mayor
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-controller="Residentes" asp-action="Index" class="btn btn-primary btn-sm rounded-pill px-3 py-2 shadow-sm fw-semibold">
+                    <i class="bi bi-people me-1"></i> Residentes
+                </a>
+                <a asp-controller="Habitaciones" asp-action="Index" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 shadow-sm fw-semibold">
+                    <i class="bi bi-door-open me-1"></i> Habitaciones
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Módulos Principales -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="h5 fw-bold text-dark mb-1">Módulos de Gestión</h2>
+                <p class="text-muted small mb-0">Administración de expedientes de residentes y capacidad habitacional</p>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- Residentes -->
+            <div class="col-md-6">
+                <div class="card h-100 border-primary border-2 rounded-4 shadow-sm hover-shadow transition bg-white">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="bg-primary text-white p-3 rounded-3 shadow-sm">
+                                <i class="bi bi-people fs-3"></i>
+                            </div>
+                            <span class="badge bg-success text-white rounded-pill px-3 py-1 small">
+                                <i class="bi bi-check2-circle me-1"></i> Módulo Activo
+                            </span>
+                        </div>
+                        <h4 class="card-title fw-bold text-dark mb-2">Residentes</h4>
+                        <p class="card-text text-secondary small mb-4 flex-grow-1">
+                            Expedientes de adultos mayores, información personal, fechas de ingreso y asignación de habitaciones.
+                        </p>
+                        <a asp-controller="Residentes" asp-action="Index" class="btn btn-primary rounded-pill py-2 fw-semibold shadow-sm">
+                            <i class="bi bi-arrow-right-circle me-1"></i> Ingresar al Módulo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Habitaciones -->
+            <div class="col-md-6">
+                <div class="card h-100 border-primary border-2 rounded-4 shadow-sm hover-shadow transition bg-white">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="bg-primary text-white p-3 rounded-3 shadow-sm">
+                                <i class="bi bi-door-open fs-3"></i>
+                            </div>
+                            <span class="badge bg-success text-white rounded-pill px-3 py-1 small">
+                                <i class="bi bi-check2-circle me-1"></i> Módulo Activo
+                            </span>
+                        </div>
+                        <h4 class="card-title fw-bold text-dark mb-2">Habitaciones</h4>
+                        <p class="card-text text-secondary small mb-4 flex-grow-1">
+                            Administración de cuartos, control de capacidad física, cupos ocupados y estados de disponibilidad.
+                        </p>
+                        <a asp-controller="Habitaciones" asp-action="Index" class="btn btn-primary rounded-pill py-2 fw-semibold shadow-sm">
+                            <i class="bi bi-arrow-right-circle me-1"></i> Ingresar al Módulo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
