@@ -3,34 +3,34 @@ using VITALIA.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// 1. Agregar soporte para controladores y vistas (MVC)
 builder.Services.AddControllersWithViews();
 
-// Configuración de Entity Framework Core con SQL Server
+// 2. Configuración de Entity Framework Core con SQL Server
 builder.Services.AddDbContext<VitaliaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("VitaliaConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-var app = builder.Build();
+var builderApp = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+// 3. Configuración del pipeline de solicitudes HTTP
+if (!builderApp.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    builderApp.UseExceptionHandler("/Home/Error");
+    // El valor predeterminado de HSTS es de 30 días. Puedes cambiarlo para producción.
+    builderApp.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseRouting();
+builderApp.UseHttpsRedirection();
+builderApp.UseRouting();
 
-app.UseAuthorization();
+builderApp.UseAuthorization();
 
-app.MapStaticAssets();
+// Soporte para archivos estáticos optimizados en .NET moderno
+builderApp.MapStaticAssets();
 
-app.MapControllerRoute(
+builderApp.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
-app.Run();
+builderApp.Run();

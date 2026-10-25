@@ -1,57 +1,37 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace VITALIA.Models;
 
-/// <summary>
-/// Representa un residente dentro del asilo VITALIA.
-/// Mapeada a la tabla existente 'Residentes' de VITALIADB.
-/// </summary>
-[Table("Residentes")]
-public class Residente
+public partial class Residente
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [Display(Name = "ID Residente")]
     public int IdResidente { get; set; }
 
-    [Required(ErrorMessage = "El nombre es obligatorio.")]
-    [StringLength(50, ErrorMessage = "El nombre no puede exceder los 50 caracteres.")]
-    [Display(Name = "Nombre")]
-    public string Nombre { get; set; } = string.Empty;
+    public string CodigoUnico { get; set; } = null!;
 
-    [Required(ErrorMessage = "El apellido es obligatorio.")]
-    [StringLength(50, ErrorMessage = "El apellido no puede exceder los 50 caracteres.")]
-    [Display(Name = "Apellido")]
-    public string Apellido { get; set; } = string.Empty;
+    public string Nombre { get; set; } = null!;
 
-    [Required(ErrorMessage = "La fecha de nacimiento es obligatoria.")]
-    [DataType(DataType.Date)]
-    [Display(Name = "Fecha de Nacimiento")]
-    public DateTime FechaNacimiento { get; set; }
+    public string Apellido { get; set; } = null!;
 
-    [Required(ErrorMessage = "El sexo es obligatorio.")]
-    [StringLength(20)]
-    [Display(Name = "Sexo")]
-    public string Sexo { get; set; } = string.Empty;
+    public DateOnly FechaNacimiento { get; set; }
 
-    [StringLength(20)]
-    [Display(Name = "Teléfono")]
-    public string? Telefono { get; set; }
+    public string NumHabitacion { get; set; } = null!;
 
-    [StringLength(150)]
-    [Display(Name = "Dirección")]
-    public string? Direccion { get; set; }
+    public string? TipoSangre { get; set; }
 
-    [Required(ErrorMessage = "La fecha de ingreso es obligatoria.")]
-    [DataType(DataType.Date)]
-    [Display(Name = "Fecha de Ingreso")]
-    public DateTime FechaIngreso { get; set; }
+    public string? Alergias { get; set; }
 
-    [Required(ErrorMessage = "La habitación es obligatoria.")]
-    [Display(Name = "Habitación")]
-    public int IdHabitacion { get; set; }
+    public string ContactoEmergencia { get; set; } = null!;
 
-    [ForeignKey(nameof(IdHabitacion))]
-    public virtual Habitacion? Habitacion { get; set; }
+    public string? Observaciones { get; set; }
+
+    public bool Estado { get; set; }
+
+    public virtual ICollection<Alertum> Alerta { get; set; } = new List<Alertum>();
+
+    public virtual ICollection<AsignacionCuidado> AsignacionCuidados { get; set; } = new List<AsignacionCuidado>();
+
+    public virtual ICollection<AtencionDiarium> AtencionDiaria { get; set; } = new List<AtencionDiarium>();
+
+    public virtual ICollection<FamiliarResidente> FamiliarResidentes { get; set; } = new List<FamiliarResidente>();
 }
