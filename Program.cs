@@ -16,13 +16,15 @@ var builderApp = builder.Build();
 if (!builderApp.Environment.IsDevelopment())
 {
     builderApp.UseExceptionHandler("/Home/Error");
-    // El valor predeterminado de HSTS es de 30 días. Puedes cambiarlo para producción.
     builderApp.UseHsts();
 }
 
 builderApp.UseHttpsRedirection();
-builderApp.UseRouting();
 
+// --- AGREGA ESTA LÍNEA ---
+builderApp.UseStaticFiles();
+
+builderApp.UseRouting();
 builderApp.UseAuthorization();
 
 // Soporte para archivos estáticos optimizados en .NET moderno

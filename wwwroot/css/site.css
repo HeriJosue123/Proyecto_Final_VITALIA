@@ -1,31 +1,153 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+:root {
+    --vitalia-sidebar-bg: #093437;
+    --vitalia-sidebar-text: #a3c2c4;
+    --vitalia-primary: #12898e;
+    --vitalia-primary-hover: #0e6c70;
+    --vitalia-bg: #f2f5f7;
 }
 
 body {
-  margin-bottom: 60px;
+    background-color: var(--vitalia-bg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* Layout del Dashboard */
+.vitalia-wrapper {
+    display: flex;
+    min-height: 100vh;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* Menú Lateral (Sidebar) */
+.vitalia-sidebar {
+    width: 250px;
+    background-color: var(--vitalia-sidebar-bg);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 1.5rem 1rem;
 }
+
+/* Contenedor Principal de Páginas */
+.vitalia-content {
+    margin-left: 250px;
+    flex: 1;
+    padding: 2rem;
+    background-color: var(--vitalia-bg);
+    min-height: 100vh;
+}
+
+/* Marca / Logo */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    margin-bottom: 2rem;
+    padding-left: 0.5rem;
+}
+
+.brand-icon {
+    width: 36px;
+    height: 36px;
+    background-color: #17a2a8;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+/* Etiquetas de Sección */
+.sidebar-section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5c8b8e;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    padding-left: 0.75rem;
+}
+
+/* Links de Navegación */
+.sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.9rem;
+        color: #b1d1d3;
+        border-radius: 10px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        margin-bottom: 0.25rem;
+    }
+
+        .sidebar-nav .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-nav .nav-link.active {
+            background-color: #ffffff;
+            color: #093437;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+            .sidebar-nav .nav-link.active i {
+                color: #12898e;
+            }
+
+/* Tarjeta de Usuario inferior */
+.sidebar-user {
+    margin-top: auto;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    background-color: #e09f3e;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+/* Botones con verde turquesa oficial */
+.btn-vitalia {
+    background-color: var(--vitalia-primary) !important;
+    color: #fff !important;
+    border: none !important;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+}
+
+    .btn-vitalia:hover {
+        background-color: var(--vitalia-primary-hover) !important;
+    }

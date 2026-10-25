@@ -1,0 +1,200 @@
+﻿@model IEnumerable<VITALIA.Models.Residente>
+
+@{
+    ViewData["Title"] = "Residentes";
+}
+
+<!-- Encabezado del Módulo -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Residentes</h3>
+        <p class="text-muted small mb-0">Expedientes digitales del adulto mayor</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <div class="input-group search-box" style="width: 280px;">
+            <span class="input-group-text bg-white border-end-0 rounded-start-3 text-muted">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 rounded-end-3" placeholder="Buscar por nombre o ID...">
+        </div>
+        <a asp-action="Create" class="btn btn-vitalia text-nowrap">
+            <i class="bi bi-plus-lg me-1"></i> + Registrar residente
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Tabla Principal de Residentes -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm rounded-3 border-light-subtle" style="width: auto;">
+                        <option>Estado: Activos</option>
+                        <option>Estado: Inactivos</option>
+                        <option>Todos</option>
+                    </select>
+                    <select class="form-select form-select-sm rounded-3 border-light-subtle" style="width: auto;">
+                        <option>Habitaciones: Todas</option>
+                    </select>
+                </div>
+                <small class="text-muted">Mostrando residentes ordenados por código</small>
+            </div>
+
+            <!-- Tabla -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th>Código</th>
+                            <th>Residente</th>
+                            <th>Edad</th>
+                            <th>Ubicación</th>
+                            <th>Sangre</th>
+                            <th>Alergias</th>
+                            <th>Contacto</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                var edad = DateTime.Now.Year - item.FechaNacimiento.Year;
+                                if (item.FechaNacimiento > DateOnly.FromDateTime(DateTime.Now.AddYears(-edad))) { edad--; }
+
+                                <tr>
+                                    <td class="fw-bold text-dark">@item.CodigoUnico</td>
+                                    <td class="fw-semibold">@item.Nombre @item.Apellido</td>
+                                    <td>@edad años</td>
+                                    <td>Hab. @item.NumHabitacion</td>
+                                    <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle">@(item.TipoSangre ?? "N/A")</span></td>
+                                    <td>@(string.IsNullOrEmpty(item.Alergias) ? "Ninguna" : item.Alergias)</td>
+                                    <td>@item.ContactoEmergencia</td>
+                                    <td>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                            @(item.Estado ? "Activo" : "Inactivo")
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <!-- Datos Demostración según Prototipo Oficial -->
+                            <tr class="table-active">
+                                <td class="fw-bold">RES-2026-001</td>
+                                <td class="fw-semibold text-dark">Marta Elena Gómez</td>
+                                <td>82</td>
+                                <td>Hab. 101</td>
+                                <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle">O+</span></td>
+                                <td>Penicilina</td>
+                                <td>Carlos Gómez · 7000-1111</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Activo</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">RES-2026-002</td>
+                                <td class="fw-semibold text-dark">José Antonio Reyes</td>
+                                <td>76</td>
+                                <td>Hab. 102</td>
+                                <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle">A+</span></td>
+                                <td>Ninguna</td>
+                                <td>Ana Reyes · 7000-2222</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Activo</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">RES-2026-003</td>
+                                <td class="fw-semibold text-dark">Rosa Amelia Martínez</td>
+                                <td>88</td>
+                                <td>Hab. 105</td>
+                                <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle">B-</span></td>
+                                <td>Aspirina, látex</td>
+                                <td>Luis Martínez · 7000-3333</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Activo</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 text-muted small">
+                <i class="bi bi-info-circle me-1"></i> Las bajas son lógicas: el residente deja de aparecer en listados activos pero conserva su historial (RF-005).
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Lateral de Detalle del Residente -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold fs-5"
+                     style="width: 52px; height: 52px; background-color: #12898e;">
+                    MG
+                </div>
+                <div>
+                    <h5 class="fw-bold text-dark mb-0">Marta Elena Gómez</h5>
+                    <small class="text-muted">RES-2026-001 · 82 años · Hab. 101</small>
+                </div>
+            </div>
+
+            <div class="row g-2 small text-muted mb-3 border-top border-bottom py-2">
+                <div class="col-6">
+                    <span class="d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Nacimiento</span>
+                    <span class="text-dark fw-semibold">14/03/1944</span>
+                </div>
+                <div class="col-6">
+                    <span class="d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Tipo de Sangre</span>
+                    <span class="text-dark fw-semibold">O+</span>
+                </div>
+                <div class="col-6 mt-2">
+                    <span class="d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Alergias</span>
+                    <span class="text-dark fw-semibold">Penicilina</span>
+                </div>
+                <div class="col-6 mt-2">
+                    <span class="d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Emergencia</span>
+                    <span class="text-dark fw-semibold">Carlos Gómez (7000-1111)</span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <span class="d-block text-uppercase fw-bold text-muted mb-1" style="font-size: 0.65rem;">Observaciones</span>
+                <p class="small text-dark mb-0 bg-light p-2 rounded-3 border">
+                    Hipertensión controlada. Requiere apoyo para caminar. Dieta baja en sodio.
+                </p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-vitalia btn-sm flex-fill">Editar datos</button>
+                <button class="btn btn-outline-vitalia btn-sm flex-fill">Ver bitácora</button>
+            </div>
+        </div>
+
+        <!-- Familiares Vinculados -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <h6 class="fw-bold text-dark mb-3">Familiares vinculados</h6>
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    CG
+                </div>
+                <div>
+                    <div class="fw-bold text-dark small">Carlos Gómez</div>
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">Hijo · 7000-1111 · Solo lectura</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuidador Asignado -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h6 class="fw-bold text-dark mb-3">Cuidador asignado</h6>
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    LP
+                </div>
+                <div>
+                    <div class="fw-bold text-dark small">Lucía Pérez</div>
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">Cuidadora diurna · desde 01/09/2026</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

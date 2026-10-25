@@ -1,0 +1,187 @@
+﻿@{
+    ViewData["Title"] = "Bitácora de Atenciones";
+}
+
+<!-- Encabezado del Módulo -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-0">Bitácora de atenciones</h3>
+        <p class="text-muted small mb-0">Historial cronológico inmutable</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <div class="input-group search-box" style="width: 260px;">
+            <span class="input-group-text bg-white border-end-0 rounded-start-3 text-muted">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 rounded-end-3" placeholder="Buscar por nombre o ID...">
+        </div>
+        <button class="btn btn-vitalia text-nowrap">
+            <i class="bi bi-plus-lg me-1"></i> + Nueva atención
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Columna Izquierda: Historial de Atenciones -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <!-- Barra de Filtros -->
+            <div class="row g-2 mb-3 align-items-center">
+                <div class="col-md-4">
+                    <select class="form-select form-select-sm rounded-3 border-light-subtle">
+                        <option>Residente: Marta E. Gómez</option>
+                        <option>Todos los residentes</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control form-select-sm rounded-3 border-light-subtle" value="📅 01/10/2026 ➔ 20/10/2026" readonly />
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select form-select-sm rounded-3 border-light-subtle">
+                        <option>Tipo: Todos</option>
+                        <option>Medicación</option>
+                        <option>Signos Vitales</option>
+                        <option>Alimentación</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-1">
+                    <button class="btn btn-vitalia btn-sm flex-fill">Filtrar</button>
+                    <button class="btn btn-outline-vitalia btn-sm flex-fill" title="Exportar PDF">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-muted small mb-4" style="font-size: 0.78rem;">
+                Historial de solo anexo: no se puede editar ni eliminar (RF-011) · 5 de 37 resultados
+            </p>
+
+            <!-- Lista / Línea de Tiempo de Atenciones -->
+            <div class="d-flex flex-column gap-3">
+                <!-- Registro 1 -->
+                <div class="border-bottom pb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div>
+                            <span class="fw-bold text-dark me-2">07:45</span>
+                            <small class="text-muted">20/10/2026</small>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2">Medicación</span>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock-fill"></i> sello del servidor</small>
+                    </div>
+                    <p class="mb-1 text-dark small fw-semibold">Administrada dosis de losartán 50 mg con el desayuno. Sin molestias.</p>
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">Registrado por Lucía Pérez · Completado</small>
+                </div>
+
+                <!-- Registro 2 -->
+                <div class="border-bottom pb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div>
+                            <span class="fw-bold text-dark me-2">08:10</span>
+                            <small class="text-muted">20/10/2026</small>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">Toma de Signos Vitales</span>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock-fill"></i> sello del servidor</small>
+                    </div>
+                    <p class="mb-1 text-dark small fw-semibold">PA 128/82 mmHg · glucosa 104 mg/dL · peso 61.4 kg.</p>
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">Registrado por Lucía Pérez · Completado</small>
+                </div>
+
+                <!-- Registro 3 -->
+                <div class="border-bottom pb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div>
+                            <span class="fw-bold text-dark me-2">08:40</span>
+                            <small class="text-muted">20/10/2026</small>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-2">Alimentación</span>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock-fill"></i> sello del servidor</small>
+                    </div>
+                    <p class="mb-1 text-dark small fw-semibold">Desayuno completo. Buena hidratación.</p>
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">Registrado por Lucía Pérez · Completado</small>
+                </div>
+
+                <!-- Registro 4 -->
+                <div class="border-bottom pb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div>
+                            <span class="fw-bold text-dark me-2">18:20</span>
+                            <small class="text-muted">19/10/2026</small>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-2">Actividad Recreativa</span>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock-fill"></i> sello del servidor</small>
+                    </div>
+                    <p class="mb-1 text-dark small fw-semibold">Participó en juegos de mesa; ánimo positivo.</p>
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">Registrado por Marcos Díaz · Completado</small>
+                </div>
+
+                <!-- Registro 5 con nota de corrección -->
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div>
+                            <span class="fw-bold text-dark me-2">14:05</span>
+                            <small class="text-muted">19/10/2026</small>
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle ms-2">Movilidad y Fisioterapia</span>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock-fill"></i> sello del servidor</small>
+                    </div>
+                    <p class="mb-1 text-dark small fw-semibold">Ejercicios de movilidad 20 min con andador.</p>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Registrado por Marcos Díaz · Completado</small>
+
+                    <!-- Corrección Inmutable vinculada -->
+                    <div class="p-2.5 rounded-3 border border-warning bg-warning-subtle text-dark small" style="font-size: 0.78rem;">
+                        <i class="bi bi-arrow-return-right me-1 fw-bold"></i> <strong>Corrección (Admin Demo, 19/10/2026 19:02)</strong> vinculada al registro de 14:05 — <em>Motivo: duración errónea, fueron 15 min. El original se conserva.</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Formulario Registrar Atención -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-3">
+            <h6 class="fw-bold text-dark mb-3">Registrar atención</h6>
+
+            <form>
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">RESIDENTE (asignado)</label>
+                    <input type="text" class="form-control form-control-sm bg-light" value="Marta Elena Gómez · RES-2026-001" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">TIPO DE ATENCIÓN *</label>
+                    <select class="form-select form-select-sm">
+                        <option>Medicación</option>
+                        <option>Toma de Signos Vitales</option>
+                        <option>Alimentación</option>
+                        <option>Actividad Recreativa</option>
+                        <option>Movilidad y Fisioterapia</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">DESCRIPCIÓN / OBSERVACIÓN *</label>
+                    <textarea class="form-control form-control-sm" rows="3" placeholder="Escribe lo realizado..."></textarea>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">FECHA Y HORA</label>
+                        <input type="text" class="form-control form-control-sm bg-light" value="Automática 🔒" readonly />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">EMPLEADO</label>
+                        <input type="text" class="form-control form-control-sm bg-light" value="Lucía Pérez 🔒" readonly />
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-vitalia w-100 mb-2">Guardar atención</button>
+                <p class="text-center text-muted" style="font-size: 0.72rem;">Se registra en 4 clics o menos desde el panel del cuidador (RNF-004).</p>
+            </form>
+        </div>
+
+        <!-- Alerta de Inmutabilidad -->
+        <div class="alert alert-danger border-danger-subtle rounded-4 p-3 mb-0 small" style="font-size: 0.75rem;">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Al intentar editar o borrar:</strong> "No se permite sobrescribir o alterar registros históricos".
+        </div>
+    </div>
+</div>

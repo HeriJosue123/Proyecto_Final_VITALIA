@@ -4,83 +4,256 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - VITALIA</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Bootstrap 5 CSS y Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/VITALIA.styles.css" asp-append-version="true" />
+
+    <!-- Estilos Oficiales de Vitalia -->
     <style>
-        .badge-pending {
-            font-size: 0.65rem;
-            padding: 0.2rem 0.45rem;
-            border-radius: 6px;
-            background-color: #f1f3f5;
-            color: #6c757d;
-            border: 1px solid #dee2e6;
-            vertical-align: middle;
-            margin-left: 4px;
-        }
-        .nav-link:hover .badge-pending {
-            background-color: #e9ecef;
-            color: #495057;
-        }
+            :root {
+                --vitalia-sidebar-bg: #093437;
+                --vitalia-sidebar-text: #a3c2c4;
+                --vitalia-primary: #12898e;
+                --vitalia-primary-hover: #0e6c70;
+                --vitalia-bg: #f2f5f7;
+            }
+
+            body {
+                background-color: var(--vitalia-bg);
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+                margin: 0;
+            }
+
+            /* Reemplazo global del color azul de Bootstrap por Turquesa Vitalia */
+            .btn-primary, .btn-vitalia {
+                background-color: var(--vitalia-primary) !important;
+                border-color: var(--vitalia-primary) !important;
+                color: #ffffff !important;
+                font-weight: 600;
+                border-radius: 8px;
+                padding: 0.5rem 1.25rem;
+            }
+
+                .btn-primary:hover, .btn-vitalia:hover {
+                    background-color: var(--vitalia-primary-hover) !important;
+                    border-color: var(--vitalia-primary-hover) !important;
+                }
+
+            .btn-outline-primary, .btn-outline-vitalia {
+                color: var(--vitalia-primary) !important;
+                border-color: var(--vitalia-primary) !important;
+                font-weight: 600;
+                border-radius: 8px;
+                padding: 0.5rem 1.25rem;
+            }
+
+                .btn-outline-primary:hover, .btn-outline-vitalia:hover {
+                    background-color: var(--vitalia-primary) !important;
+                    color: #ffffff !important;
+                }
+
+            .text-primary {
+                color: var(--vitalia-primary) !important;
+            }
+
+            .bg-primary {
+                background-color: var(--vitalia-primary) !important;
+            }
+
+            /* Layout Dashboard */
+            .vitalia-wrapper {
+                display: flex;
+                min-height: 100vh;
+            }
+
+            .vitalia-sidebar {
+                width: 250px;
+                background-color: var(--vitalia-sidebar-bg);
+                color: #fff;
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 1000;
+                padding: 1.5rem 1rem;
+            }
+
+            .vitalia-content {
+                margin-left: 250px;
+                flex: 1;
+                padding: 2rem;
+                background-color: var(--vitalia-bg);
+                min-height: 100vh;
+            }
+
+            .sidebar-brand {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #fff;
+                text-decoration: none;
+                margin-bottom: 2rem;
+                padding-left: 0.5rem;
+            }
+
+            .brand-icon {
+                width: 36px;
+                height: 36px;
+                background-color: #17a2a8;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+            }
+
+            .sidebar-section-label {
+                font-size: 0.7rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #5c8b8e;
+                margin-top: 1.25rem;
+                margin-bottom: 0.5rem;
+                padding-left: 0.75rem;
+            }
+
+            .sidebar-nav {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+                .sidebar-nav .nav-link {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 0.65rem 0.9rem;
+                    color: #b1d1d3;
+                    border-radius: 10px;
+                    font-weight: 500;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                    margin-bottom: 0.25rem;
+                }
+
+                    .sidebar-nav .nav-link:hover {
+                        color: #fff;
+                        background-color: rgba(255, 255, 255, 0.08);
+                    }
+
+                    .sidebar-nav .nav-link.active {
+                        background-color: #ffffff;
+                        color: #093437;
+                        font-weight: 700;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+                    }
+
+                        .sidebar-nav .nav-link.active i {
+                            color: #12898e;
+                        }
+
+            .sidebar-user {
+                margin-top: auto;
+                background-color: rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+                padding: 0.75rem 0.9rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .user-avatar {
+                width: 36px;
+                height: 36px;
+                background-color: #e09f3e;
+                color: #fff;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 0.85rem;
+            }
     </style>
 </head>
-<body class="d-flex flex-column min-vh-100 bg-light">
-    <header class="sticky-top shadow-sm">
-        <nav class="navbar navbar-expand-xl navbar-light bg-white border-bottom py-2">
-            <div class="container-fluid px-3 px-lg-4">
-                <a class="navbar-brand d-flex align-items-center fw-bold text-primary fs-4" asp-area="" asp-controller="Home" asp-action="Index">
-                    <span class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-3 p-2 me-2" style="width: 38px; height: 38px;">
-                        <i class="bi bi-heart-pulse-fill fs-5"></i>
-                    </span>
-                    <span>VITALIA</span>
-                </a>
+<body>
+    <div class="vitalia-wrapper">
+        <!-- Sidebar Oscuro -->
+        <aside class="vitalia-sidebar">
+            <a class="sidebar-brand" asp-controller="Home" asp-action="Index">
+                <div class="brand-icon">
+                    <i class="bi bi-suit-heart-fill"></i>
+                </div>
+                <span>VITALIA</span>
+            </a>
 
-                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#vitaliaNav" aria-controls="vitaliaNav"
-                        aria-expanded="false" aria-label="Alternar navegación">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            <div class="sidebar-section-label">Módulos</div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Residentes" ? "active" : "")"
+                       asp-controller="Residentes" asp-action="Index">
+                        <i class="bi bi-people-fill"></i> Residentes
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bitacora" ? "active" : "")"
+                       asp-controller="Bitacora" asp-action="Index">
+                        <i class="bi bi-journal-text"></i> Bitácora
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Alertas" ? "active" : "")"
+                       asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-bell-fill"></i> Alertas y Tareas
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Personal" ? "active" : "")"
+                       asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-stethoscope"></i> Personal
+                    </a>
+                </li>
+            </ul>
 
-                <div class="collapse navbar-collapse" id="vitaliaNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-xl-0 gap-1">
-                        <li class="nav-item">
-                            <a class="nav-link fw-semibold px-2" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="bi bi-house-door me-1 text-primary"></i> Inicio
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-semibold px-2 text-dark" asp-area="" asp-controller="Residentes" asp-action="Index">
-                                <i class="bi bi-people me-1 text-primary"></i> Residentes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-semibold px-2 text-dark" asp-area="" asp-controller="Habitaciones" asp-action="Index">
-                                <i class="bi bi-door-open me-1 text-primary"></i> Habitaciones
-                            </a>
-                        </li>
-                    </ul>
+            <div class="sidebar-section-label">Sistema</div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
+                       asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-shield-lock-fill"></i> Usuarios y Roles
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Respaldos" ? "active" : "")"
+                       asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-hdd-fill"></i> Respaldos
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">AD</div>
+                <div style="line-height: 1.2;">
+                    <div class="fw-bold text-white" style="font-size: 0.85rem;">Admin Demo</div>
+                    <small class="text-white-50" style="font-size: 0.75rem;">Administrador</small>
                 </div>
             </div>
-        </nav>
-    </header>
+        </aside>
 
-    <div class="flex-grow-1">
-        <main role="main">
+        <!-- Contenido principal -->
+        <main class="vitalia-content">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top bg-white text-muted py-3 mt-auto">
-        <div class="container-fluid px-4 d-flex flex-column flex-sm-row justify-content-between align-items-center small">
-            <div>
-                &copy; 2026 <strong>VITALIA</strong> — Plataforma Integral de Gestión, Cuidado y Bienestar del Adulto Mayor
-            </div>
-        </div>
-    </footer>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
