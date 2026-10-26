@@ -1,0 +1,72 @@
+@{
+    ViewData["Title"] = "Registrar Nuevo Empleado";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Registrar Nuevo Empleado</h3>
+        <p class="text-muted mb-0">Ingrese los datos del nuevo miembro del personal</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        ← Volver a la lista
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+
+            @* Mensajes de error *@
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">NOMBRE</label>
+                    <input type="text" name="Nombre" class="form-control" placeholder="Ej. Ana" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">APELLIDO</label>
+                    <input type="text" name="Apellido" class="form-control" placeholder="Ej. López" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">CARGO</label>
+                    <input type="text" name="Cargo" class="form-control" placeholder="Ej. Enfermera, Cuidador..." required />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">VINCULAR USUARIO (OPCIONAL)</label>
+                    <select name="IdUsuario" class="form-select">
+                        <option value="">-- Sin usuario vinculado --</option>
+                        @if (ViewData["IdUsuario"] is SelectList usuarios)
+                        {
+                            foreach (var item in usuarios)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-vitalia">
+                        <i class="bi bi-save me-1"></i> Guardar Empleado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

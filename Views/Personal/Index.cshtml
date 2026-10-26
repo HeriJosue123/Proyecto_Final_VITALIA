@@ -1,0 +1,132 @@
+@model IEnumerable<VITALIA.Models.Empleado>
+
+@{
+    ViewData["Title"] = "Personal";
+    // Recuperamos las asignaciones enviadas desde el controlador
+    var asignaciones = ViewBag.Asignaciones as IEnumerable<VITALIA.Models.AsignacionCuidado>;
+}
+
+<!-- Encabezado del Módulo -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Personal y Asignaciones</h3>
+        <p class="text-muted small mb-0">Gestión de empleados y vinculación con residentes</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <div class="input-group search-box" style="width: 280px;">
+            <span class="input-group-text bg-white border-end-0 rounded-start-3 text-muted">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 rounded-end-3" placeholder="Buscar empleado...">
+        </div>
+        <a asp-action="Create" class="btn btn-vitalia text-nowrap" style="background-color: #12898e; color: white;">
+            <i class="bi bi-plus-lg me-1"></i> + Registrar Empleado
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Tabla Principal de Empleados -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm rounded-3 border-light-subtle" style="width: auto;">
+                        <option>Estado: Activos</option>
+                        <option>Estado: Inactivos</option>
+                        <option>Todos</option>
+                    </select>
+                </div>
+                <small class="text-muted">Mostrando personal registrado</small>
+            </div>
+
+            <!-- Tabla -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Cargo</th>
+                            <th>Usuario Vinculado</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">@item.Nombre @item.Apellido</td>
+                                    <td class="fw-semibold">@item.Cargo</td>
+                                    <td>@(item.IdUsuarioNavigation?.Correo ?? "Sin usuario")</td>
+                                    <td>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                            @(item.Estado ? "Activo" : "Inactivo")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <form asp-action="Delete" asp-route-id="@item.IdEmpleado" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Dar de baja">
+                                                <i class="bi bi-trash"></i> Baja
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="bi bi-person-x fs-4 d-block mb-2"></i>
+                                    No hay empleados registrados actualmente.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Lateral de Asignaciones (Simulando la vista de detalle) -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0">Asignaciones Activas</h6>
+                <a asp-action="Asignar" class="btn btn-sm btn-outline-primary py-0">Nueva</a>
+            </div>
+
+            @if (asignaciones != null && asignaciones.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var asig in asignaciones)
+                    {
+                        <div class="list-group-item px-0 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                    <i class="bi bi-person-hearts"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">@asig.IdEmpleadoNavigation?.Nombre cuida a @asig.IdResidenteNavigation?.Nombre</div>
+                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Desde: @asig.FechaInicio.ToString("dd/MM/yyyy")</small>
+                                </div>
+                            </div>
+                            <form asp-action="FinalizarAsignacion" asp-route-id="@asig.IdAsignacion" method="post" class="mt-2 text-end">
+                                <button type="submit" class="btn btn-sm btn-light text-danger" style="font-size: 0.75rem;">Finalizar tarea</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="small text-muted mb-0 bg-light p-3 rounded-3 border text-center">
+                    No hay asignaciones de cuidado activas en este momento.
+                </p>
+            }
+        </div>
+    </div>
+</div>

@@ -7,7 +7,7 @@ public partial class Empleado
 {
     public int IdEmpleado { get; set; }
 
-    public int IdUsuario { get; set; }
+    public int? IdUsuario { get; set; }   // ← Aquí el cambio (agregamos el ?)
 
     public string Nombre { get; set; } = null!;
 
@@ -21,5 +21,5 @@ public partial class Empleado
 
     public virtual ICollection<AtencionDiarium> AtencionDiaria { get; set; } = new List<AtencionDiarium>();
 
-    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
+    public virtual Usuario? IdUsuarioNavigation { get; set; }
 }

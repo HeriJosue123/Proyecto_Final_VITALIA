@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Asignar Personal a Residente";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Asignar Personal a Residente</h3>
+        <p class="text-muted mb-0">Vincula un empleado con un residente para el cuidado</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        ← Volver a la lista
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <form asp-action="Asignar" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Empleado</label>
+                    <select name="IdEmpleado" class="form-select" required>
+                        <option value="">-- Seleccione un empleado --</option>
+                        @if (ViewData["IdEmpleado"] is SelectList empleados)
+                        {
+                            foreach (var item in empleados)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Residente</label>
+                    <select name="IdResidente" class="form-select" required>
+                        <option value="">-- Seleccione un residente --</option>
+                        @if (ViewData["IdResidente"] is SelectList residentes)
+                        {
+                            foreach (var item in residentes)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-vitalia">
+                        <i class="bi bi-link-45deg me-1"></i> Crear Asignación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
