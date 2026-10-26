@@ -1,0 +1,124 @@
+@model VITALIA.Models.Residente
+
+@{
+    ViewData["Title"] = "Ficha del residente";
+    var hoy = DateOnly.FromDateTime(DateTime.Today);
+    int edad = hoy.Year - Model.FechaNacimiento.Year;
+    if (Model.FechaNacimiento > hoy.AddYears(-edad)) edad--;
+    var cuidadores = Model.AsignacionCuidados.Where(a => a.Estado).OrderByDescending(a => a.FechaInicio).ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Ficha del residente</h3>
+        <p class="text-muted small mb-0">Expediente digital del adulto mayor</p>
+    </div>
+    <a asp-action="Index" asp-route-estado="todos" asp-route-seleccionado="@Model.IdResidente" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Volver a la lista
+    </a>
+</div>
+
+@if (!Model.Estado)
+{
+    <div class="alert alert-secondary rounded-3 small" role="alert">
+        <i class="bi bi-archive me-1"></i> Este residente está <strong>dado de baja</strong> (baja lógica). Su expediente se conserva como histórico y no aparece en el listado de activos.
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold fs-4 flex-shrink-0"
+                     style="width: 64px; height: 64px; background-color: @(Model.Estado ? "#12898e" : "#6c757d");">
+                    @($"{Model.Nombre.FirstOrDefault()}{Model.Apellido.FirstOrDefault()}".ToUpper())
+                </div>
+                <div>
+                    <h4 class="fw-bold text-dark mb-0">@Model.Nombre @Model.Apellido</h4>
+                    <div class="text-muted small">@Model.CodigoUnico · @edad años · Hab. @Model.NumHabitacion</div>
+                    @if (Model.Estado)
+                    {
+                        <span class="badge bg-success-subtle text-success border border-success-subtle mt-1">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle mt-1">Inactivo</span>
+                    }
+                </div>
+            </div>
+
+            <dl class="row small mb-0">
+                <dt class="col-sm-4 text-muted">Código único</dt>
+                <dd class="col-sm-8 fw-semibold">@Model.CodigoUnico</dd>
+
+                <dt class="col-sm-4 text-muted">Fecha de nacimiento</dt>
+                <dd class="col-sm-8">@Model.FechaNacimiento.ToString("dd/MM/yyyy") (@edad años)</dd>
+
+                <dt class="col-sm-4 text-muted">Habitación</dt>
+                <dd class="col-sm-8">@Model.NumHabitacion</dd>
+
+                <dt class="col-sm-4 text-muted">Tipo de sangre</dt>
+                <dd class="col-sm-8">@(Model.TipoSangre ?? "No registrado")</dd>
+
+                <dt class="col-sm-4 text-muted">Alergias</dt>
+                <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Alergias) ? "Ninguna" : Model.Alergias)</dd>
+
+                <dt class="col-sm-4 text-muted">Contacto de emergencia</dt>
+                <dd class="col-sm-8">@Model.ContactoEmergencia</dd>
+
+                <dt class="col-sm-4 text-muted">Antecedentes / observaciones</dt>
+                <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Observaciones) ? "Sin observaciones registradas." : Model.Observaciones)</dd>
+            </dl>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a asp-action="Edit" asp-route-id="@Model.IdResidente" class="btn btn-vitalia">
+                    <i class="bi bi-pencil me-1"></i> Editar datos
+                </a>
+                @if (Model.Estado)
+                {
+                    <a asp-action="Delete" asp-route-id="@Model.IdResidente" class="btn btn-outline-danger">
+                        <i class="bi bi-person-dash me-1"></i> Dar de baja
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <h6 class="fw-bold text-dark mb-3">Familiares vinculados</h6>
+            @if (Model.FamiliarResidentes.Any())
+            {
+                foreach (var fam in Model.FamiliarResidentes)
+                {
+                    <div class="small mb-2">
+                        <div class="fw-bold text-dark">@(fam.IdUsuarioNavigation?.Correo ?? "Familiar")</div>
+                        <div class="text-muted">@fam.Parentesco · @fam.TelefonoContacto</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="small text-muted mb-0">No hay familiares vinculados.</p>
+            }
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h6 class="fw-bold text-dark mb-3">Cuidador asignado</h6>
+            @if (cuidadores.Any())
+            {
+                foreach (var asig in cuidadores)
+                {
+                    <div class="small mb-2">
+                        <div class="fw-bold text-dark">@asig.IdEmpleadoNavigation?.Nombre @asig.IdEmpleadoNavigation?.Apellido</div>
+                        <div class="text-muted">@asig.IdEmpleadoNavigation?.Cargo · desde @asig.FechaInicio.ToString("dd/MM/yyyy")</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="small text-muted mb-0">Sin cuidador asignado.</p>
+            }
+        </div>
+    </div>
+</div>

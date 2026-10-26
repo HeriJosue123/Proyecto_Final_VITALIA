@@ -1,0 +1,80 @@
+@model VITALIA.Models.Residente
+
+@* Campos compartidos por Registrar y Editar *@
+@{
+    string fechaValor = ViewData.ModelState.TryGetValue("FechaNacimiento", out var entradaFecha) && entradaFecha.AttemptedValue != null
+        ? entradaFecha.AttemptedValue
+        : (Model.FechaNacimiento == default ? "" : Model.FechaNacimiento.ToString("yyyy-MM-dd"));
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger rounded-3 small" role="alert">
+        <div class="fw-bold mb-1"><i class="bi bi-exclamation-octagon-fill me-1"></i> Revise los datos del formulario:</div>
+        <ul class="mb-0">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<h6 class="fw-bold text-dark mb-3">Identificación</h6>
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label asp-for="CodigoUnico" class="form-label fw-semibold small">Código único <span class="text-danger">*</span></label>
+        <input asp-for="CodigoUnico" class="form-control" placeholder="Ej. RES-2026-001" maxlength="20" />
+        <span asp-validation-for="CodigoUnico" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Nombre" class="form-label fw-semibold small">Nombre <span class="text-danger">*</span></label>
+        <input asp-for="Nombre" class="form-control" placeholder="Ej. Marta Elena" />
+        <span asp-validation-for="Nombre" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Apellido" class="form-label fw-semibold small">Apellido <span class="text-danger">*</span></label>
+        <input asp-for="Apellido" class="form-control" placeholder="Ej. Gómez" />
+        <span asp-validation-for="Apellido" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label for="FechaNacimiento" class="form-label fw-semibold small">Fecha de nacimiento <span class="text-danger">*</span></label>
+        <input type="date" id="FechaNacimiento" name="FechaNacimiento" value="@fechaValor" class="form-control" />
+        <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="NumHabitacion" class="form-label fw-semibold small">Habitación <span class="text-danger">*</span></label>
+        <input asp-for="NumHabitacion" class="form-control" placeholder="Ej. 101" maxlength="20" />
+        <span asp-validation-for="NumHabitacion" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="TipoSangre" class="form-label fw-semibold small">Tipo de sangre</label>
+        <select asp-for="TipoSangre" class="form-select">
+            <option value="">No registrado</option>
+            @foreach (var tipo in VITALIA.Controllers.ResidentesController.TiposSangre)
+            {
+                <option value="@tipo">@tipo</option>
+            }
+        </select>
+        <span asp-validation-for="TipoSangre" class="text-danger small"></span>
+    </div>
+</div>
+
+<h6 class="fw-bold text-dark mb-3">Salud y contacto</h6>
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <label asp-for="ContactoEmergencia" class="form-label fw-semibold small">Contacto de emergencia <span class="text-danger">*</span></label>
+        <input asp-for="ContactoEmergencia" class="form-control" placeholder="Ej. Carlos Gómez · 7000-1111" />
+        <span asp-validation-for="ContactoEmergencia" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Alergias" class="form-label fw-semibold small">Alergias</label>
+        <input asp-for="Alergias" class="form-control" placeholder="Ej. Penicilina (dejar vacío si no tiene)" />
+        <span asp-validation-for="Alergias" class="text-danger small"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Observaciones" class="form-label fw-semibold small">Antecedentes / observaciones <span class="text-danger">*</span></label>
+        <textarea asp-for="Observaciones" class="form-control" rows="3" placeholder="Ej. Hipertensión controlada. Requiere apoyo para caminar."></textarea>
+        <span asp-validation-for="Observaciones" class="text-danger small"></span>
+    </div>
+</div>

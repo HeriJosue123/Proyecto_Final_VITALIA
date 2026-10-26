@@ -1,0 +1,32 @@
+@model VITALIA.Models.Residente
+
+@{
+    ViewData["Title"] = "Registrar residente";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Registrar residente</h3>
+        <p class="text-muted small mb-0">Ingrese el expediente básico del adulto mayor</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Volver a la lista
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <form asp-action="Create" method="post">
+        @await Html.PartialAsync("_FormularioResidente", Model)
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-vitalia">
+                <i class="bi bi-save me-1"></i> Guardar residente
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
