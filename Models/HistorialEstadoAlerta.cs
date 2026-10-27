@@ -2,39 +2,31 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace VITALIA.Models
+public class HistorialEstadoAlerta
 {
-    [Table("HISTORIAL_ESTADO_ALERTA")]
-    public class HistorialEstadoAlerta
-    {
-        [Key]
-        [Column("id_historial_estado")]
-        public int IdHistorialEstado { get; set; }
+    [Key]
+    public int IdHistorialEstado { get; set; }
 
-        [Column("id_alerta")]
-        public int IdAlerta { get; set; }
+    [Required]
+    public int IdAlerta { get; set; }
+    
+    [ForeignKey("IdAlerta")]
+    public Alerta Alerta { get; set; }
 
-        [Column("id_usuario")]
-        public int IdUsuario { get; set; }
+    [Required]
+    public int IdUsuario { get; set; } // El usuario que realizó el cambio
 
-        [Required, StringLength(30)]
-        [Column("estado_anterior")]
-        public string EstadoAnterior { get; set; } = string.Empty;
+    [Required]
+    [MaxLength(20)]
+    public string EstadoAnterior { get; set; }
 
-        [Required, StringLength(30)]
-        [Column("estado_nuevo")]
-        public string EstadoNuevo { get; set; } = string.Empty;
+    [Required]
+    [MaxLength(20)]
+    public string EstadoNuevo { get; set; }
 
-        [Column("fecha_hora")]
-        public DateTime FechaHora { get; set; } = DateTime.Now;
+    [Required]
+    public DateTime FechaHora { get; set; } = DateTime.Now;
 
-        [Column("comentario")]
-        public string? Comentario { get; set; }
-
-        [ForeignKey("IdAlerta")]
-        public virtual Alerta? Alerta { get; set; }
-
-        [ForeignKey("IdUsuario")]
-        public virtual Usuario? Usuario { get; set; }
-    }
+    [MaxLength(500)]
+    public string Comentario { get; set; }
 }
