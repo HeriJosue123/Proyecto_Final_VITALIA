@@ -6,9 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Agregar soporte para controladores y vistas (MVC)
 builder.Services.AddControllersWithViews();
 
-// 2. Configuración de Entity Framework Core (SOLO EN MEMORIA)
+// 2. Conexión a SQL Server (Persistencia Real)
 builder.Services.AddDbContext<VitaliaDbContext>(options =>
-    options.UseInMemoryDatabase("VitaliaTestDb"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var builderApp = builder.Build();
 
@@ -23,7 +23,6 @@ builderApp.UseHttpsRedirection();
 builderApp.UseStaticFiles();
 builderApp.UseRouting();
 builderApp.UseAuthorization();
-
 builderApp.MapStaticAssets();
 
 builderApp.MapControllerRoute(
