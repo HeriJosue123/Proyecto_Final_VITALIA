@@ -35,7 +35,8 @@ public partial class VitaliaDbContext : DbContext
         modelBuilder.Entity<Alertum>(entity =>
         {
             entity.HasKey(e => e.IdAlerta);
-            entity.ToTable("ALERTA");
+            // RESTRICCIÓN AGREGADA AQUÍ
+            entity.ToTable("ALERTA", t => t.HasCheckConstraint("CK_Alerta_Estado", "[estado_actual] IN ('Pendiente', 'En Proceso', 'Atendida')"));
             entity.Property(e => e.IdAlerta).HasColumnName("id_alerta");
             entity.Property(e => e.Descripcion).IsUnicode(false).HasColumnName("descripcion");
             entity.Property(e => e.EstadoActual).HasMaxLength(30).IsUnicode(false).HasDefaultValue("Pendiente", "DF_ALERTA_estado").HasColumnName("estado_actual");
