@@ -7,7 +7,7 @@ public partial class Empleado
 {
     public int IdEmpleado { get; set; }
 
-    public int? IdUsuario { get; set; }   // ← Aquí el cambio (agregamos el ?)
+    public int IdUsuario { get; set; }
 
     public string Nombre { get; set; } = null!;
 
@@ -17,9 +17,11 @@ public partial class Empleado
 
     public bool Estado { get; set; }
 
+    public virtual ICollection<Alertum> Alerta { get; set; } = new List<Alertum>();
+
     public virtual ICollection<AsignacionCuidado> AsignacionCuidados { get; set; } = new List<AsignacionCuidado>();
 
     public virtual ICollection<AtencionDiarium> AtencionDiaria { get; set; } = new List<AtencionDiarium>();
 
-    public virtual Usuario? IdUsuarioNavigation { get; set; }
+    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
 }

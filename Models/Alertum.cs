@@ -19,7 +19,13 @@ public partial class Alertum
 
     public string EstadoActual { get; set; } = null!;
 
+    public string Prioridad { get; set; } = null!;
+
+    public int? IdEmpleadoResponsable { get; set; }
+
     public virtual ICollection<HistorialEstadoAlertum> HistorialEstadoAlerta { get; set; } = new List<HistorialEstadoAlertum>();
+
+    public virtual Empleado? IdEmpleadoResponsableNavigation { get; set; }
 
     public virtual Residente IdResidenteNavigation { get; set; } = null!;
 
