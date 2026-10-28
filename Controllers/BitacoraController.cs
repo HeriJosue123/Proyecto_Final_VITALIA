@@ -18,15 +18,16 @@ namespace VITALIA.Controllers
         // 1. VISTA PRINCIPAL CON FILTROS Y BÚSQUEDA
         public async Task<IActionResult> Index(int? idResidente, int? idTipoAtencion, DateTime? fechaInicio, DateTime? fechaFin, string busqueda)
         {
-            var query = _context.AtencionDiaria.AsNoTracking().AsQueryable();
+            var query = _context.AtencionDiaria
+                .AsNoTracking()
+                .Include(a => a.IdEmpleadoNavigation)
+                .AsQueryable();
 
-            // Filtro por Residente
             if (idResidente.HasValue && idResidente.Value > 0)
             {
                 query = query.Where(a => a.IdResidente == idResidente.Value);
             }
 
-            // Búsqueda por texto (Observaciones o IDs)
             if (!string.IsNullOrEmpty(busqueda))
             {
                 query = query.Where(a => a.Observaciones.Contains(busqueda) ||
@@ -34,13 +35,11 @@ namespace VITALIA.Controllers
                                          a.IdAtencion.ToString().Contains(busqueda));
             }
 
-            // Filtro por Tipo de Atención
             if (idTipoAtencion.HasValue && idTipoAtencion.Value > 0)
             {
                 query = query.Where(a => a.IdTipoAtencion == idTipoAtencion.Value);
             }
 
-            // Filtro por Fechas
             if (fechaInicio.HasValue)
             {
                 query = query.Where(a => a.FechaHora >= fechaInicio.Value.Date);
@@ -56,7 +55,7 @@ namespace VITALIA.Controllers
                 .OrderByDescending(a => a.FechaHora)
                 .ToListAsync();
 
-            // Cargar lista dinámica de residentes para los selectores
+            // Cargar lista dinámica de residentes
             ViewBag.Residentes = await _context.Residentes
                 .AsNoTracking()
                 .Where(r => r.Estado)
@@ -65,6 +64,29 @@ namespace VITALIA.Controllers
                 {
                     Value = r.IdResidente.ToString(),
                     Text = $"{r.CodigoUnico} · {r.Nombre} {r.Apellido}"
+                })
+                .ToListAsync();
+
+            // Cargar lista dinámica de empleados
+            ViewBag.Empleados = await _context.Empleados
+                .AsNoTracking()
+                .Where(e => e.Estado)
+                .OrderBy(e => e.Apellido).ThenBy(e => e.Nombre)
+                .Select(e => new SelectListItem
+                {
+                    Value = e.IdEmpleado.ToString(),
+                    Text = $"{e.Nombre} {e.Apellido} ({e.Cargo})"
+                })
+                .ToListAsync();
+
+            // Cargar lista de tipos de atención reales desde la BD
+            ViewBag.TiposAtencion = await _context.TipoAtencions
+                .AsNoTracking()
+                .OrderBy(t => t.NombreCategoria)
+                .Select(t => new SelectListItem
+                {
+                    Value = t.IdTipoAtencion.ToString(),
+                    Text = t.NombreCategoria
                 })
                 .ToListAsync();
 
@@ -77,24 +99,50 @@ namespace VITALIA.Controllers
             return View(atenciones);
         }
 
-        // 2. CREAR NUEVA ATENCIÓN
+        // 2. REGISTRAR NUEVO TIPO DE ATENCIÓN EN LA BD
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Registrar(int id_residente, int id_tipo_atencion, string observaciones)
+        public async Task<IActionResult> CrearTipoAtencion(string nombre_categoria, string? descripcion)
         {
-            if (id_residente > 0 && id_tipo_atencion > 0 && !string.IsNullOrWhiteSpace(observaciones))
+            if (!string.IsNullOrWhiteSpace(nombre_categoria))
             {
-                DateTime ahora = DateTime.Now;
+                var existe = await _context.TipoAtencions
+                    .AnyAsync(t => t.NombreCategoria.ToLower() == nombre_categoria.Trim().ToLower());
 
-                await _context.Database.ExecuteSqlRawAsync(
-                    "INSERT INTO dbo.ATENCION_DIARIA (id_residente, id_tipo_atencion, observaciones, fecha_hora, id_empleado, estado_cumplimiento) VALUES ({0}, {1}, {2}, {3}, {4}, {5})",
-                    id_residente, id_tipo_atencion, observaciones.Trim(), ahora, 1, "Completado");
+                if (!existe)
+                {
+                    var nuevoTipo = new TipoAtencion
+                    {
+                        NombreCategoria = nombre_categoria.Trim(),
+                        Descripcion = string.IsNullOrWhiteSpace(descripcion) ? null : descripcion.Trim()
+                    };
+
+                    _context.TipoAtencions.Add(nuevoTipo);
+                    await _context.SaveChangesAsync();
+                }
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // 3. EDITAR ATENCIÓN EXISTENTE
+        // 3. CREAR NUEVA ATENCIÓN EN LA BITÁCORA
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Registrar(int id_residente, int id_empleado, int id_tipo_atencion, string observaciones)
+        {
+            if (id_residente > 0 && id_empleado > 0 && id_tipo_atencion > 0 && !string.IsNullOrWhiteSpace(observaciones))
+            {
+                DateTime ahora = DateTime.Now;
+
+                await _context.Database.ExecuteSqlRawAsync(
+                    "INSERT INTO dbo.ATENCION_DIARIA (id_residente, id_tipo_atencion, observaciones, fecha_hora, id_empleado, estado_cumplimiento) VALUES ({0}, {1}, {2}, {3}, {4}, {5})",
+                    id_residente, id_tipo_atencion, observaciones.Trim(), ahora, id_empleado, "Completado");
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // 4. EDITAR ATENCIÓN EXISTENTE
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Editar(int id_atencion, int id_tipo_atencion, string observaciones)
@@ -109,7 +157,7 @@ namespace VITALIA.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 4. ELIMINAR ATENCIÓN
+        // 5. ELIMINAR ATENCIÓN
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
