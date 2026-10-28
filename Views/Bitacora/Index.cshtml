@@ -3,9 +3,10 @@
 @{
     ViewData["Title"] = "Bitácora de Atenciones";
     var residentes = ViewBag.Residentes as List<SelectListItem> ?? new List<SelectListItem>();
+    var empleados = ViewBag.Empleados as List<SelectListItem> ?? new List<SelectListItem>();
+    var tiposAtencion = ViewBag.TiposAtencion as List<SelectListItem> ?? new List<SelectListItem>();
 }
 
-<!-- Estilos para ocultar íconos nativos de fecha y transiciones dinámicas -->
 <style>
     input[type="date"]::-webkit-calendar-picker-indicator,
     input[type="date"]::-webkit-inner-spin-button {
@@ -46,8 +47,8 @@
             }
         </form>
 
-        <!-- Botón + Nueva atención -->
-        <button type="button" class="btn btn-vitalia text-nowrap" onclick="prepararNuevoRegistro()" @(residentes.Any() ? "" : "disabled") title="@(residentes.Any() ? "" : "Registre al menos un residente primero")">
+        <!-- Botón + Nueva atención (Permite abrir el panel para registrar tipos o atenciones) -->
+        <button type="button" class="btn btn-vitalia text-nowrap" onclick="prepararNuevoRegistro()" @(residentes.Any() && empleados.Any() ? "" : "disabled") title="@(!residentes.Any() ? "Registre un residente primero" : !empleados.Any() ? "Registre personal primero" : "")">
             + Nueva atención
         </button>
     </div>
@@ -61,7 +62,6 @@
             <form asp-controller="Bitacora" asp-action="Index" method="get" class="row g-2 mb-3 align-items-center">
                 <input type="hidden" name="busqueda" value="@ViewBag.BusquedaActual" />
 
-                <!-- Selección Dinámica de Residente -->
                 <div class="col-md-3">
                     <select name="idResidente" class="form-select form-select-sm rounded-3 border-light-subtle">
                         <option value="">Todos los residentes</option>
@@ -72,7 +72,6 @@
                     </select>
                 </div>
 
-                <!-- Campo Unificado de Fechas -->
                 <div class="col-md-4">
                     <div class="input-group input-group-sm border rounded-3 bg-white px-2 align-items-center">
                         <span class="text-muted pe-1 style-pointer" onclick="document.getElementById('fechaInicioInput').showPicker()" style="cursor: pointer;">
@@ -89,11 +88,10 @@
                 <div class="col-md-3">
                     <select name="idTipoAtencion" class="form-select form-select-sm rounded-3 border-light-subtle">
                         <option value="">Tipo: Todos</option>
-                        <option value="1" selected="@(ViewBag.IdTipoAtencionSeleccionado == 1)">Medicación</option>
-                        <option value="2" selected="@(ViewBag.IdTipoAtencionSeleccionado == 2)">Signos Vitales</option>
-                        <option value="3" selected="@(ViewBag.IdTipoAtencionSeleccionado == 3)">Alimentación</option>
-                        <option value="4" selected="@(ViewBag.IdTipoAtencionSeleccionado == 4)">Actividad Recreativa</option>
-                        <option value="5" selected="@(ViewBag.IdTipoAtencionSeleccionado == 5)">Movilidad</option>
+                        @foreach (var tipo in tiposAtencion)
+                        {
+                            <option value="@tipo.Value" selected="@(ViewBag.IdTipoAtencionSeleccionado?.ToString() == tipo.Value)">@tipo.Text</option>
+                        }
                     </select>
                 </div>
 
@@ -116,31 +114,22 @@
                     @foreach (var item in Model)
                     {
                         string badgeClass = "bg-primary-subtle text-primary border-primary-subtle";
-                        string tipoTexto = "Medicación";
+                        var tipoMatch = tiposAtencion.FirstOrDefault(t => t.Value == item.IdTipoAtencion.ToString());
+                        string tipoTexto = tipoMatch != null ? tipoMatch.Text : "Atención General";
 
-                        switch (item.IdTipoAtencion)
+                        switch (item.IdTipoAtencion % 5)
                         {
-                            case 1:
-                                badgeClass = "bg-primary-subtle text-primary border-primary-subtle";
-                                tipoTexto = "Medicación";
-                                break;
-                            case 2:
-                                badgeClass = "bg-danger-subtle text-danger border-danger-subtle";
-                                tipoTexto = "Toma de Signos Vitales";
-                                break;
-                            case 3:
-                                badgeClass = "bg-success-subtle text-success border-success-subtle";
-                                tipoTexto = "Alimentación";
-                                break;
-                            case 4:
-                                badgeClass = "bg-warning-subtle text-warning-emphasis border-warning-subtle";
-                                tipoTexto = "Actividad Recreativa";
-                                break;
-                            case 5:
-                                badgeClass = "bg-info-subtle text-info-emphasis border-info-subtle";
-                                tipoTexto = "Movilidad y Fisioterapia";
-                                break;
+                            case 1: badgeClass = "bg-primary-subtle text-primary border-primary-subtle"; break;
+                            case 2: badgeClass = "bg-danger-subtle text-danger border-danger-subtle"; break;
+                            case 3: badgeClass = "bg-success-subtle text-success border-success-subtle"; break;
+                            case 4: badgeClass = "bg-warning-subtle text-warning-emphasis border-warning-subtle"; break;
+                            case 0: badgeClass = "bg-info-subtle text-info-emphasis border-info-subtle"; break;
                         }
+
+                        string empleadoNombre = item.IdEmpleadoNavigation != null
+                            ? $"{item.IdEmpleadoNavigation.Nombre} {item.IdEmpleadoNavigation.Apellido}"
+                            : "Empleado";
+
                         <div class="border-bottom pb-3">
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <div>
@@ -155,14 +144,12 @@
                                         <i class="bi bi-lock-fill"></i> sello del servidor
                                     </small>
 
-                                    <!-- Botón de Editar -->
                                     <button type="button" class="btn btn-link text-primary p-0 border-0 ms-2" title="Editar registro"
-                                            onclick="prepararEdicion(@item.IdAtencion, @item.IdResidente, @item.IdTipoAtencion, '@item.Observaciones.Replace("'", "\\'").Replace("\r\n", " ").Replace("\n", " ")')">
+                                            onclick="prepararEdicion(@item.IdAtencion, @item.IdResidente, @item.IdEmpleado, @item.IdTipoAtencion, '@item.Observaciones.Replace("'", "\\'").Replace("\r\n", " ").Replace("\n", " ")')">
                                         <i class="bi bi-pencil-square fs-6"></i>
                                     </button>
 
-                                    <!-- Botón de Eliminar -->
-                                    <form asp-controller="Bitacora" asp-action="Eliminar" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este registro de la bitácora?');" class="d-inline">
+                                    <form asp-controller="Bitacora" asp-action="Eliminar" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este registro?');" class="d-inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.IdAtencion" />
                                         <button type="submit" class="btn btn-link text-danger p-0 border-0 ms-1" title="Eliminar registro">
@@ -173,7 +160,7 @@
                             </div>
                             <p class="mb-1 text-dark small fw-semibold">@item.Observaciones</p>
                             <small class="text-muted d-block" style="font-size: 0.75rem;">
-                                Registrado por Lucía Pérez · @(string.IsNullOrEmpty(item.EstadoCumplimiento) ? "Completado" : item.EstadoCumplimiento)
+                                Registrado por @empleadoNombre · @(string.IsNullOrEmpty(item.EstadoCumplimiento) ? "Completado" : item.EstadoCumplimiento)
                             </small>
                         </div>
                     }
@@ -202,7 +189,6 @@
 
                 <input type="hidden" id="inputAtencionId" name="id_atencion" value="0" />
 
-                <!-- Residente Seleccionable Dinámicamente -->
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">RESIDENTE *</label>
                     @if (residentes.Any())
@@ -216,19 +202,30 @@
                     }
                     else
                     {
-                        <input type="text" class="form-control form-control-sm bg-light text-danger" value="Sin residentes registrados en el sistema" readonly />
+                        <input type="text" class="form-control form-control-sm bg-light text-danger" value="Sin residentes registrados" readonly />
                     }
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">TIPO DE ATENCIÓN *</label>
-                    <select id="selectTipoAtencion" name="id_tipo_atencion" class="form-select form-select-sm" required>
-                        <option value="1">Medicación</option>
-                        <option value="2">Toma de Signos Vitales</option>
-                        <option value="3">Alimentación</option>
-                        <option value="4">Actividad Recreativa</option>
-                        <option value="5">Movilidad y Fisioterapia</option>
-                    </select>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label text-muted small fw-bold uppercase mb-0" style="font-size: 0.68rem;">TIPO DE ATENCIÓN *</label>
+                        <a href="javascript:void(0)" class="small text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoTipo" style="font-size: 0.72rem;">+ Agregar tipo</a>
+                    </div>
+                    @if (tiposAtencion.Any())
+                    {
+                        <select id="selectTipoAtencion" name="id_tipo_atencion" class="form-select form-select-sm" required>
+                            @foreach (var tipo in tiposAtencion)
+                            {
+                                <option value="@tipo.Value">@tipo.Text</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <select id="selectTipoAtencion" name="id_tipo_atencion" class="form-select form-select-sm border-danger text-danger" disabled>
+                            <option value="">-- No hay tipos de atención registrados --</option>
+                        </select>
+                    }
                 </div>
 
                 <div class="mb-3">
@@ -242,24 +239,63 @@
                         <input type="text" class="form-control form-control-sm bg-light" value="Automática 🔒" readonly />
                     </div>
                     <div class="col-6">
-                        <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">EMPLEADO</label>
-                        <input type="text" class="form-control form-control-sm bg-light" value="Lucía Pérez 🔒" readonly />
+                        <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">EMPLEADO *</label>
+                        @if (empleados.Any())
+                        {
+                            <select id="selectEmpleado" name="id_empleado" class="form-select form-select-sm" required>
+                                @foreach (var emp in empleados)
+                                {
+                                    <option value="@emp.Value">@emp.Text</option>
+                                }
+                            </select>
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control form-control-sm bg-light text-danger" value="Sin personal registrado" readonly />
+                        }
                     </div>
                 </div>
 
-                <button type="submit" id="btnGuardarAtencion" class="btn btn-vitalia w-100 mb-2" @(residentes.Any() ? "" : "disabled")>Guardar atención</button>
+                <button type="submit" id="btnGuardarAtencion" class="btn btn-vitalia w-100 mb-2" @(residentes.Any() && empleados.Any() && tiposAtencion.Any() ? "" : "disabled")>Guardar atención</button>
                 <p class="text-center text-muted" style="font-size: 0.72rem;">Se registra en 4 clics o menos desde el panel del cuidador (RNF-004).</p>
             </form>
         </div>
 
-        <!-- Alerta de Inmutabilidad -->
         <div class="alert alert-danger border-danger-subtle rounded-4 p-3 mb-0 small" style="font-size: 0.75rem;">
             <i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Al intentar editar o borrar:</strong> "No se permite sobrescribir o alterar registros históricos".
         </div>
     </div>
 </div>
 
-<!-- JavaScript para alternar el panel y cargar datos de edición -->
+<!-- Modal Emergente para Agregar Nuevo Tipo de Atención -->
+<div class="modal fade" id="modalNuevoTipo" tabindex="-1" aria-labelledby="modalNuevoTipoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="modalNuevoTipoLabel">Agregar Tipo de Atención</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form asp-controller="Bitacora" asp-action="CrearTipoAtencion" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body py-3">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold">NOMBRE DE LA CATEGORÍA *</label>
+                        <input type="text" name="nombre_categoria" class="form-control" placeholder="Ej: Control Térmico, Curaciones, etc." required />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">DESCRIPCIÓN (OPCIONAL)</label>
+                        <textarea name="descripcion" class="form-control" rows="2" placeholder="Detalles o especificaciones del tipo de atención..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-3 btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-vitalia rounded-3 btn-sm">Guardar Categoria</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     function abrirPanel() {
         const columnaHistorial = document.getElementById('columnaHistorial');
@@ -288,17 +324,26 @@
 
         document.getElementById('inputAtencionId').value = '0';
         document.getElementById('txtObservaciones').value = '';
-        document.getElementById('selectTipoAtencion').value = '1';
+
+        const selectTipoAtencion = document.getElementById('selectTipoAtencion');
+        if (selectTipoAtencion && selectTipoAtencion.options.length > 0) {
+            selectTipoAtencion.selectedIndex = 0;
+        }
 
         const selectResidente = document.getElementById('selectResidente');
         if (selectResidente) {
             selectResidente.disabled = false;
         }
 
+        const selectEmpleado = document.getElementById('selectEmpleado');
+        if (selectEmpleado) {
+            selectEmpleado.disabled = false;
+        }
+
         document.getElementById('txtObservaciones').focus();
     }
 
-    function prepararEdicion(id, idResidente, idTipo, observaciones) {
+    function prepararEdicion(id, idResidente, idEmpleado, idTipo, observaciones) {
         abrirPanel();
 
         document.getElementById('formAtencion').action = '/Bitacora/Editar';
@@ -310,10 +355,20 @@
         const selectResidente = document.getElementById('selectResidente');
         if (selectResidente) {
             selectResidente.value = idResidente;
-            selectResidente.disabled = true; // No se permite cambiar el residente al editar
+            selectResidente.disabled = true;
         }
 
-        document.getElementById('selectTipoAtencion').value = idTipo;
+        const selectEmpleado = document.getElementById('selectEmpleado');
+        if (selectEmpleado) {
+            selectEmpleado.value = idEmpleado;
+            selectEmpleado.disabled = true;
+        }
+
+        const selectTipoAtencion = document.getElementById('selectTipoAtencion');
+        if (selectTipoAtencion) {
+            selectTipoAtencion.value = idTipo;
+        }
+
         document.getElementById('txtObservaciones').value = observaciones;
         document.getElementById('txtObservaciones').focus();
     }

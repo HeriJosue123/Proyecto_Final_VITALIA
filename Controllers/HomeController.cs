@@ -1,50 +1,41 @@
-using System.Diagnostics;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VITALIA.Data;
-using VITALIA.Models;
 
-namespace VITALIA.Controllers;
-
-public class HomeController : Controller
+namespace VITALIA.Controllers
 {
-    private readonly VitaliaDbContext _context;
-
-    public HomeController(VitaliaDbContext context)
+    public class HomeController : Controller
     {
-        _context = context;
-    }
+        private readonly VitaliaDbContext _context;
 
-    public IActionResult Index()
-    {
-        // Validamos la conectividad a SQL Server para informar en la vista de bienvenida
-        bool canConnect = false;
-        try
+        public HomeController(VitaliaDbContext context)
         {
-            canConnect = _context.Database.CanConnect();
-        }
-        catch
-        {
-            canConnect = false;
+            _context = context;
         }
 
-        ViewBag.CanConnectDb = canConnect;
-        return View();
-    }
+        public async Task<IActionResult> Index()
+        {
+            // Métricas dinámicas para el Dashboard
+            ViewBag.TotalResidentes = await _context.Residentes.CountAsync(r => r.Estado);
+            ViewBag.TotalPersonal = await _context.Empleados.CountAsync(e => e.Estado);
 
-    public IActionResult ModuloPendiente(string nombre)
-    {
-        ViewBag.ModuloNombre = string.IsNullOrWhiteSpace(nombre) ? "Módulo" : nombre;
-        return View();
-    }
+            DateTime hoy = DateTime.Today;
+            ViewBag.AtencionesHoy = await _context.AtencionDiaria.CountAsync(a => a.FechaHora >= hoy);
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+            // Conteo total de Alertas
+            try
+            {
+                ViewBag.AlertasPendientes = await _context.Alerta.CountAsync();
+            }
+            catch
+            {
+                ViewBag.AlertasPendientes = 0;
+            }
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View();
+        }
     }
 }
