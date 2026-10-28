@@ -42,8 +42,9 @@ namespace VITALIA.Controllers
         // GET: Personal/Create
         public IActionResult Create()
         {
+            // Solo usuarios activos que todavía no tienen un empleado vinculado
             var usuariosDisponibles = _context.Usuarios
-                .Where(u => u.Estado == true)
+                .Where(u => u.Estado == true && u.Empleado == null)
                 .OrderBy(u => u.Correo)
                 .ToList();
 
@@ -59,9 +60,22 @@ namespace VITALIA.Controllers
             // Remover explícitamente la navegación de la validación del ModelState
             ModelState.Remove(nameof(Empleado.IdUsuarioNavigation));
 
+            // Mensajes en español, debajo de cada campo
+            CambiarMensaje(nameof(Empleado.Nombre), "El nombre es obligatorio.");
+            CambiarMensaje(nameof(Empleado.Apellido), "El apellido es obligatorio.");
+            CambiarMensaje(nameof(Empleado.Cargo), "El cargo es obligatorio.");
+            CambiarMensaje(nameof(Empleado.IdUsuario), "Debe seleccionar un usuario.");
+
             if (empleado.IdUsuario <= 0)
             {
-                ModelState.AddModelError("IdUsuario", "Debe seleccionar un usuario válido.");
+                if (!ModelState.ContainsKey(nameof(Empleado.IdUsuario)) || ModelState[nameof(Empleado.IdUsuario)]!.Errors.Count == 0)
+                {
+                    ModelState.AddModelError(nameof(Empleado.IdUsuario), "Debe seleccionar un usuario.");
+                }
+            }
+            else if (await _context.Empleados.AnyAsync(e => e.IdUsuario == empleado.IdUsuario))
+            {
+                ModelState.AddModelError(nameof(Empleado.IdUsuario), "Ese usuario ya está vinculado a otro empleado.");
             }
 
             try
@@ -83,12 +97,22 @@ namespace VITALIA.Controllers
 
             // Si falla, recargamos el dropdown
             var usuariosDisponibles = _context.Usuarios
-                .Where(u => u.Estado == true)
+                .Where(u => u.Estado == true && u.Empleado == null)
                 .OrderBy(u => u.Correo)
                 .ToList();
 
             ViewData["IdUsuario"] = new SelectList(usuariosDisponibles, "IdUsuario", "Correo", empleado.IdUsuario);
             return View(empleado);
+        }
+
+        // Reemplaza los mensajes automáticos en inglés de un campo por uno en español
+        private void CambiarMensaje(string campo, string mensaje)
+        {
+            if (ModelState.TryGetValue(campo, out var entrada) && entrada.Errors.Count > 0)
+            {
+                entrada.Errors.Clear();
+                entrada.Errors.Add(mensaje);
+            }
         }
 
         // POST: Personal/Delete
