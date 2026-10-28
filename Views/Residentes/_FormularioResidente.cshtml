@@ -5,6 +5,16 @@
     string fechaValor = ViewData.ModelState.TryGetValue("FechaNacimiento", out var entradaFecha) && entradaFecha.AttemptedValue != null
         ? entradaFecha.AttemptedValue
         : (Model.FechaNacimiento == default ? "" : Model.FechaNacimiento.ToString("yyyy-MM-dd"));
+
+    // Partes de la fecha para preseleccionar Día / Mes / Año
+    int diaSel = 0, mesSel = 0, anioSel = 0;
+    if (DateOnly.TryParseExact(fechaValor, "yyyy-MM-dd", out var fechaSel))
+    {
+        diaSel = fechaSel.Day; mesSel = fechaSel.Month; anioSel = fechaSel.Year;
+    }
+    int anioMasReciente = DateTime.Today.Year - VITALIA.Controllers.ResidentesController.EdadMinima;
+    int anioMasAntiguo = DateTime.Today.Year - VITALIA.Controllers.ResidentesController.EdadMaxima;
+    string[] meses = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
 }
 
 @if (!ViewData.ModelState.IsValid)
@@ -37,20 +47,44 @@
         <input asp-for="Apellido" class="form-control" placeholder="Ej. Gómez" />
         <span asp-validation-for="Apellido" class="text-danger small"></span>
     </div>
-    <div class="col-md-4">
-        <label for="FechaNacimiento" class="form-label fw-semibold small">Fecha de nacimiento <span class="text-danger">*</span></label>
-        <input type="date" id="FechaNacimiento" name="FechaNacimiento" value="@fechaValor" class="form-control"
-               min="@DateTime.Today.AddYears(-VITALIA.Controllers.ResidentesController.EdadMaxima).ToString("yyyy-MM-dd")"
-               max="@DateTime.Today.AddYears(-VITALIA.Controllers.ResidentesController.EdadMinima).ToString("yyyy-MM-dd")" />
+    <div class="col-md-6">
+        <label for="FechaDia" class="form-label fw-semibold small">Fecha de nacimiento <span class="text-danger">*</span></label>
+        <input type="hidden" id="FechaNacimiento" name="FechaNacimiento" value="@fechaValor" />
+        <style>
+            .fecha-partes .form-select { padding-right: 2rem; background-position: right .6rem center; }
+        </style>
+        <div class="d-flex gap-2 fecha-partes">
+            <select id="FechaDia" class="form-select" aria-label="Día de nacimiento" style="flex: 0 0 24%;">
+                <option value="">Día</option>
+                @for (int d = 1; d <= 31; d++)
+                {
+                    <option value="@d" selected="@(d == diaSel)">@d</option>
+                }
+            </select>
+            <select id="FechaMes" class="form-select" aria-label="Mes de nacimiento">
+                <option value="">Mes</option>
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m" selected="@(m == mesSel)">@meses[m - 1]</option>
+                }
+            </select>
+            <select id="FechaAnio" class="form-select" aria-label="Año de nacimiento" style="flex: 0 0 30%;">
+                <option value="">Año</option>
+                @for (int a = anioMasReciente; a >= anioMasAntiguo; a--)
+                {
+                    <option value="@a" selected="@(a == anioSel)">@a</option>
+                }
+            </select>
+        </div>
         <div class="form-text small">El residente debe tener al menos @VITALIA.Controllers.ResidentesController.EdadMinima años.</div>
         <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <label asp-for="NumHabitacion" class="form-label fw-semibold small">Habitación <span class="text-danger">*</span></label>
         <input asp-for="NumHabitacion" class="form-control" placeholder="Ej. 101" maxlength="20" />
         <span asp-validation-for="NumHabitacion" class="text-danger small"></span>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <label asp-for="TipoSangre" class="form-label fw-semibold small">Tipo de sangre</label>
         <select asp-for="TipoSangre" class="form-select">
             <option value="">No registrado</option>
@@ -90,6 +124,27 @@
 <script>
     // Teléfono del contacto: solo dígitos, máximo 8, con el guion en medio (7000-1111)
     document.addEventListener('DOMContentLoaded', function () {
+        // Fecha de nacimiento: junta Día / Mes / Año en el campo oculto (aaaa-mm-dd)
+        var dia = document.getElementById('FechaDia');
+        var mes = document.getElementById('FechaMes');
+        var anio = document.getElementById('FechaAnio');
+        var fecha = document.getElementById('FechaNacimiento');
+        function actualizarFecha() {
+            // Solo deja elegir los días que tiene ese mes (ej. febrero 28 o 29)
+            var diasDelMes = new Date(anio.value || 2000, mes.value || 1, 0).getDate();
+            for (var i = 1; i < dia.options.length; i++) {
+                dia.options[i].disabled = i > diasDelMes;
+            }
+            if (Number(dia.value) > diasDelMes) dia.value = '';
+            fecha.value = dia.value && mes.value && anio.value
+                ? anio.value + '-' + ('0' + mes.value).slice(-2) + '-' + ('0' + dia.value).slice(-2)
+                : '';
+        }
+        if (dia && mes && anio && fecha) {
+            [dia, mes, anio].forEach(function (s) { s.addEventListener('change', actualizarFecha); });
+            if (dia.value && mes.value && anio.value) actualizarFecha();
+        }
+
         var telefono = document.getElementById('ContactoTelefono');
         if (!telefono) return;
         telefono.addEventListener('input', function () {
