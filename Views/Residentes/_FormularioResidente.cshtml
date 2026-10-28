@@ -39,7 +39,10 @@
     </div>
     <div class="col-md-4">
         <label for="FechaNacimiento" class="form-label fw-semibold small">Fecha de nacimiento <span class="text-danger">*</span></label>
-        <input type="date" id="FechaNacimiento" name="FechaNacimiento" value="@fechaValor" class="form-control" />
+        <input type="date" id="FechaNacimiento" name="FechaNacimiento" value="@fechaValor" class="form-control"
+               min="@DateTime.Today.AddYears(-VITALIA.Controllers.ResidentesController.EdadMaxima).ToString("yyyy-MM-dd")"
+               max="@DateTime.Today.AddYears(-VITALIA.Controllers.ResidentesController.EdadMinima).ToString("yyyy-MM-dd")" />
+        <div class="form-text small">El residente debe tener al menos @VITALIA.Controllers.ResidentesController.EdadMinima años.</div>
         <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
     </div>
     <div class="col-md-4">
@@ -62,19 +65,36 @@
 
 <h6 class="fw-bold text-dark mb-3">Salud y contacto</h6>
 <div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <label asp-for="ContactoEmergencia" class="form-label fw-semibold small">Contacto de emergencia <span class="text-danger">*</span></label>
-        <input asp-for="ContactoEmergencia" class="form-control" placeholder="Ej. Carlos Gómez · 7000-1111" />
-        <span asp-validation-for="ContactoEmergencia" class="text-danger small"></span>
+    <div class="col-md-5">
+        <label asp-for="ContactoNombre" class="form-label fw-semibold small">Contacto de emergencia <span class="text-danger">*</span></label>
+        <input asp-for="ContactoNombre" class="form-control" placeholder="Ej. Carlos Gómez" maxlength="120" />
+        <span asp-validation-for="ContactoNombre" class="text-danger small"></span>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-3">
+        <label asp-for="ContactoTelefono" class="form-label fw-semibold small">Teléfono del contacto <span class="text-danger">*</span></label>
+        <input asp-for="ContactoTelefono" type="tel" inputmode="numeric" class="form-control" placeholder="Ej. 7000-1111" maxlength="9" />
+        <span asp-validation-for="ContactoTelefono" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
         <label asp-for="Alergias" class="form-label fw-semibold small">Alergias</label>
         <input asp-for="Alergias" class="form-control" placeholder="Ej. Penicilina (dejar vacío si no tiene)" />
         <span asp-validation-for="Alergias" class="text-danger small"></span>
     </div>
     <div class="col-12">
         <label asp-for="Observaciones" class="form-label fw-semibold small">Antecedentes / observaciones <span class="text-danger">*</span></label>
-        <textarea asp-for="Observaciones" class="form-control" rows="3" placeholder="Ej. Hipertensión controlada. Requiere apoyo para caminar."></textarea>
+        <textarea asp-for="Observaciones" class="form-control" rows="3" maxlength="2000" placeholder="Ej. Hipertensión controlada. Requiere apoyo para caminar."></textarea>
         <span asp-validation-for="Observaciones" class="text-danger small"></span>
     </div>
 </div>
+
+<script>
+    // Teléfono del contacto: solo dígitos, máximo 8, con el guion en medio (7000-1111)
+    document.addEventListener('DOMContentLoaded', function () {
+        var telefono = document.getElementById('ContactoTelefono');
+        if (!telefono) return;
+        telefono.addEventListener('input', function () {
+            var digitos = telefono.value.replace(/\D/g, '').slice(0, 8);
+            telefono.value = digitos.length > 4 ? digitos.slice(0, 4) + '-' + digitos.slice(4) : digitos;
+        });
+    });
+</script>
