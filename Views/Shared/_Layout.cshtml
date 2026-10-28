@@ -11,175 +11,241 @@
 
     <!-- Estilos Oficiales de Vitalia -->
     <style>
-        :root {
-            --vitalia-sidebar-bg: #093437;
-            --vitalia-sidebar-text: #a3c2c4;
-            --vitalia-primary: #12898e;
-            --vitalia-primary-hover: #0e6c70;
-            --vitalia-bg: #f2f5f7;
-        }
+            :root {
+                --vitalia-sidebar-bg: #093437;
+                --vitalia-sidebar-text: #a3c2c4;
+                --vitalia-primary: #12898e;
+                --vitalia-primary-hover: #0e6c70;
+                --vitalia-bg: #f2f5f7;
+            }
 
-        body {
-            background-color: var(--vitalia-bg);
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-        }
+            body {
+                background-color: var(--vitalia-bg);
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+                margin: 0;
+            }
 
-        /* Reemplazo global del color azul de Bootstrap por Turquesa Vitalia */
-        .btn-primary, .btn-vitalia {
-            background-color: var(--vitalia-primary) !important;
-            border-color: var(--vitalia-primary) !important;
-            color: #ffffff !important;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 0.5rem 1.25rem;
-        }
+            /* Reemplazo global del color azul de Bootstrap por Turquesa Vitalia */
+            .btn-primary, .btn-vitalia {
+                background-color: var(--vitalia-primary) !important;
+                border-color: var(--vitalia-primary) !important;
+                color: #ffffff !important;
+                font-weight: 600;
+                border-radius: 8px;
+                padding: 0.5rem 1.25rem;
+            }
 
-        .btn-primary:hover, .btn-vitalia:hover {
-            background-color: var(--vitalia-primary-hover) !important;
-            border-color: var(--vitalia-primary-hover) !important;
-        }
+                .btn-primary:hover, .btn-vitalia:hover {
+                    background-color: var(--vitalia-primary-hover) !important;
+                    border-color: var(--vitalia-primary-hover) !important;
+                }
 
-        .btn-outline-primary, .btn-outline-vitalia {
-            color: var(--vitalia-primary) !important;
-            border-color: var(--vitalia-primary) !important;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 0.5rem 1.25rem;
-        }
+            .btn-outline-primary, .btn-outline-vitalia {
+                color: var(--vitalia-primary) !important;
+                border-color: var(--vitalia-primary) !important;
+                font-weight: 600;
+                border-radius: 8px;
+                padding: 0.5rem 1.25rem;
+            }
 
-        .btn-outline-primary:hover, .btn-outline-vitalia:hover {
-            background-color: var(--vitalia-primary) !important;
-            color: #ffffff !important;
-        }
+                .btn-outline-primary:hover, .btn-outline-vitalia:hover {
+                    background-color: var(--vitalia-primary) !important;
+                    color: #ffffff !important;
+                }
 
-        .text-primary {
-            color: var(--vitalia-primary) !important;
-        }
+            .text-primary {
+                color: var(--vitalia-primary) !important;
+            }
 
-        .bg-primary {
-            background-color: var(--vitalia-primary) !important;
-        }
+            .bg-primary {
+                background-color: var(--vitalia-primary) !important;
+            }
 
-        /* Layout Dashboard */
-        .vitalia-wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
+            /* Layout Dashboard */
+            .vitalia-wrapper {
+                display: flex;
+                min-height: 100vh;
+            }
 
-        .vitalia-sidebar {
-            width: 250px;
-            background-color: var(--vitalia-sidebar-bg);
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 1000;
-            padding: 1.5rem 1rem;
-        }
+            .vitalia-sidebar {
+                width: 250px;
+                background-color: var(--vitalia-sidebar-bg);
+                color: #fff;
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 1000;
+                padding: 1.5rem 1rem;
+            }
 
-        .vitalia-content {
-            margin-left: 250px;
-            flex: 1;
-            padding: 2rem;
-            background-color: var(--vitalia-bg);
-            min-height: 100vh;
-        }
+            .vitalia-content {
+                margin-left: 250px;
+                flex: 1;
+                padding: 2rem;
+                background-color: var(--vitalia-bg);
+                min-height: 100vh;
+            }
 
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #fff;
-            text-decoration: none;
-            margin-bottom: 2rem;
-            padding-left: 0.5rem;
-        }
+            .sidebar-brand {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #fff;
+                text-decoration: none;
+                margin-bottom: 2rem;
+                padding-left: 0.5rem;
+            }
 
-        .brand-icon {
-            width: 36px;
-            height: 36px;
-            background-color: #17a2a8;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-        }
+            .brand-icon {
+                width: 36px;
+                height: 36px;
+                background-color: #17a2a8;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+            }
 
-        .sidebar-section-label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #5c8b8e;
-            margin-top: 1.25rem;
-            margin-bottom: 0.5rem;
-            padding-left: 0.75rem;
-        }
+            .sidebar-section-label {
+                font-size: 0.7rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #5c8b8e;
+                margin-top: 1.25rem;
+                margin-bottom: 0.5rem;
+                padding-left: 0.75rem;
+            }
 
-        .sidebar-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+            .sidebar-nav {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
 
-        .sidebar-nav .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.65rem 0.9rem;
-            color: #b1d1d3;
-            border-radius: 10px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            margin-bottom: 0.25rem;
-        }
+                .sidebar-nav .nav-link {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 0.65rem 0.9rem;
+                    color: #b1d1d3;
+                    border-radius: 10px;
+                    font-weight: 500;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                    margin-bottom: 0.25rem;
+                }
 
-        .sidebar-nav .nav-link:hover {
-            color: #fff;
-            background-color: rgba(255, 255, 255, 0.08);
-        }
+                    .sidebar-nav .nav-link:hover {
+                        color: #fff;
+                        background-color: rgba(255, 255, 255, 0.08);
+                    }
 
-        .sidebar-nav .nav-link.active {
-            background-color: #ffffff;
-            color: #093437;
-            font-weight: 700;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
+                    .sidebar-nav .nav-link.active {
+                        background-color: #ffffff;
+                        color: #093437;
+                        font-weight: 700;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+                    }
 
-        .sidebar-nav .nav-link.active i {
-            color: #12898e;
-        }
+                        .sidebar-nav .nav-link.active i {
+                            color: #12898e;
+                        }
 
-        .sidebar-user {
-            margin-top: auto;
-            background-color: rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 0.75rem 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+            .sidebar-user {
+                margin-top: auto;
+                background-color: rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+                padding: 0.75rem 0.9rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
 
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            background-color: #e09f3e;
-            color: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.85rem;
-        }
+            .user-avatar {
+                width: 36px;
+                height: 36px;
+                background-color: #e09f3e;
+                color: #fff;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 0.85rem;
+            }
+
+            /* Animaciones globales */
+            @@keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(18px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .animate-fade-up {
+                animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+
+            /* Redefinición de Focus para Inputs de Vitalia */
+            .form-control:focus, .form-select:focus {
+                border-color: #14828a !important;
+                box-shadow: 0 0 0 0.25rem rgba(20, 130, 138, 0.18) !important;
+            }
+
+            /* Tarjeta de estilo Pro */
+            .vitalia-card-pro {
+                background: #ffffff;
+                border-radius: 18px;
+                border: 1px solid rgba(0, 0, 0, 0.05);
+                box-shadow: 0 12px 35px -8px rgba(9, 52, 55, 0.07);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            /* Estilo para grupo de inputs con icono */
+            .input-group-text-vitalia {
+                background-color: #f8fafc;
+                border-right: none;
+                color: #14828a;
+                border-top-left-radius: 12px;
+                border-bottom-left-radius: 12px;
+            }
+
+            .input-vitalia {
+                border-left: none;
+                border-top-right-radius: 12px;
+                border-bottom-right-radius: 12px;
+            }
+
+                .input-vitalia:focus {
+                    border-left: 1px solid #14828a !important;
+                }
+
+            /* Chips interactivos para sugerencias rápidas */
+            .role-chip {
+                cursor: pointer;
+                transition: all 0.2s ease;
+                border: 1px solid #e2e8f0;
+                font-size: 0.82rem;
+            }
+
+                .role-chip:hover {
+                    background-color: #14828a !important;
+                    color: #ffffff !important;
+                    border-color: #14828a !important;
+                    transform: translateY(-2px);
+                }
     </style>
 </head>
 <body>
@@ -224,8 +290,9 @@
             <div class="sidebar-section-label">Sistema</div>
             <ul class="sidebar-nav">
                 <li>
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
-                       asp-controller="Home" asp-action="Index">
+                    <!-- Agaktibo daytoy no adda iti Usuario man weno Roles controller -->
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuario" || ViewContext.RouteData.Values["controller"]?.ToString() == "Roles" ? "active" : "")"
+                       asp-controller="Usuario" asp-action="Index">
                         <i class="bi bi-shield-lock-fill"></i> Usuarios y Roles
                     </a>
                 </li>

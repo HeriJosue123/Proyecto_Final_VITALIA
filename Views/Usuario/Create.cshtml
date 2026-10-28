@@ -1,0 +1,102 @@
+﻿@model VITALIA.Models.Usuario
+
+@{
+    ViewData["Title"] = "Registrar Usuario";
+}
+
+<div class="animate-fade-up py-3">
+    <!-- NAVEGACIÓN SUPERIOR SEPARADA -->
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-sm bg-white text-muted border rounded-pill px-3 py-1 shadow-sm text-decoration-none fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Usuarios
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+            
+            <!-- ENCABEZADO CENTRADO -->
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-2" style="width: 58px; height: 58px; background: linear-gradient(135deg, #14828a, #093437);">
+                    <i class="bi bi-person-plus fs-3"></i>
+                </div>
+                <h3 class="fw-bold mb-1" style="color: #1a252f;">Registrar Nuevo Usuario</h3>
+                <p class="text-muted small mb-0">Ingrese las credenciales y el rol para el nuevo miembro del sistema</p>
+            </div>
+
+            <!-- TARJETA DEL FORMULARIO -->
+            <div class="vitalia-card-pro p-4 p-md-5 position-relative overflow-hidden">
+                <!-- Borde Superior de Acento -->
+                <div style="position: absolute; top:0; left:0; right:0; height: 4px; background: linear-gradient(90deg, #14828a, #093437);"></div>
+
+                <form asp-action="Create" method="post" class="mt-1">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 small" role="alert"></div>
+
+                    <!-- CAMPO: CORREO ELECTRÓNICO -->
+                    <div class="mb-4">
+                        <label asp-for="Correo" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2 d-block text-start">
+                            <i class="bi bi-envelope text-primary me-1"></i> Correo Electrónico
+                        </label>
+                        <input asp-for="Correo" type="email" class="form-control form-control-lg rounded-3 fs-6" placeholder="ejemplo@vitalia.com" required autocomplete="off" style="border-color: #cbd5e1; padding: 0.75rem 1rem;" />
+                        <span asp-validation-for="Correo" class="text-danger small ms-1"></span>
+                    </div>
+
+                    <!-- CAMPO: CONTRASEÑA CON BOTÓN VER/OCULTAR -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2 d-block text-start">
+                            <i class="bi bi-key text-primary me-1"></i> Contraseña
+                        </label>
+                        <div class="input-group">
+                            <input type="password" name="Contrasena" id="passwordInput" class="form-control form-control-lg fs-6" placeholder="••••••••" required style="border-color: #cbd5e1; border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; padding: 0.75rem 1rem;" />
+                            <button class="btn btn-outline-secondary px-3" type="button" id="togglePasswordBtn" style="border-color: #cbd5e1; border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                                <i class="bi bi-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CAMPO: ROL DEL SISTEMA -->
+                    <div class="mb-4">
+                        <label asp-for="IdRol" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2 d-block text-start">
+                            <i class="bi bi-shield-check text-primary me-1"></i> Rol del Sistema
+                        </label>
+                        <select asp-for="IdRol" class="form-select form-select-lg rounded-3 fs-6" asp-items="ViewBag.IdRol" required style="border-color: #cbd5e1; padding: 0.75rem 1rem;">
+                            <option value="">-- Seleccione un rol --</option>
+                        </select>
+                        <span asp-validation-for="IdRol" class="text-danger small ms-1"></span>
+                    </div>
+
+                    <!-- BOTONES DE ACCIÓN BALANCEADOS -->
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-light rounded-3 py-2 px-4 fw-semibold text-secondary flex-grow-1 text-center">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn text-white rounded-3 py-2 px-4 fw-bold shadow-sm flex-grow-1" style="background-color: #14828a; transition: all 0.2s ease;">
+                            <i class="bi bi-check-circle-fill me-1"></i> Guardar Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('togglePasswordBtn').addEventListener('click', function () {
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+            }
+        });
+    </script>
+}

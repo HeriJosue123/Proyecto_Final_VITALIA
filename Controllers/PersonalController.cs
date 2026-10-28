@@ -53,9 +53,9 @@ namespace VITALIA.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdUsuario,Nombre,Apellido,Cargo")] Empleado empleado)
         {
-            if (empleado.IdUsuario == 0)
+            if (empleado.IdUsuario <= 0)
             {
-                empleado.IdUsuario = null;
+                ModelState.AddModelError("IdUsuario", "Debe seleccionar un usuario válido.");
             }
 
             try

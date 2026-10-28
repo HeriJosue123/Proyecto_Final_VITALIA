@@ -7,10 +7,6 @@ using VITALIA.Models.ViewModels;
 
 namespace VITALIA.Controllers;
 
-/// <summary>
-/// Módulo de Alertas y Tareas (RF-014, RF-015, RF-016 / RN-006 / CA-007).
-/// Tablero por estado: Pendiente -> En Proceso -> Atendida.
-/// </summary>
 public class AlertasController : Controller
 {
     private readonly VitaliaDbContext _context;
@@ -22,16 +18,13 @@ public class AlertasController : Controller
         _logger = logger;
     }
 
-    // ---------------------------------------------------------------
-    // GET /Alertas  -> tablero con filtros por residente y prioridad (RF-016)
-    // ---------------------------------------------------------------
+    // GET: Alertas
     public async Task<IActionResult> Index(int? idResidente, string? prioridad)
     {
         var query = _context.Alerta
-            .AsNoTracking()
             .Include(a => a.IdResidenteNavigation)
             .Include(a => a.IdUsuarioCreadorNavigation)
-            .Include(a => a.EmpleadoResponsable)
+            .Include(a => a.IdEmpleadoResponsableNavigation)
             .AsQueryable();
 
         if (idResidente.HasValue && idResidente.Value > 0)
@@ -50,7 +43,6 @@ public class AlertasController : Controller
 
         var alertas = await query.ToListAsync();
 
-        // Sello de cierre de las alertas Atendidas: fecha/hora y responsable (CA-007)
         var idsAtendidas = alertas
             .Where(a => a.EstadoActual == AlertaEstados.Atendida)
             .Select(a => a.IdAlerta)
@@ -80,9 +72,9 @@ public class AlertasController : Controller
                 CodigoResidente = a.IdResidenteNavigation.CodigoUnico,
                 FechaProgramada = a.FechaProgramada,
                 CreadaPor = a.IdUsuarioCreadorNavigation.Correo,
-                Responsable = a.EmpleadoResponsable == null
+                Responsable = a.IdEmpleadoResponsableNavigation == null
                     ? null
-                    : $"{a.EmpleadoResponsable.Nombre} {a.EmpleadoResponsable.Apellido}",
+                    : $"{a.IdEmpleadoResponsableNavigation.Nombre} {a.IdEmpleadoResponsableNavigation.Apellido}",
                 FechaCierre = cierre?.FechaHora,
                 CerradaPor = cierre?.IdUsuarioNavigation.Correo
             };
@@ -90,7 +82,6 @@ public class AlertasController : Controller
 
         var modelo = new AlertasTableroViewModel
         {
-            // Urgente primero y, dentro de cada prioridad, la más próxima primero
             Pendientes = tarjetas
                 .Where(t => t.Estado == AlertaEstados.Pendiente)
                 .OrderBy(t => AlertaPrioridades.Orden(t.Prioridad)).ThenBy(t => t.FechaProgramada).ToList(),
@@ -108,9 +99,6 @@ public class AlertasController : Controller
         return View(modelo);
     }
 
-    // ---------------------------------------------------------------
-    // POST /Alertas/Crear  -> nueva alerta, siempre en estado Pendiente (RF-014)
-    // ---------------------------------------------------------------
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Crear(
@@ -166,7 +154,7 @@ public class AlertasController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var alerta = new Alertum
+        var alerta = new Alerta
         {
             IdResidente = idResidente,
             IdUsuarioCreador = usuario.IdUsuario,
@@ -186,7 +174,6 @@ public class AlertasController : Controller
         }
         catch (Exception ex)
         {
-            // RNF-006: mensaje controlado al usuario, detalle técnico solo en el log
             _logger.LogError(ex, "Error al crear la alerta.");
             TempData["MensajeError"] = "No se pudo guardar la alerta. Intente nuevamente.";
         }
@@ -194,10 +181,6 @@ public class AlertasController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // ---------------------------------------------------------------
-    // POST /Alertas/CambiarEstado -> avanza UN paso: Pendiente -> En Proceso -> Atendida
-    // Registra usuario y fecha/hora del servidor en HISTORIAL_ESTADO_ALERTA (RF-015, CA-007)
-    // ---------------------------------------------------------------
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CambiarEstado(int id, string? estadoEsperado)
@@ -208,7 +191,6 @@ public class AlertasController : Controller
             return NotFound();
         }
 
-        // Evita doble clic / pestañas desactualizadas: el estado debe ser el que el usuario veía
         if (!string.Equals(alerta.EstadoActual, estadoEsperado, StringComparison.Ordinal))
         {
             TempData["MensajeError"] = $"La alerta «{alerta.Titulo}» ya cambió de estado. Se actualizó el tablero.";
@@ -232,18 +214,17 @@ public class AlertasController : Controller
         var anterior = alerta.EstadoActual;
         alerta.EstadoActual = siguiente;
 
-        _context.HistorialEstadoAlerta.Add(new HistorialEstadoAlertum
+        _context.HistorialEstadoAlerta.Add(new HistorialEstadoAlerta
         {
             IdAlerta = alerta.IdAlerta,
             IdUsuario = usuario.IdUsuario,
             EstadoAnterior = anterior,
             EstadoNuevo = siguiente,
-            FechaHora = DateTime.Now   // sello del servidor, no editable desde la interfaz
+            FechaHora = DateTime.Now
         });
 
         try
         {
-            // Un solo SaveChanges = una sola transacción: o se guardan ambos cambios o ninguno
             await _context.SaveChangesAsync();
             TempData["MensajeExito"] = $"Alerta «{alerta.Titulo}»: {anterior} → {siguiente}.";
         }
@@ -256,15 +237,6 @@ public class AlertasController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // ---------------------------------------------------------------
-    // Auxiliares
-    // ---------------------------------------------------------------
-
-    /// <summary>
-    /// Todavía no hay inicio de sesión (RF-001 pendiente). Mientras tanto se usa el primer
-    /// Administrador activo; si no existe, el primer usuario activo. Reemplazar por el usuario
-    /// autenticado cuando se integre el login.
-    /// </summary>
     private async Task<Usuario?> ObtenerUsuarioActualAsync()
     {
         var admin = await _context.Usuarios

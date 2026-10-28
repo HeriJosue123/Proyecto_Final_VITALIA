@@ -1,0 +1,66 @@
+﻿@model VITALIA.Models.Rol
+
+@{
+    ViewData["Title"] = "Nuevo Rol";
+}
+
+<div class="animate-fade-up py-3">
+    <!-- NAVEGACIÓN SUPERIOR -->
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-sm bg-white text-muted border rounded-pill px-3 py-1 shadow-sm text-decoration-none fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Roles
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+
+            <!-- ENCABEZADO CENTRADO -->
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-2" style="width: 58px; height: 58px; background: linear-gradient(135deg, #14828a, #093437);">
+                    <i class="bi bi-shield-plus fs-3"></i>
+                </div>
+                <h3 class="fw-bold mb-1" style="color: #1a252f;">Crear Nuevo Rol</h3>
+                <p class="text-muted small mb-0">Define la jerarquía y permisos para los usuarios del sistema</p>
+            </div>
+
+            <!-- TARJETA DEL FORMULARIO -->
+            <div class="vitalia-card-pro p-4 p-md-5 position-relative overflow-hidden">
+                <div style="position: absolute; top:0; left:0; right:0; height: 4px; background: linear-gradient(90deg, #14828a, #093437);"></div>
+
+                <form asp-action="Create" method="post" class="mt-1">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                    <!-- CAMPO: NOMBRE DEL ROL -->
+                    <div class="mb-4">
+                        <label asp-for="NombreRol" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2 d-block text-start">
+                            <i class="bi bi-shield-lock text-primary me-1"></i> Nombre del Rol
+                        </label>
+                        <input asp-for="NombreRol" class="form-control form-control-lg rounded-3 fs-6" placeholder="Ej. Médico General, Administrador..." required autocomplete="off" style="border-color: #cbd5e1; padding: 0.75rem 1rem;" />
+                        <span asp-validation-for="NombreRol" class="text-danger small ms-1"></span>
+                    </div>
+
+                    <!-- CAMPO: DESCRIPCIÓN -->
+                    <div class="mb-4">
+                        <label asp-for="Descripcion" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2 d-block text-start">
+                            <i class="bi bi-card-text text-primary me-1"></i> Descripción del Perfil
+                        </label>
+                        <textarea asp-for="Descripcion" class="form-control rounded-3 fs-6" rows="3" placeholder="Especifica las funciones o accesos de este rol..." style="border-color: #cbd5e1; padding: 0.75rem 1rem;"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger small ms-1"></span>
+                    </div>
+
+                    <!-- BOTONES DE ACCIÓN -->
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-light rounded-3 py-2 px-4 fw-semibold text-secondary flex-grow-1 text-center">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn text-white rounded-3 py-2 px-4 fw-bold shadow-sm flex-grow-1" style="background-color: #14828a;">
+                            <i class="bi bi-check-circle-fill me-1"></i> Guardar Rol
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
