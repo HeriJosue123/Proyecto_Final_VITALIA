@@ -18,9 +18,6 @@
             <a asp-controller="Residentes" asp-action="Index" class="btn btn-vitalia">
                 <i class="bi bi-people-fill me-1"></i> Residentes
             </a>
-            <a asp-controller="Habitaciones" asp-action="Index" class="btn btn-outline-vitalia">
-                <i class="bi bi-door-open me-1"></i> Habitaciones
-            </a>
         </div>
     </div>
 </div>
@@ -28,7 +25,7 @@
 <!-- Título de sección -->
 <div class="mb-3">
     <h5 class="fw-bold text-dark mb-1">Módulos de Gestión</h5>
-    <p class="text-muted small">Administración de expedientes de residentes y capacidad habitacional</p>
+    <p class="text-muted small">Administración de expedientes de residentes</p>
 </div>
 
 <!-- Tarjetas de Módulos -->
@@ -48,27 +45,6 @@
             <p class="text-muted small mb-4">Expedientes de adultos mayores, información personal, fechas de ingreso y asignación de habitaciones.</p>
             <div class="mt-auto">
                 <a asp-controller="Residentes" asp-action="Index" class="btn btn-vitalia w-100 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-arrow-right-circle-fill"></i> Ingresar al Módulo
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Módulo Habitaciones -->
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <div class="rounded-3 d-flex align-items-center justify-content-center text-white" style="width: 46px; height: 46px; background-color: #12898e;">
-                    <i class="bi bi-door-open-fill fs-5"></i>
-                </div>
-                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-pill small">
-                    <i class="bi bi-check-circle-fill me-1"></i> Módulo Activo
-                </span>
-            </div>
-            <h5 class="fw-bold text-dark mb-2">Habitaciones</h5>
-            <p class="text-muted small mb-4">Administración de cuartos, control de capacidad física, cupos ocupados y estados de disponibilidad.</p>
-            <div class="mt-auto">
-                <a asp-controller="Habitaciones" asp-action="Index" class="btn btn-vitalia w-100 d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-arrow-right-circle-fill"></i> Ingresar al Módulo
                 </a>
             </div>
