@@ -246,6 +246,34 @@
                     border-color: #14828a !important;
                     transform: translateY(-2px);
                 }
+
+            /* Tarjeta de encabezado de los módulos (mismo degradado del panel principal) */
+            .vitalia-banner {
+                background: linear-gradient(135deg, #0d3c3d 0%, #118a8b 100%);
+                color: #ffffff;
+                border-radius: 1rem;
+                padding: 1rem 1.5rem;
+                box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
+            }
+
+                .vitalia-banner h2, .vitalia-banner h3 {
+                    color: #ffffff !important;
+                }
+
+                .vitalia-banner .text-muted {
+                    color: rgba(255, 255, 255, .75) !important;
+                }
+
+                .vitalia-banner .btn {
+                    background-color: #ffffff !important;
+                    color: #0d3c3d !important;
+                    border-color: #ffffff !important;
+                    font-weight: 600;
+                }
+
+                    .vitalia-banner .btn:hover {
+                        background-color: #e6f4f4 !important;
+                    }
     </style>
 </head>
 <body>
@@ -261,6 +289,12 @@
 
             <div class="sidebar-section-label">Módulos</div>
             <ul class="sidebar-nav">
+                <li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+                       asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-house-door-fill"></i> Inicio
+                    </a>
+                </li>
                 <li>
                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Residentes" ? "active" : "")"
                        asp-controller="Residentes" asp-action="Index">
@@ -294,12 +328,6 @@
                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuario" || ViewContext.RouteData.Values["controller"]?.ToString() == "Roles" ? "active" : "")"
                        asp-controller="Usuario" asp-action="Index">
                         <i class="bi bi-shield-lock-fill"></i> Usuarios y Roles
-                    </a>
-                </li>
-                <li>
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Respaldos" ? "active" : "")"
-                       asp-controller="Home" asp-action="Index">
-                        <i class="bi bi-hdd-fill"></i> Respaldos
                     </a>
                 </li>
             </ul>
