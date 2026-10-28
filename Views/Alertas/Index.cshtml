@@ -2,9 +2,6 @@
 
 @{
     ViewData["Title"] = "Alertas y Tareas";
-    var erroresForm = (TempData["AlertaErrores"] as string)?
-        .Split('|', StringSplitOptions.RemoveEmptyEntries);
-    var ahora = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
 }
 
 <style>
@@ -36,9 +33,17 @@
         border-radius: 10px;
     }
 
-    .alerta-card.prio-urgente { border-left-color: #dc3545; }
-    .alerta-card.prio-programada { border-left-color: #e09f3e; }
-    .alerta-card.prio-rutina { border-left-color: #0d8abc; }
+        .alerta-card.prio-urgente {
+            border-left-color: #dc3545;
+        }
+
+        .alerta-card.prio-programada {
+            border-left-color: #e09f3e;
+        }
+
+        .alerta-card.prio-rutina {
+            border-left-color: #0d8abc;
+        }
 </style>
 
 <!-- Encabezado del módulo -->
@@ -47,9 +52,9 @@
         <h3 class="fw-bold text-dark mb-0">Alertas y tareas</h3>
         <p class="text-muted small mb-0">Panel de seguimiento por estado</p>
     </div>
-    <button type="button" class="btn btn-vitalia" data-bs-toggle="modal" data-bs-target="#modalNuevaAlerta">
+    <a asp-action="Create" class="btn btn-vitalia">
         <i class="bi bi-plus-lg me-1"></i> Nueva alerta
-    </button>
+    </a>
 </div>
 
 <!-- Mensajes -->
@@ -66,19 +71,6 @@
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-1"></i> @TempData["MensajeError"]
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-}
-
-@if (erroresForm != null && erroresForm.Length > 0)
-{
-    <div class="alert alert-danger" role="alert">
-        <strong><i class="bi bi-exclamation-octagon-fill me-1"></i> La alerta no se guardó. Revise estos datos:</strong>
-        <ul class="mb-0 mt-1">
-            @foreach (var e in erroresForm)
-            {
-                <li>@e</li>
-            }
-        </ul>
     </div>
 }
 
@@ -156,81 +148,6 @@
             {
                 <p class="text-muted small mb-0">Todavía no hay alertas atendidas.</p>
             }
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Nueva alerta (RF-014) -->
-<div class="modal fade" id="modalNuevaAlerta" tabindex="-1" aria-labelledby="tituloModalAlerta" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4">
-            <form asp-controller="Alertas" asp-action="Crear" method="post">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold" id="tituloModalAlerta">Nueva alerta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="idResidente" class="form-label fw-semibold">Residente *</label>
-                        <select id="idResidente" name="idResidente" class="form-select" required>
-                            <option value="">Seleccione un residente</option>
-                            @foreach (var r in Model.Residentes)
-                            {
-                                <option value="@r.Value">@r.Text</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="titulo" class="form-label fw-semibold">Título *</label>
-                        <input id="titulo" name="titulo" type="text" class="form-control" maxlength="150"
-                               placeholder="Ej. Presión arterial alta" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="descripcion" class="form-label fw-semibold">Descripción *</label>
-                        <textarea id="descripcion" name="descripcion" class="form-control" rows="3"
-                                  placeholder="Qué pasó y qué hay que hacer" required></textarea>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-sm-6">
-                            <label for="prioridad" class="form-label fw-semibold">Prioridad *</label>
-                            <select id="prioridad" name="prioridad" class="form-select" required>
-                                <option value="Urgente">Urgente</option>
-                                <option value="Programada">Programada</option>
-                                <option value="Rutina" selected>Rutina</option>
-                            </select>
-                        </div>
-                        <div class="col-sm-6">
-                            <label for="fechaProgramada" class="form-label fw-semibold">Fecha y hora *</label>
-                            <input id="fechaProgramada" name="fechaProgramada" type="datetime-local"
-                                   class="form-control" value="@ahora" required />
-                        </div>
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="idEmpleadoResponsable" class="form-label fw-semibold">Responsable</label>
-                        <select id="idEmpleadoResponsable" name="idEmpleadoResponsable" class="form-select">
-                            <option value="">Sin asignar</option>
-                            @foreach (var e in Model.Empleados)
-                            {
-                                <option value="@e.Value">@e.Text</option>
-                            }
-                        </select>
-                    </div>
-
-                    <p class="small text-muted mb-0">
-                        La alerta se crea en estado Pendiente. El sistema registra la fecha, la hora y el usuario que la crea.
-                    </p>
-                </div>
-
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-vitalia">Guardar alerta</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>

@@ -1,0 +1,89 @@
+﻿@model VITALIA.Models.ViewModels.AlertaDetalleViewModel
+
+@{
+    ViewData["Title"] = "Eliminar Alerta";
+    var claseEtiqueta = "text-muted d-block small text-uppercase fw-bold";
+}
+
+<div class="animate-fade-up py-2">
+    <!-- NAVEGACIÓN SUPERIOR SEPARADA -->
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-sm bg-white text-muted border rounded-pill px-3 py-1 shadow-sm text-decoration-none fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Cancelar
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-9 col-xl-8">
+
+            <!-- ENCABEZADO CENTRADO CON ADVERTENCIA -->
+            <div class="text-center mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-2 bg-danger" style="width: 44px; height: 44px;">
+                    <i class="bi bi-bell-slash fs-5"></i>
+                </div>
+                <h4 class="fw-bold mb-0 text-danger">Eliminar Alerta</h4>
+                <p class="text-muted small mb-0">¿Está seguro de que desea eliminar permanentemente este registro?</p>
+            </div>
+
+            <!-- TARJETA DE CONFIRMACIÓN -->
+            <div class="vitalia-card-pro p-3 p-md-4 position-relative overflow-hidden border-danger border-1">
+                <div style="position: absolute; top:0; left:0; right:0; height: 4px; background: #dc3545;"></div>
+
+                @if (Model.PuedeEliminar)
+                {
+                    <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-3 py-2 small text-start" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Esta acción eliminará la alerta definitivamente y no se puede deshacer.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 py-2 small text-start" role="alert">
+                        <i class="bi bi-lock-fill me-2"></i>
+                        @Model.MotivoNoEliminar
+                    </div>
+                }
+
+                <div class="bg-light p-3 rounded-3 mb-3 text-start">
+                    <div class="mb-3">
+                        <span class="@claseEtiqueta">Título</span>
+                        <span class="fs-6 fw-bold text-dark">@Model.Titulo</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <span class="@claseEtiqueta">Residente</span>
+                            <span class="text-dark">@Model.Residente (@Model.CodigoResidente)</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="@claseEtiqueta">Prioridad</span>
+                            <span class="text-dark">@Model.Prioridad</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="@claseEtiqueta">Fecha programada</span>
+                            <span class="text-dark">@Model.FechaProgramada.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="@claseEtiqueta">Estado actual</span>
+                            <span class="text-dark">@Model.Estado</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN BALANCEADOS -->
+                <form asp-action="Delete" method="post" class="d-flex gap-2 pt-3 border-top">
+                    <input type="hidden" name="id" value="@Model.IdAlerta" />
+                    <a asp-action="Index" class="btn btn-light rounded-3 py-2 px-4 fw-semibold text-secondary flex-grow-1 text-center">
+                        Cancelar
+                    </a>
+                    @if (Model.PuedeEliminar)
+                    {
+                        <button type="submit" class="btn btn-danger rounded-3 py-2 px-4 fw-bold shadow-sm flex-grow-1">
+                            <i class="bi bi-trash me-1"></i> Confirmar Eliminar
+                        </button>
+                    }
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
