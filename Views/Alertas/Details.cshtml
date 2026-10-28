@@ -1,0 +1,117 @@
+﻿@model VITALIA.Models.ViewModels.AlertaDetalleViewModel
+
+@{
+    ViewData["Title"] = "Detalles de Alerta";
+
+    var claseBadge = Model.Prioridad switch
+    {
+        "Urgente" => "bg-danger-subtle text-danger-emphasis border border-danger-subtle",
+        "Programada" => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
+        _ => "bg-info-subtle text-info-emphasis border border-info-subtle"
+    };
+
+    var claseEstado = Model.Estado switch
+    {
+        "Atendida" => "bg-success-subtle text-success border border-success-subtle",
+        "En Proceso" => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
+        _ => "bg-secondary-subtle text-secondary border border-secondary-subtle"
+    };
+
+    var claseEtiqueta = "text-muted d-block small text-uppercase fw-bold";
+}
+
+<div class="animate-fade-up py-2">
+    <!-- NAVEGACIÓN SUPERIOR SEPARADA -->
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-sm bg-white text-muted border rounded-pill px-3 py-1 shadow-sm text-decoration-none fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Alertas
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-9 col-xl-8">
+
+            <!-- ENCABEZADO CENTRADO -->
+            <div class="text-center mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-2" style="width: 44px; height: 44px; background: linear-gradient(135deg, #14828a, #093437);">
+                    <i class="bi bi-bell-fill fs-5"></i>
+                </div>
+                <h4 class="fw-bold mb-2" style="color: #1a252f;">@Model.Titulo</h4>
+                <div class="d-flex justify-content-center flex-wrap gap-2">
+                    <span class="badge bg-light text-muted border px-3 py-1 rounded-pill">Alerta #@Model.IdAlerta</span>
+                    <span class="badge @claseBadge rounded-pill px-3 py-1">@Model.Prioridad</span>
+                    <span class="badge @claseEstado rounded-pill px-3 py-1">@Model.Estado</span>
+                </div>
+            </div>
+
+            <!-- TARJETA DE DETALLES -->
+            <div class="vitalia-card-pro p-3 p-md-4 position-relative overflow-hidden">
+                <div style="position: absolute; top:0; left:0; right:0; height: 4px; background: linear-gradient(90deg, #14828a, #093437);"></div>
+
+                <div class="bg-light p-3 rounded-3 mb-3 text-start">
+                    <div class="mb-3">
+                        <span class="@claseEtiqueta">Descripción</span>
+                        <span class="text-dark">@Model.Descripcion</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <span class="@claseEtiqueta">Residente</span>
+                            <span class="text-dark">@Model.Residente <span class="text-muted">(@Model.CodigoResidente)</span></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="@claseEtiqueta">Responsable</span>
+                            <span class="text-dark">@(Model.Responsable ?? "Sin asignar")</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="@claseEtiqueta">Fecha programada</span>
+                            <span class="text-dark">@Model.FechaProgramada.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="@claseEtiqueta">Creada por</span>
+                            <span class="text-dark">@Model.CreadaPor</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HISTORIAL DE ESTADOS -->
+                <h6 class="fw-bold text-dark small text-uppercase tracking-wider mb-2">
+                    <i class="bi bi-clock-history text-primary me-1"></i> Historial de estados
+                </h6>
+                @if (Model.Historial.Any())
+                {
+                    <ul class="list-group list-group-flush mb-3 small" style="max-height: 130px; overflow-y: auto;">
+                        @foreach (var h in Model.Historial)
+                        {
+                            <li class="list-group-item px-0 py-1 d-flex flex-wrap justify-content-between gap-2">
+                                <span class="fw-semibold">@h.EstadoAnterior → @h.EstadoNuevo</span>
+                                <span class="text-muted">@h.FechaHora.ToString("dd/MM/yyyy HH:mm") · @h.Usuario</span>
+                                @if (!string.IsNullOrWhiteSpace(h.Comentario))
+                                {
+                                    <span class="text-secondary w-100">@h.Comentario</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted small mb-3">Esta alerta todavía no ha cambiado de estado.</p>
+                }
+
+                <!-- BOTONES DE ACCIÓN BALANCEADOS -->
+                <div class="d-flex gap-2 pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-light rounded-3 py-2 px-4 fw-semibold text-secondary flex-grow-1 text-center">
+                        Cerrar
+                    </a>
+                    @if (Model.PuedeEditar)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.IdAlerta" class="btn text-white rounded-3 py-2 px-4 fw-bold shadow-sm flex-grow-1 text-center" style="background-color: #14828a;">
+                            <i class="bi bi-pencil-square me-1"></i> Editar Alerta
+                        </a>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

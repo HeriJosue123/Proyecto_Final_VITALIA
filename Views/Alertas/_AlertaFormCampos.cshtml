@@ -1,0 +1,82 @@
+﻿@model VITALIA.Models.ViewModels.AlertaFormViewModel
+
+@{
+    var esEdicion = Model.IdAlerta > 0;
+    var estiloCampo = "border-color: #cbd5e1;";
+    var claseLabel = "form-label fw-bold text-dark small text-uppercase tracking-wider mb-1 d-block text-start";
+    var valorFecha = (Model.FechaProgramada ?? DateTime.Now).ToString("yyyy-MM-ddTHH:mm");
+}
+
+<div class="row g-3 mb-3">
+    <!-- CAMPO: RESIDENTE -->
+    <div class="col-md-6">
+        <label asp-for="IdResidente" class="@claseLabel">
+            <i class="bi bi-person-heart text-primary me-1"></i> Residente
+        </label>
+        @if (esEdicion)
+        {
+            <input type="text" class="form-control rounded-3 bg-light" value="@Model.ResidenteTexto" readonly style="@estiloCampo" />
+        }
+        else
+        {
+            <select asp-for="IdResidente" asp-items="Model.Residentes" class="form-select rounded-3" required style="@estiloCampo">
+                <option value="">-- Seleccione --</option>
+            </select>
+            <span asp-validation-for="IdResidente" class="text-danger small ms-1"></span>
+        }
+    </div>
+
+    <!-- CAMPO: RESPONSABLE -->
+    <div class="col-md-6">
+        <label asp-for="IdEmpleadoResponsable" class="@claseLabel">
+            <i class="bi bi-person-badge text-primary me-1"></i> Responsable <span class="text-muted fw-normal text-lowercase">(opcional)</span>
+        </label>
+        <select asp-for="IdEmpleadoResponsable" asp-items="Model.Empleados" class="form-select rounded-3" style="@estiloCampo">
+            <option value="">Sin asignar</option>
+        </select>
+        <span asp-validation-for="IdEmpleadoResponsable" class="text-danger small ms-1"></span>
+    </div>
+</div>
+
+<!-- CAMPO: TÍTULO -->
+<div class="mb-3">
+    <label asp-for="Titulo" class="@claseLabel">
+        <i class="bi bi-card-heading text-primary me-1"></i> Título
+    </label>
+    <input asp-for="Titulo" type="text" class="form-control rounded-3" maxlength="150"
+           placeholder="Ej. Presión arterial alta" required autocomplete="off" style="@estiloCampo" />
+    <span asp-validation-for="Titulo" class="text-danger small ms-1"></span>
+</div>
+
+<!-- CAMPO: DESCRIPCIÓN -->
+<div class="mb-3">
+    <label asp-for="Descripcion" class="@claseLabel">
+        <i class="bi bi-text-paragraph text-primary me-1"></i> Descripción
+    </label>
+    <textarea asp-for="Descripcion" class="form-control rounded-3" rows="2"
+              placeholder="Qué pasó y qué hay que hacer" required style="@estiloCampo"></textarea>
+    <span asp-validation-for="Descripcion" class="text-danger small ms-1"></span>
+</div>
+
+<!-- CAMPOS: PRIORIDAD + FECHA -->
+<div class="row g-3 mb-3">
+    <div class="col-sm-6">
+        <label asp-for="Prioridad" class="@claseLabel">
+            <i class="bi bi-flag-fill text-primary me-1"></i> Prioridad
+        </label>
+        <select asp-for="Prioridad" class="form-select rounded-3" required style="@estiloCampo">
+            <option value="Urgente">Urgente</option>
+            <option value="Programada">Programada</option>
+            <option value="Rutina">Rutina</option>
+        </select>
+        <span asp-validation-for="Prioridad" class="text-danger small ms-1"></span>
+    </div>
+    <div class="col-sm-6">
+        <label asp-for="FechaProgramada" class="@claseLabel">
+            <i class="bi bi-clock text-primary me-1"></i> Fecha y hora
+        </label>
+        <input asp-for="FechaProgramada" type="datetime-local" value="@valorFecha"
+               class="form-control rounded-3" required style="@estiloCampo" />
+        <span asp-validation-for="FechaProgramada" class="text-danger small ms-1"></span>
+    </div>
+</div>
