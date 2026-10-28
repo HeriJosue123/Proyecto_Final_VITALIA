@@ -49,21 +49,34 @@
 
                 <div class="mb-4">
                     <label class="form-label fw-semibold">VINCULAR USUARIO</label>
-                    <select name="IdUsuario" class="form-select" required>
-                        <option value="">-- Seleccione un usuario --</option>
-                        @if (ViewData["IdUsuario"] is SelectList usuarios)
+                    @{
+                        var usuarios = ViewData["IdUsuario"] as SelectList;
+                        bool hayUsuarios = usuarios != null && usuarios.Any();
+                    }
+                    <select name="IdUsuario" class="form-select" required disabled="@(!hayUsuarios)">
+                        <option value="">@(hayUsuarios ? "-- Seleccione un usuario --" : "-- No hay usuarios disponibles --")</option>
+                        @if (hayUsuarios)
                         {
-                            foreach (var item in usuarios)
+                            foreach (var item in usuarios!)
                             {
                                 <option value="@item.Value" selected="@item.Selected">@item.Text</option>
                             }
                         }
                     </select>
+                    @if (!hayUsuarios)
+                    {
+                        @* Sin usuarios libres no se puede guardar: se explica qué hacer primero *@
+                        <div class="text-muted small mt-1">
+                            No hay usuarios libres para vincular. Primero cree uno en
+                            <a asp-controller="Usuario" asp-action="Create" class="fw-semibold">Usuarios y Roles</a>
+                            (cada usuario solo puede estar vinculado a un empleado).
+                        </div>
+                    }
                     <span asp-validation-for="IdUsuario" class="text-danger small"></span>
                 </div>
 
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-vitalia">
+                    <button type="submit" class="btn btn-vitalia" disabled="@(!hayUsuarios)">
                         <i class="bi bi-save me-1"></i> Guardar Empleado
                     </button>
                 </div>
