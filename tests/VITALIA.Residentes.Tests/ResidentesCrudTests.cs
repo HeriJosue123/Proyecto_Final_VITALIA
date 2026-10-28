@@ -1,7 +1,11 @@
 using System.Net;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using VITALIA.Controllers;
 using VITALIA.Data;
 using VITALIA.Models;
@@ -9,19 +13,40 @@ using VITALIA.Models;
 namespace VITALIA.Residentes.Tests;
 
 /// <summary>
-/// Pruebas de integración del módulo Residentes. Levantan la aplicación completa en memoria
-/// (WebApplicationFactory) con la base de datos InMemory configurada en Program.cs, por lo que
-/// no tocan SQL Server ni VITALIADB. Todos los datos son ficticios.
+/// Levanta la aplicación completa, pero sustituye la conexión a SQL Server de Program.cs por una
+/// base de datos en memoria: las pruebas nunca escriben en VITALIA_DB ni en otra base real.
 /// </summary>
-public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<ResidentesController>>
+public class FabricaResidentes : WebApplicationFactory<ResidentesController>
 {
-    private readonly WebApplicationFactory<ResidentesController> _factory;
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<DbContextOptions<VitaliaDbContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<VitaliaDbContext>>();
+            services.AddDbContext<VitaliaDbContext>(o => o.UseInMemoryDatabase("ResidentesPruebas"));
+        });
+    }
+}
+
+/// <summary>
+/// Pruebas de integración del módulo Residentes con base de datos en memoria. Todos los datos son ficticios.
+/// </summary>
+public class ResidentesCrudTests : IClassFixture<FabricaResidentes>
+{
+    private readonly FabricaResidentes _factory;
     private readonly HttpClient _client;
 
-    public ResidentesCrudTests(WebApplicationFactory<ResidentesController> factory)
+    public ResidentesCrudTests(FabricaResidentes factory)
     {
         _factory = factory;
         _client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        // Seguridad: si la sustitución fallara, se detienen todas las pruebas antes de tocar SQL Server
+        using var scope = factory.Services.CreateScope();
+        string proveedor = scope.ServiceProvider.GetRequiredService<VitaliaDbContext>().Database.ProviderName ?? "";
+        if (!proveedor.Contains("InMemory"))
+            throw new InvalidOperationException("Las pruebas deben usar la base en memoria, no " + proveedor);
     }
 
     // ---------- utilidades ----------
@@ -37,7 +62,8 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         ["NumHabitacion"] = "101",
         ["TipoSangre"] = "O+",
         ["Alergias"] = "Penicilina",
-        ["ContactoEmergencia"] = "Contacto Ficticio · 7000-0000",
+        ["ContactoNombre"] = "Contacto Ficticio",
+        ["ContactoTelefono"] = "7000-0000",
         ["Observaciones"] = "Hipertensión controlada (dato ficticio)."
     };
 
@@ -74,7 +100,8 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         return db.Residentes.Count(r => r.CodigoUnico.ToUpper() == codigo.ToUpper());
     }
 
-    private Residente Sembrar(string codigo, string nombre, string apellido, string habitacion, bool activo = true)
+    private Residente Sembrar(string codigo, string nombre, string apellido, string habitacion, bool activo = true,
+        string contacto = "Contacto Ficticio · 7000-0000")
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VitaliaDbContext>();
@@ -82,7 +109,7 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         {
             CodigoUnico = codigo, Nombre = nombre, Apellido = apellido,
             FechaNacimiento = new DateOnly(1940, 1, 15), NumHabitacion = habitacion,
-            ContactoEmergencia = "Contacto Ficticio", Observaciones = "Dato ficticio", Estado = activo
+            ContactoEmergencia = contacto, Observaciones = "Dato ficticio", Estado = activo
         };
         db.Residentes.Add(r);
         db.SaveChanges();
@@ -103,6 +130,7 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         Assert.True(guardado!.Estado);
         Assert.Equal("Prueba", guardado.Nombre);
         Assert.Equal(new DateOnly(1945, 5, 20), guardado.FechaNacimiento);
+        Assert.Equal("Contacto Ficticio · 7000-0000", guardado.ContactoEmergencia);
     }
 
     [Fact]
@@ -127,7 +155,8 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         var datos = new Dictionary<string, string>
         {
             ["CodigoUnico"] = "", ["Nombre"] = "", ["Apellido"] = "", ["FechaNacimiento"] = "",
-            ["NumHabitacion"] = "", ["TipoSangre"] = "", ["Alergias"] = "", ["ContactoEmergencia"] = "", ["Observaciones"] = ""
+            ["NumHabitacion"] = "", ["TipoSangre"] = "", ["Alergias"] = "",
+            ["ContactoNombre"] = "", ["ContactoTelefono"] = "", ["Observaciones"] = ""
         };
         var resp = await RegistrarAsync(datos);
 
@@ -138,7 +167,8 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         Assert.Contains("El apellido es obligatorio.", html);
         Assert.Contains("La fecha de nacimiento es obligatoria.", html);
         Assert.Contains("La habitación es obligatoria.", html);
-        Assert.Contains("El contacto de emergencia es obligatorio.", html);
+        Assert.Contains("El nombre del contacto de emergencia es obligatorio.", html);
+        Assert.Contains("El teléfono del contacto de emergencia es obligatorio.", html);
         Assert.Contains("Los antecedentes del residente son obligatorios.", html);
         Assert.DoesNotContain("is invalid", html);
         Assert.DoesNotContain("field is required", html);
@@ -180,8 +210,9 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         var datos = DatosValidos("T-" + new string('9', 25));
         datos["Nombre"] = new string('A', 101);
         datos["Apellido"] = new string('B', 101);
-        datos["ContactoEmergencia"] = new string('C', 151);
+        datos["ContactoNombre"] = new string('C', 121);
         datos["Alergias"] = new string('D', 256);
+        datos["Observaciones"] = new string('E', 2001);
         var resp = await RegistrarAsync(datos);
 
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
@@ -189,8 +220,108 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         Assert.Contains("El código único no puede exceder los 20 caracteres.", html);
         Assert.Contains("El nombre no puede exceder los 100 caracteres.", html);
         Assert.Contains("El apellido no puede exceder los 100 caracteres.", html);
-        Assert.Contains("El contacto de emergencia no puede exceder los 150 caracteres.", html);
+        Assert.Contains("El nombre del contacto debe tener entre 2 y 120 caracteres.", html);
         Assert.Contains("Las alergias no pueden exceder los 255 caracteres.", html);
+        Assert.Contains("Los antecedentes no pueden exceder los 2000 caracteres.", html);
+    }
+
+    // ---------- CP-13 Teléfono del contacto de emergencia ----------
+
+    [Theory]
+    [InlineData("7000-111")]      // 7 dígitos con guion
+    [InlineData("7000111")]       // 7 dígitos sin guion
+    [InlineData("7000-11111")]    // 9 dígitos
+    [InlineData("1234-5678")]     // no empieza por 2, 6 o 7
+    [InlineData("7000-11a1")]     // contiene letras
+    [InlineData("70-001111")]     // guion fuera de lugar
+    public async Task CP13_TelefonoInvalido_NoSeGuarda(string telefono)
+    {
+        string codigo = NuevoCodigo();
+        var datos = DatosValidos(codigo);
+        datos["ContactoTelefono"] = telefono;
+        var resp = await RegistrarAsync(datos);
+
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        Assert.Contains("El teléfono debe tener 8 dígitos y empezar por 2, 6 o 7 (ej. 7000-1111).",
+            WebUtility.HtmlDecode(await resp.Content.ReadAsStringAsync()));
+        Assert.Null(BuscarPorCodigo(codigo));
+    }
+
+    [Theory]
+    [InlineData("70001111", "7000-1111")]
+    [InlineData("7000-1111", "7000-1111")]
+    [InlineData(" 2222-3333 ", "2222-3333")]
+    [InlineData("61234567", "6123-4567")]
+    public async Task CP13b_TelefonoValido_SeGuardaConGuion(string telefono, string esperado)
+    {
+        string codigo = NuevoCodigo();
+        var datos = DatosValidos(codigo);
+        datos["ContactoNombre"] = "  María José Pérez  ";
+        datos["ContactoTelefono"] = telefono;
+        var resp = await RegistrarAsync(datos);
+
+        Assert.Equal(HttpStatusCode.Redirect, resp.StatusCode);
+        Assert.Equal("María José Pérez · " + esperado, BuscarPorCodigo(codigo)!.ContactoEmergencia);
+    }
+
+    // ---------- CP-14 Formato de nombres y habitación ----------
+
+    [Theory]
+    [InlineData("Nombre", "Marta3")]
+    [InlineData("Apellido", "Gómez#")]
+    [InlineData("ContactoNombre", "Carlos 7000")]
+    [InlineData("NumHabitacion", "10 1")]
+    public async Task CP14_CaracteresNoPermitidos_Rechaza(string campo, string valor)
+    {
+        string codigo = NuevoCodigo();
+        var datos = DatosValidos(codigo);
+        datos[campo] = valor;
+        var resp = await RegistrarAsync(datos);
+
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        Assert.Contains("solo admite", WebUtility.HtmlDecode(await resp.Content.ReadAsStringAsync()));
+        Assert.Null(BuscarPorCodigo(codigo));
+    }
+
+    [Fact]
+    public async Task CP14b_NombresConTildesEnieYCompuestos_SeAceptan()
+    {
+        string codigo = NuevoCodigo();
+        var datos = DatosValidos(codigo);
+        datos["Nombre"] = "José Ángel";
+        datos["Apellido"] = "Peña-Muñoz D'Abuisson";
+        datos["NumHabitacion"] = "A-12";
+        var resp = await RegistrarAsync(datos);
+
+        Assert.Equal(HttpStatusCode.Redirect, resp.StatusCode);
+        Assert.Equal("Peña-Muñoz D'Abuisson", BuscarPorCodigo(codigo)!.Apellido);
+    }
+
+    // ---------- CP-15 Código sugerido y edición del contacto ----------
+
+    [Fact]
+    public async Task CP15_Registro_SugiereElSiguienteCodigoDelAnio()
+    {
+        string prefijo = $"RES-{DateTime.Today.Year}-";
+        Sembrar(prefijo + "041", "Codigo", "Previo", "140");
+
+        var html = await GetHtmlAsync("/Residentes/Create");
+        var valor = Regex.Match(html, "name=\"CodigoUnico\"[^>]*value=\"([^\"]*)\"|value=\"([^\"]*)\"[^>]*name=\"CodigoUnico\"");
+        string sugerido = valor.Groups[1].Success ? valor.Groups[1].Value : valor.Groups[2].Value;
+
+        Assert.StartsWith(prefijo, sugerido);
+        Assert.True(int.Parse(sugerido[prefijo.Length..]) >= 42);
+    }
+
+    [Fact]
+    public async Task CP15b_Edicion_SeparaNombreYTelefonoDelContacto()
+    {
+        string codigo = NuevoCodigo();
+        var r = Sembrar(codigo, "Contacto", "Separado", "141", contacto: "Ana Reyes · 7000-2222");
+
+        var html = await GetHtmlAsync($"/Residentes/Edit/{r.IdResidente}");
+        Assert.Matches("id=\"ContactoNombre\"[^>]*value=\"Ana Reyes\"|value=\"Ana Reyes\"[^>]*id=\"ContactoNombre\"", html);
+        Assert.Matches("id=\"ContactoTelefono\"[^>]*value=\"7000-2222\"|value=\"7000-2222\"[^>]*id=\"ContactoTelefono\"", html);
     }
 
     [Fact]
@@ -237,6 +368,31 @@ public class ResidentesCrudTests : IClassFixture<WebApplicationFactory<Residente
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
         Assert.Contains(mensaje, WebUtility.HtmlDecode(await resp.Content.ReadAsStringAsync()));
         Assert.Null(BuscarPorCodigo(codigo));
+    }
+
+    [Theory]
+    [InlineData(59, false)]   // le falta un año
+    [InlineData(30, false)]
+    [InlineData(60, true)]    // cumple exactamente 60 hoy
+    [InlineData(85, true)]
+    public async Task CP06b_EdadMinimaDe60Anios(int edad, bool seGuarda)
+    {
+        string codigo = NuevoCodigo();
+        var datos = DatosValidos(codigo);
+        datos["FechaNacimiento"] = DateTime.Today.AddYears(-edad).ToString("yyyy-MM-dd");
+        var resp = await RegistrarAsync(datos);
+
+        if (seGuarda)
+        {
+            Assert.Equal(HttpStatusCode.Redirect, resp.StatusCode);
+            Assert.NotNull(BuscarPorCodigo(codigo));
+        }
+        else
+        {
+            Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+            Assert.Contains("El residente debe tener al menos 60 años.", WebUtility.HtmlDecode(await resp.Content.ReadAsStringAsync()));
+            Assert.Null(BuscarPorCodigo(codigo));
+        }
     }
 
     // ---------- CP-07 Listado y consulta ----------
