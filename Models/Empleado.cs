@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace VITALIA.Models;
 
@@ -17,11 +18,16 @@ public partial class Empleado
 
     public bool Estado { get; set; }
 
+    [ValidateNever]
     public virtual ICollection<Alerta> Alerta { get; set; } = new List<Alerta>();
 
+    [ValidateNever]
     public virtual ICollection<AsignacionCuidado> AsignacionCuidados { get; set; } = new List<AsignacionCuidado>();
 
+    [ValidateNever]
     public virtual ICollection<AtencionDiaria> AtencionDiaria { get; set; } = new List<AtencionDiaria>();
 
-    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
+    // Ignorar en la validación del modelo para evitar el error "The IdUsuarioNavigation field is required"
+    [ValidateNever]
+    public virtual Usuario? IdUsuarioNavigation { get; set; }
 }

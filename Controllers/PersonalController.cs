@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +56,9 @@ namespace VITALIA.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdUsuario,Nombre,Apellido,Cargo")] Empleado empleado)
         {
+            // Remover explícitamente la navegación de la validación del ModelState
+            ModelState.Remove(nameof(Empleado.IdUsuarioNavigation));
+
             if (empleado.IdUsuario <= 0)
             {
                 ModelState.AddModelError("IdUsuario", "Debe seleccionar un usuario válido.");
@@ -104,12 +110,12 @@ namespace VITALIA.Controllers
         public IActionResult Asignar()
         {
             ViewData["IdEmpleado"] = new SelectList(
-                _context.Empleados.OrderBy(e => e.Nombre).ToList(),
+                _context.Empleados.Where(e => e.Estado).OrderBy(e => e.Nombre).ToList(),
                 "IdEmpleado",
                 "Nombre");
 
             ViewData["IdResidente"] = new SelectList(
-                _context.Residentes.OrderBy(r => r.Nombre).ToList(),
+                _context.Residentes.Where(r => r.Estado).OrderBy(r => r.Nombre).ToList(),
                 "IdResidente",
                 "Nombre");
 
@@ -121,6 +127,10 @@ namespace VITALIA.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Asignar([Bind("IdEmpleado,IdResidente")] AsignacionCuidado asignacion)
         {
+            // Remover navegaciones de la validación
+            ModelState.Remove("IdEmpleadoNavigation");
+            ModelState.Remove("IdResidenteNavigation");
+
             var existe = await _context.AsignacionCuidados
                 .AnyAsync(a => a.IdEmpleado == asignacion.IdEmpleado
                             && a.IdResidente == asignacion.IdResidente
@@ -140,8 +150,8 @@ namespace VITALIA.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["IdEmpleado"] = new SelectList(_context.Empleados.OrderBy(e => e.Nombre).ToList(), "IdEmpleado", "Nombre", asignacion.IdEmpleado);
-            ViewData["IdResidente"] = new SelectList(_context.Residentes.OrderBy(r => r.Nombre).ToList(), "IdResidente", "Nombre", asignacion.IdResidente);
+            ViewData["IdEmpleado"] = new SelectList(_context.Empleados.Where(e => e.Estado).OrderBy(e => e.Nombre).ToList(), "IdEmpleado", "Nombre", asignacion.IdEmpleado);
+            ViewData["IdResidente"] = new SelectList(_context.Residentes.Where(r => r.Estado).OrderBy(r => r.Nombre).ToList(), "IdResidente", "Nombre", asignacion.IdResidente);
             return View(asignacion);
         }
 
