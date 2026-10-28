@@ -16,36 +16,57 @@ public partial class VitaliaDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Alertum> Alerta { get; set; }
+    public virtual DbSet<Alerta> Alerta { get; set; } = null!;
     public virtual DbSet<AsignacionCuidado> AsignacionCuidados { get; set; }
-    public virtual DbSet<AtencionDiarium> AtencionDiaria { get; set; }
+    public virtual DbSet<AtencionDiaria> AtencionDiaria { get; set; } = null!;
     public virtual DbSet<CorreccionAtencion> CorreccionAtencions { get; set; }
     public virtual DbSet<Empleado> Empleados { get; set; }
     public virtual DbSet<FamiliarResidente> FamiliarResidentes { get; set; }
-    public virtual DbSet<HistorialEstadoAlertum> HistorialEstadoAlerta { get; set; }
+    public virtual DbSet<HistorialEstadoAlerta> HistorialEstadoAlerta { get; set; }
     public virtual DbSet<Residente> Residentes { get; set; }
-    public virtual DbSet<Rol> Rols { get; set; }
+    public virtual DbSet<Rol> Roles { get; set; }
     public virtual DbSet<TipoAtencion> TipoAtencions { get; set; }
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-    // SE ELIMINÓ EL MÉTODO OnConfiguring PARA EVITAR EL BLOQUEO CON SQL SERVER
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Alertum>(entity =>
+        modelBuilder.Entity<Alerta>(entity =>
         {
             entity.HasKey(e => e.IdAlerta);
-            // RESTRICCIÓN AGREGADA AQUÍ
+
             entity.ToTable("ALERTA", t => t.HasCheckConstraint("CK_Alerta_Estado", "[estado_actual] IN ('Pendiente', 'En Proceso', 'Atendida')"));
+
             entity.Property(e => e.IdAlerta).HasColumnName("id_alerta");
             entity.Property(e => e.Descripcion).IsUnicode(false).HasColumnName("descripcion");
             entity.Property(e => e.EstadoActual).HasMaxLength(30).IsUnicode(false).HasDefaultValue("Pendiente", "DF_ALERTA_estado").HasColumnName("estado_actual");
             entity.Property(e => e.FechaProgramada).HasColumnType("datetime").HasColumnName("fecha_programada");
             entity.Property(e => e.IdResidente).HasColumnName("id_residente");
             entity.Property(e => e.IdUsuarioCreador).HasColumnName("id_usuario_creador");
+
+            // MAPEO DEL CAMPO ID DEL EMPLEADO RESPONSABLE EN SQL
+            entity.Property(e => e.IdEmpleadoResponsable).HasColumnName("id_empleado_responsable");
+            entity.Property(e => e.Prioridad).HasMaxLength(20).IsUnicode(false).HasDefaultValue("Rutina", "DF_ALERTA_prioridad").HasColumnName("prioridad");
             entity.Property(e => e.Titulo).HasMaxLength(150).IsUnicode(false).HasColumnName("titulo");
-            entity.HasOne(d => d.IdResidenteNavigation).WithMany(p => p.Alerta).HasForeignKey(d => d.IdResidente).OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_ALERTA_RESIDENTE");
-            entity.HasOne(d => d.IdUsuarioCreadorNavigation).WithMany(p => p.Alerta).HasForeignKey(d => d.IdUsuarioCreador).OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_ALERTA_USUARIO");
+
+            // RELACIONES
+            entity.HasOne(d => d.IdResidenteNavigation)
+                .WithMany(p => p.Alerta)
+                .HasForeignKey(d => d.IdResidente)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ALERTA_RESIDENTE");
+
+            entity.HasOne(d => d.IdUsuarioCreadorNavigation)
+                .WithMany(p => p.Alerta)
+                .HasForeignKey(d => d.IdUsuarioCreador)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ALERTA_USUARIO");
+
+            // CLAVE: Vincular explícitamente la propiedad de navegación con la colección p.Alerta de Empleado
+            entity.HasOne(d => d.IdEmpleadoResponsableNavigation)
+                .WithMany(p => p.Alerta)
+                .HasForeignKey(d => d.IdEmpleadoResponsable)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ALERTA_EMPLEADO");
         });
 
         modelBuilder.Entity<AsignacionCuidado>(entity =>
@@ -62,7 +83,7 @@ public partial class VitaliaDbContext : DbContext
             entity.HasOne(d => d.IdResidenteNavigation).WithMany(p => p.AsignacionCuidados).HasForeignKey(d => d.IdResidente).OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_ASIGNACION_RESIDENTE");
         });
 
-        modelBuilder.Entity<AtencionDiarium>(entity =>
+        modelBuilder.Entity<AtencionDiaria>(entity =>
         {
             entity.HasKey(e => e.IdAtencion);
             entity.ToTable("ATENCION_DIARIA", tb => tb.HasTrigger("TRG_AtencionDiaria_Inmutable"));
@@ -119,7 +140,7 @@ public partial class VitaliaDbContext : DbContext
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.FamiliarResidentes).HasForeignKey(d => d.IdUsuario).OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_FAMILIAR_RESIDENTE_USUARIO");
         });
 
-        modelBuilder.Entity<HistorialEstadoAlertum>(entity =>
+        modelBuilder.Entity<HistorialEstadoAlerta>(entity =>
         {
             entity.HasKey(e => e.IdHistorialEstado);
             entity.ToTable("HISTORIAL_ESTADO_ALERTA");

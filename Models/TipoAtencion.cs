@@ -11,5 +11,5 @@ public partial class TipoAtencion
 
     public string? Descripcion { get; set; }
 
-    public virtual ICollection<AtencionDiarium> AtencionDiaria { get; set; } = new List<AtencionDiarium>();
+    public virtual ICollection<AtencionDiaria> AtencionDiaria { get; set; } = new List<AtencionDiaria>();
 }

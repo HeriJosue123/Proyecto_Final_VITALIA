@@ -15,7 +15,7 @@ public partial class Usuario
 
     public bool Estado { get; set; }
 
-    public virtual ICollection<Alertum> Alerta { get; set; } = new List<Alertum>();
+    public virtual ICollection<Alerta> Alerta { get; set; } = new List<Alerta>();
 
     public virtual ICollection<CorreccionAtencion> CorreccionAtencions { get; set; } = new List<CorreccionAtencion>();
 
@@ -23,7 +23,7 @@ public partial class Usuario
 
     public virtual ICollection<FamiliarResidente> FamiliarResidentes { get; set; } = new List<FamiliarResidente>();
 
-    public virtual ICollection<HistorialEstadoAlertum> HistorialEstadoAlerta { get; set; } = new List<HistorialEstadoAlertum>();
+    public virtual ICollection<HistorialEstadoAlerta> HistorialEstadoAlerta { get; set; } = new List<HistorialEstadoAlerta>();
 
     public virtual Rol IdRolNavigation { get; set; } = null!;
 }

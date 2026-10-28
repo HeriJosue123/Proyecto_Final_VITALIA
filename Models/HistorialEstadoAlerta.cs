@@ -1,32 +1,25 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
-public class HistorialEstadoAlerta
+namespace VITALIA.Models;
+
+public partial class HistorialEstadoAlerta
 {
-    [Key]
     public int IdHistorialEstado { get; set; }
 
-    [Required]
     public int IdAlerta { get; set; }
-    
-    [ForeignKey("IdAlerta")]
-    public Alerta Alerta { get; set; }
 
-    [Required]
-    public int IdUsuario { get; set; } // El usuario que realizó el cambio
+    public int IdUsuario { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    public string EstadoAnterior { get; set; }
+    public string EstadoAnterior { get; set; } = null!;
 
-    [Required]
-    [MaxLength(20)]
-    public string EstadoNuevo { get; set; }
+    public string EstadoNuevo { get; set; } = null!;
 
-    [Required]
-    public DateTime FechaHora { get; set; } = DateTime.Now;
+    public DateTime FechaHora { get; set; }
 
-    [MaxLength(500)]
-    public string Comentario { get; set; }
+    public string? Comentario { get; set; }
+
+    public virtual Alerta IdAlertaNavigation { get; set; } = null!;
+
+    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
 }

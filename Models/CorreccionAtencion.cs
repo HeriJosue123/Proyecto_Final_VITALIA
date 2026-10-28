@@ -17,7 +17,7 @@ public partial class CorreccionAtencion
 
     public DateTime FechaHora { get; set; }
 
-    public virtual AtencionDiarium IdAtencionNavigation { get; set; } = null!;
+    public virtual AtencionDiaria IdAtencionNavigation { get; set; } = null!;
 
     public virtual Usuario IdUsuarioAdminNavigation { get; set; } = null!;
 }

@@ -1,43 +1,29 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
-namespace VITALIA.Models
+namespace VITALIA.Models;
+
+public partial class AtencionDiaria
 {
-    [Table("ATENCION_DIARIA")]
-    public class AtencionDiaria
-    {
-        [Key]
-        [Column("id_atencion")]
-        public int IdAtencion { get; set; }
+    public int IdAtencion { get; set; }
 
-        [Column("id_residente")]
-        public int IdResidente { get; set; }
+    public int IdResidente { get; set; }
 
-        [Column("id_empleado")]
-        public int IdEmpleado { get; set; }
+    public int IdEmpleado { get; set; }
 
-        [Column("id_tipo_atencion")]
-        public int IdTipoAtencion { get; set; }
+    public int IdTipoAtencion { get; set; }
 
-        [Column("fecha_hora")]
-        public DateTime FechaHora { get; set; } = DateTime.Now;
+    public DateTime FechaHora { get; set; }
 
-        [Required]
-        [Column("observaciones")]
-        public string Observaciones { get; set; } = string.Empty;
+    public string Observaciones { get; set; } = null!;
 
-        [Required, StringLength(50)]
-        [Column("estado_cumplimiento")]
-        public string EstadoCumplimiento { get; set; } = "Completado";
+    public string EstadoCumplimiento { get; set; } = null!;
 
-        [ForeignKey("IdResidente")]
-        public virtual Residente? Residente { get; set; }
+    public virtual ICollection<CorreccionAtencion> CorreccionAtencions { get; set; } = new List<CorreccionAtencion>();
 
-        [ForeignKey("IdEmpleado")]
-        public virtual Empleado? Empleado { get; set; }
+    public virtual Empleado IdEmpleadoNavigation { get; set; } = null!;
 
-        [ForeignKey("IdTipoAtencion")]
-        public virtual TipoAtencion? TipoAtencion { get; set; }
-    }
+    public virtual Residente IdResidenteNavigation { get; set; } = null!;
+
+    public virtual TipoAtencion IdTipoAtencionNavigation { get; set; } = null!;
 }

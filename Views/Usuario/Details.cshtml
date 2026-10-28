@@ -1,0 +1,65 @@
+﻿@model VITALIA.Models.Usuario
+
+@{
+    ViewData["Title"] = "Detalles de Usuario";
+}
+
+<div class="animate-fade-up py-3">
+    <!-- NAVEGACIÓN SUPERIOR SEPARADA -->
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-sm bg-white text-muted border rounded-pill px-3 py-1 shadow-sm text-decoration-none fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Usuarios
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+            
+            <!-- ENCABEZADO CENTRADO CON INICIALES -->
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-2 fw-bold" style="width: 64px; height: 64px; background: linear-gradient(135deg, #14828a, #093437); font-size: 1.3rem;">
+                    @(string.IsNullOrEmpty(Model.Correo) ? "US" : (Model.Correo.Length >= 2 ? Model.Correo.Substring(0, 2).ToUpper() : Model.Correo.ToUpper()))
+                </div>
+                <h3 class="fw-bold mb-1" style="color: #1a252f;">@Model.Correo</h3>
+                <span class="badge bg-light text-muted border px-3 py-1 rounded-pill">ID de Usuario: #@Model.IdUsuario</span>
+            </div>
+
+            <!-- TARJETA DE DETALLES -->
+            <div class="vitalia-card-pro p-4 p-md-5 position-relative overflow-hidden">
+                <!-- Borde Superior de Acento -->
+                <div style="position: absolute; top:0; left:0; right:0; height: 4px; background: linear-gradient(90deg, #14828a, #093437);"></div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-6 text-center border-end">
+                        <span class="d-block text-muted small fw-bold text-uppercase tracking-wider mb-2">Rol de Acceso</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-semibold fs-6">
+                            <i class="bi bi-shield-check text-primary me-1"></i>@(Model.IdRolNavigation?.NombreRol ?? "Sin Rol")
+                        </span>
+                    </div>
+                    <div class="col-6 text-center">
+                        <span class="d-block text-muted small fw-bold text-uppercase tracking-wider mb-2">Estado de Cuenta</span>
+                        @if (Model.Estado == true)
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fs-6">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-2 fs-6">Inactivo</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN BALANCEADOS -->
+                <div class="d-flex gap-2 pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-light rounded-3 py-2 px-4 fw-semibold text-secondary flex-grow-1 text-center">
+                        Cerrar
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@Model.IdUsuario" class="btn text-white rounded-3 py-2 px-4 fw-bold shadow-sm flex-grow-1 text-center" style="background-color: #14828a;">
+                        <i class="bi bi-pencil-square me-1"></i> Editar Cuenta
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

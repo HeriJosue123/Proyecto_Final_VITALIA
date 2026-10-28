@@ -1,0 +1,62 @@
+﻿@model VITALIA.Models.Rol
+
+@{
+    ViewData["Title"] = "Eliminar Rol";
+}
+
+<div class="animate-fade-up py-3">
+    <!-- NAVEGACIÓN SUPERIOR SEPARADA -->
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-sm bg-white text-muted border rounded-pill px-3 py-1 shadow-sm text-decoration-none fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Volver a Roles
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+            
+            <!-- ENCABEZADO CENTRADO CON ADVERTENCIA -->
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-2 bg-danger" style="width: 58px; height: 58px;">
+                    <i class="bi bi-shield-x fs-3"></i>
+                </div>
+                <h3 class="fw-bold mb-1 text-danger">Eliminar Rol</h3>
+                <p class="text-muted small mb-0">¿Estás seguro de que deseas eliminar permanentemente este perfil?</p>
+            </div>
+
+            <!-- TARJETA DE CONFIRMACIÓN -->
+            <div class="vitalia-card-pro p-4 p-md-5 position-relative overflow-hidden border-danger border-1">
+                <!-- Borde Superior de Acento Peligro -->
+                <div style="position: absolute; top:0; left:0; right:0; height: 4px; background: #dc3545;"></div>
+
+                <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4 small text-start" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Esta acción no se puede deshacer. Los usuarios asociados a este rol perderán su perfil asignado.
+                </div>
+
+                <div class="bg-light p-3 rounded-3 mb-4 text-start border">
+                    <div class="mb-3">
+                        <span class="text-muted d-block small text-uppercase fw-bold">Nombre del Rol</span>
+                        <span class="fs-5 fw-bold text-dark">@Model.NombreRol</span>
+                    </div>
+                    <div>
+                        <span class="text-muted d-block small text-uppercase fw-bold">Descripción</span>
+                        <span class="text-dark">@(string.IsNullOrEmpty(Model.Descripcion) ? "Sin descripción" : Model.Descripcion)</span>
+                    </div>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN BALANCEADOS -->
+                <form asp-action="Delete" method="post" class="d-flex gap-2 pt-3 border-top">
+                    <input type="hidden" asp-for="IdRol" />
+                    <a asp-action="Index" class="btn btn-light rounded-3 py-2 px-4 fw-semibold text-secondary flex-grow-1 text-center">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger rounded-3 py-2 px-4 fw-bold shadow-sm flex-grow-1">
+                        <i class="bi bi-trash me-1"></i> Confirmar Eliminación
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

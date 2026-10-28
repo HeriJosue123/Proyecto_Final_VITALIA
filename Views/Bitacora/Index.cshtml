@@ -1,7 +1,8 @@
-﻿@model IEnumerable<VITALIA.Models.AtencionDiarium>
+﻿@model IEnumerable<VITALIA.Models.AtencionDiaria>
 
 @{
     ViewData["Title"] = "Bitácora de Atenciones";
+    var residentes = ViewBag.Residentes as List<SelectListItem> ?? new List<SelectListItem>();
 }
 
 <!-- Estilos para ocultar íconos nativos de fecha y transiciones dinámicas -->
@@ -17,7 +18,6 @@
         cursor: pointer;
     }
 
-    /* Animación suave para el panel desplegable lateral */
     #panelFormulario {
         transition: all 0.3s ease-in-out;
     }
@@ -40,27 +40,35 @@
             {
                 <input type="hidden" name="idTipoAtencion" value="@ViewBag.IdTipoAtencionSeleccionado" />
             }
+            @if (ViewBag.IdResidenteSeleccionado != null)
+            {
+                <input type="hidden" name="idResidente" value="@ViewBag.IdResidenteSeleccionado" />
+            }
         </form>
 
-        <!-- Botón + Nueva atención que despliega/oculta el formulario lateral -->
-        <button type="button" class="btn btn-vitalia text-nowrap" onclick="prepararNuevoRegistro()">
+        <!-- Botón + Nueva atención -->
+        <button type="button" class="btn btn-vitalia text-nowrap" onclick="prepararNuevoRegistro()" @(residentes.Any() ? "" : "disabled") title="@(residentes.Any() ? "" : "Registre al menos un residente primero")">
             + Nueva atención
         </button>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- Columna del Historial de Atenciones (Se expande o contrae dinámicamente) -->
+    <!-- Columna del Historial de Atenciones -->
     <div id="columnaHistorial" class="col-12">
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
             <!-- Barra de Filtros -->
             <form asp-controller="Bitacora" asp-action="Index" method="get" class="row g-2 mb-3 align-items-center">
                 <input type="hidden" name="busqueda" value="@ViewBag.BusquedaActual" />
 
+                <!-- Selección Dinámica de Residente -->
                 <div class="col-md-3">
                     <select name="idResidente" class="form-select form-select-sm rounded-3 border-light-subtle">
-                        <option value="">Residente: Marta E. Gómez</option>
                         <option value="">Todos los residentes</option>
+                        @foreach (var res in residentes)
+                        {
+                            <option value="@res.Value" selected="@(ViewBag.IdResidenteSeleccionado?.ToString() == res.Value)">@res.Text</option>
+                        }
                     </select>
                 </div>
 
@@ -101,7 +109,7 @@
                 Historial de solo anexo: no se puede editar ni eliminar (RF-011)
             </p>
 
-            <!-- Lista / Línea de Tiempo Dinámica de Atenciones -->
+            <!-- Lista de Atenciones -->
             <div class="d-flex flex-column gap-3">
                 @if (Model != null && Model.Any())
                 {
@@ -147,13 +155,13 @@
                                         <i class="bi bi-lock-fill"></i> sello del servidor
                                     </small>
 
-                                    <!-- BOTÓN DE EDITAR AGREGADO AQUÍ -->
+                                    <!-- Botón de Editar -->
                                     <button type="button" class="btn btn-link text-primary p-0 border-0 ms-2" title="Editar registro"
-                                            onclick="prepararEdicion(@item.IdAtencion, @item.IdTipoAtencion, '@item.Observaciones.Replace("'", "\\'").Replace("\r\n", " ").Replace("\n", " ")')">
+                                            onclick="prepararEdicion(@item.IdAtencion, @item.IdResidente, @item.IdTipoAtencion, '@item.Observaciones.Replace("'", "\\'").Replace("\r\n", " ").Replace("\n", " ")')">
                                         <i class="bi bi-pencil-square fs-6"></i>
                                     </button>
 
-                                    <!-- Botón de Eliminar (Admin) -->
+                                    <!-- Botón de Eliminar -->
                                     <form asp-controller="Bitacora" asp-action="Eliminar" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este registro de la bitácora?');" class="d-inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.IdAtencion" />
@@ -193,11 +201,23 @@
                 @Html.AntiForgeryToken()
 
                 <input type="hidden" id="inputAtencionId" name="id_atencion" value="0" />
-                <input type="hidden" name="id_residente" value="1" />
 
+                <!-- Residente Seleccionable Dinámicamente -->
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">RESIDENTE (asignado)</label>
-                    <input type="text" class="form-control form-control-sm bg-light" value="Marta Elena Gómez · RES-2026-001" readonly />
+                    <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">RESIDENTE *</label>
+                    @if (residentes.Any())
+                    {
+                        <select id="selectResidente" name="id_residente" class="form-select form-select-sm" required>
+                            @foreach (var res in residentes)
+                            {
+                                <option value="@res.Value">@res.Text</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <input type="text" class="form-control form-control-sm bg-light text-danger" value="Sin residentes registrados en el sistema" readonly />
+                    }
                 </div>
 
                 <div class="mb-3">
@@ -227,7 +247,7 @@
                     </div>
                 </div>
 
-                <button type="submit" id="btnGuardarAtencion" class="btn btn-vitalia w-100 mb-2">Guardar atención</button>
+                <button type="submit" id="btnGuardarAtencion" class="btn btn-vitalia w-100 mb-2" @(residentes.Any() ? "" : "disabled")>Guardar atención</button>
                 <p class="text-center text-muted" style="font-size: 0.72rem;">Se registra en 4 clics o menos desde el panel del cuidador (RNF-004).</p>
             </form>
         </div>
@@ -262,7 +282,6 @@
     function prepararNuevoRegistro() {
         abrirPanel();
 
-        // Configurar formulario para inserción
         document.getElementById('formAtencion').action = '/Bitacora/Registrar';
         document.getElementById('tituloPanel').innerText = 'Registrar atención';
         document.getElementById('btnGuardarAtencion').innerText = 'Guardar atención';
@@ -270,19 +289,30 @@
         document.getElementById('inputAtencionId').value = '0';
         document.getElementById('txtObservaciones').value = '';
         document.getElementById('selectTipoAtencion').value = '1';
+
+        const selectResidente = document.getElementById('selectResidente');
+        if (selectResidente) {
+            selectResidente.disabled = false;
+        }
+
         document.getElementById('txtObservaciones').focus();
     }
 
-    function prepararEdicion(id, idTipo, observaciones) {
+    function prepararEdicion(id, idResidente, idTipo, observaciones) {
         abrirPanel();
 
-        // Configurar formulario para edición
         document.getElementById('formAtencion').action = '/Bitacora/Editar';
         document.getElementById('tituloPanel').innerText = 'Editar atención';
         document.getElementById('btnGuardarAtencion').innerText = 'Actualizar atención';
 
-        // Llenar campos con los valores del registro
         document.getElementById('inputAtencionId').value = id;
+
+        const selectResidente = document.getElementById('selectResidente');
+        if (selectResidente) {
+            selectResidente.value = idResidente;
+            selectResidente.disabled = true; // No se permite cambiar el residente al editar
+        }
+
         document.getElementById('selectTipoAtencion').value = idTipo;
         document.getElementById('txtObservaciones').value = observaciones;
         document.getElementById('txtObservaciones').focus();

@@ -27,11 +27,11 @@ public partial class Residente
 
     public bool Estado { get; set; }
 
-    public virtual ICollection<Alertum> Alerta { get; set; } = new List<Alertum>();
+    public virtual ICollection<Alerta> Alerta { get; set; } = new List<Alerta>();
 
     public virtual ICollection<AsignacionCuidado> AsignacionCuidados { get; set; } = new List<AsignacionCuidado>();
 
-    public virtual ICollection<AtencionDiarium> AtencionDiaria { get; set; } = new List<AtencionDiarium>();
+    public virtual ICollection<AtencionDiaria> AtencionDiaria { get; set; } = new List<AtencionDiaria>();
 
     public virtual ICollection<FamiliarResidente> FamiliarResidentes { get; set; } = new List<FamiliarResidente>();
 }
