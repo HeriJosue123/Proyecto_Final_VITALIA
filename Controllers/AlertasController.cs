@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using VITALIA.Models.ViewModels;
 
 namespace VITALIA.Controllers;
 
+[Authorize(Roles = RolesSistema.PersonalClinico)]
 public class AlertasController : Controller
 {
     private readonly VitaliaDbContext _context;

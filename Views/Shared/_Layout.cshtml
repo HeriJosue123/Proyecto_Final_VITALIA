@@ -1,3 +1,21 @@
+@{
+    // Datos del usuario que inició sesión
+    bool esAdministrador = User.IsInRole(RolesSistema.Administrador);
+    string nombreUsuario = User.Identity?.Name ?? "";
+    string rolUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    string correoUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+    bool nombreEsCorreo = nombreUsuario == correoUsuario;
+
+    // Iniciales: "Daniela Rivera" -> DR; si solo hay correo, la primera letra (enfermera1@... -> E)
+    var partesNombre = nombreUsuario.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    string iniciales = nombreEsCorreo || partesNombre.Length == 0
+        ? nombreUsuario.Substring(0, Math.Min(1, nombreUsuario.Length)).ToUpper()
+        : string.Concat(partesNombre.Take(2).Select(p => char.ToUpper(p[0])));
+
+    // Correo con un corte de línea permitido antes de la @ (enfermera1 / @vitalia.com)
+    Func<string, Microsoft.AspNetCore.Html.IHtmlContent> correoPartido = texto =>
+        new Microsoft.AspNetCore.Html.HtmlString(string.Join("<wbr>@", texto.Split('@').Select(System.Net.WebUtility.HtmlEncode)));
+}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -161,16 +179,66 @@
             .sidebar-user {
                 margin-top: auto;
                 background-color: rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-                padding: 0.75rem 0.9rem;
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 14px;
+                padding: 0.9rem;
             }
 
+            .sidebar-user-nombre {
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 0.85rem;
+                line-height: 1.25;
+                overflow-wrap: anywhere;
+            }
+
+            .sidebar-user-correo {
+                color: #a3c2c4;
+                font-size: 0.72rem;
+                line-height: 1.25;
+                overflow-wrap: anywhere;
+            }
+
+            .sidebar-user-rol {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.3rem;
+                margin-top: 0.35rem;
+                padding: 0.15rem 0.55rem;
+                border-radius: 999px;
+                background-color: rgba(23, 162, 168, 0.25);
+                color: #c9eef0;
+                font-size: 0.68rem;
+                font-weight: 600;
+            }
+
+            .btn-cerrar-sesion {
+                width: 100%;
+                margin-top: 0.75rem;
+                padding: 0.45rem 0.75rem;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 10px;
+                background-color: transparent;
+                color: #b1d1d3;
+                font-size: 0.8rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.45rem;
+                transition: all 0.2s ease;
+            }
+
+                .btn-cerrar-sesion:hover {
+                    background-color: #dc3545;
+                    border-color: #dc3545;
+                    color: #ffffff;
+                }
+
             .user-avatar {
-                width: 36px;
-                height: 36px;
+                flex-shrink: 0;
+                width: 40px;
+                height: 40px;
                 background-color: #e09f3e;
                 color: #fff;
                 border-radius: 50%;
@@ -313,14 +381,19 @@
                         <i class="bi bi-bell-fill"></i> Alertas y Tareas
                     </a>
                 </li>
-                <li>
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Personal" ? "active" : "")"
-                       asp-controller="Personal" asp-action="Index">
-                        <i class="bi bi-person-badge-fill"></i> Personal
-                    </a>
-                </li>
+                @if (esAdministrador)
+                {
+                    <li>
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Personal" ? "active" : "")"
+                           asp-controller="Personal" asp-action="Index">
+                            <i class="bi bi-person-badge-fill"></i> Personal
+                        </a>
+                    </li>
+                }
             </ul>
 
+            @if (esAdministrador)
+            {
             <div class="sidebar-section-label">Sistema</div>
             <ul class="sidebar-nav">
                 <li>
@@ -337,13 +410,24 @@
                     </a>
                 </li>
             </ul>
+            }
 
+            @* Usuario que inició sesión *@
             <div class="sidebar-user">
-                <div class="user-avatar">AD</div>
-                <div style="line-height: 1.2;">
-                    <div class="fw-bold text-white" style="font-size: 0.85rem;">Admin Demo</div>
-                    <small class="text-white-50" style="font-size: 0.75rem;">Administrador</small>
+                <div class="d-flex align-items-start gap-2">
+                    <div class="user-avatar">@iniciales</div>
+                    <div class="flex-grow-1" style="min-width: 0;">
+                        <div class="sidebar-user-nombre">@(nombreEsCorreo ? correoPartido(nombreUsuario) : nombreUsuario)</div>
+                        @if (!nombreEsCorreo && !string.IsNullOrEmpty(correoUsuario))
+                        {
+                            <div class="sidebar-user-correo">@correoPartido(correoUsuario)</div>
+                        }
+                        <span class="sidebar-user-rol"><i class="bi bi-shield-check"></i> @rolUsuario</span>
+                    </div>
                 </div>
+                <button type="button" class="btn-cerrar-sesion" data-bs-toggle="modal" data-bs-target="#modalCerrarSesion">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </button>
             </div>
         </aside>
 
@@ -351,6 +435,51 @@
         <main class="vitalia-content">
             @RenderBody()
         </main>
+    </div>
+
+    @* Confirmación para cerrar sesión (mismo estilo rojo de las pantallas de eliminar) *@
+    <div class="modal fade" id="modalCerrarSesion" tabindex="-1" aria-labelledby="tituloCerrarSesion" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content border-0 rounded-4 shadow overflow-hidden">
+                <div class="py-3 px-4 text-center text-white" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-danger shadow-sm mb-2" style="width: 44px; height: 44px;">
+                        <i class="bi bi-box-arrow-right fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" id="tituloCerrarSesion">Cerrar sesión</h5>
+                    <p class="text-white small mb-0 opacity-90 fw-medium" style="font-size: 0.85rem;">¿Está seguro de que desea cerrar sesión?</p>
+                </div>
+
+                <div class="p-3">
+                    <div class="p-3 rounded-3 mb-3 d-flex align-items-center gap-2" style="background-color: #fff5f5; border-left: 4px solid #dc3545;">
+                        <i class="bi bi-exclamation-octagon-fill text-danger fs-6 flex-shrink-0"></i>
+                        <div class="small text-danger-emphasis fw-medium" style="font-size: 0.80rem;">
+                            <strong>Atención:</strong> tendrá que escribir su correo y contraseña otra vez para volver a entrar.
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 mb-3 border border-light-subtle">
+                        <span class="text-uppercase fw-bold text-muted d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.6px;">SESIÓN ACTUAL</span>
+                        <span class="fw-bold text-dark d-block lh-base" style="overflow-wrap: anywhere;">@correoUsuario</span>
+                        <small class="text-muted">@rolUsuario</small>
+                    </div>
+
+                    <form asp-controller="Cuenta" asp-action="Logout" method="post" class="m-0">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-secondary rounded-3 py-2 fw-semibold w-100 d-flex align-items-center justify-content-center border-2" style="font-size: 0.85rem;" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle fs-6 me-2"></i> Cancelar
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-danger rounded-3 py-2 fw-bold shadow-sm w-100 d-flex align-items-center justify-content-center" style="background-color: #dc3545; font-size: 0.85rem;">
+                                    <i class="bi bi-box-arrow-right fs-6 me-2"></i> Cerrar sesión
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

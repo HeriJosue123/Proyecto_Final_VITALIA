@@ -1,0 +1,49 @@
+@{
+    Layout = null;
+    bool esFamiliar = User.IsInRole(RolesSistema.Familiar);
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acceso denegado - VITALIA</title>
+    <partial name="_CuentaEstilos" />
+</head>
+<body>
+    <div class="cuenta-tarjeta text-center">
+        <div class="cuenta-marca mb-4">
+            <div class="cuenta-icono"><i class="bi bi-suit-heart-fill"></i></div>
+            <span>VITALIA</span>
+        </div>
+
+        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger" style="width: 64px; height: 64px;">
+            <i class="bi bi-shield-lock-fill fs-3"></i>
+        </div>
+        <h5 class="fw-bold text-dark mb-2">Acceso denegado</h5>
+
+        @if (esFamiliar)
+        {
+            <p class="text-muted small mb-4">La vista para familiares todavía está en construcción. Pronto podrá consultar aquí la información de su familiar.</p>
+        }
+        else
+        {
+            <p class="text-muted small mb-4">Su usuario (@User.Identity?.Name) no tiene permiso para ver esta página.</p>
+        }
+
+        <div class="d-grid gap-2">
+            @if (!esFamiliar)
+            {
+                <a asp-controller="Home" asp-action="Index" class="btn btn-vitalia">
+                    <i class="bi bi-house-door-fill me-1"></i> Volver al inicio
+                </a>
+            }
+            <form asp-controller="Cuenta" asp-action="Logout" method="post">
+                <button type="submit" class="btn btn-outline-secondary w-100 rounded-3">
+                    <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

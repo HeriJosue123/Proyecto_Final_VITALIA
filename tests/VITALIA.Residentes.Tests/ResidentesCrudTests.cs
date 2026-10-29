@@ -1,11 +1,16 @@
 using System.Net;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using VITALIA.Controllers;
 using VITALIA.Data;
 using VITALIA.Models;
@@ -25,7 +30,36 @@ public class FabricaResidentes : WebApplicationFactory<ResidentesController>
             services.RemoveAll<DbContextOptions<VitaliaDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<VitaliaDbContext>>();
             services.AddDbContext<VitaliaDbContext>(o => o.UseInMemoryDatabase("ResidentesPruebas"));
+
+            // Las pruebas entran como Administrador sin pasar por la página de inicio de sesión
+            services.AddAuthentication(o =>
+                {
+                    o.DefaultScheme = SesionDePrueba.Esquema;
+                    o.DefaultAuthenticateScheme = SesionDePrueba.Esquema;
+                    o.DefaultChallengeScheme = SesionDePrueba.Esquema;
+                })
+                .AddScheme<AuthenticationSchemeOptions, SesionDePrueba>(SesionDePrueba.Esquema, _ => { });
         });
+    }
+}
+
+/// <summary>Sesión ficticia de un Administrador para las pruebas.</summary>
+public class SesionDePrueba : AuthenticationHandler<AuthenticationSchemeOptions>
+{
+    public const string Esquema = "Pruebas";
+
+    public SesionDePrueba(IOptionsMonitor<AuthenticationSchemeOptions> opciones, ILoggerFactory logger, UrlEncoder encoder)
+        : base(opciones, logger, encoder) { }
+
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        var identidad = new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.Name, "Administrador de Pruebas"),
+            new Claim(ClaimTypes.Role, RolesSistema.Administrador)
+        }, Esquema);
+        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identidad), Esquema)));
     }
 }
 
