@@ -206,9 +206,24 @@ namespace VITALIA.Controllers
             var usuario = await _context.Usuarios.FindAsync(id);
             if (usuario != null)
             {
-                _context.Usuarios.Remove(usuario);
-                await _context.SaveChangesAsync();
-                TempData["Mensaje"] = "Usuario eliminado correctamente.";
+                // Si el usuario está vinculado a un empleado, la base no deja borrarlo
+                if (await _context.Empleados.AnyAsync(e => e.IdUsuario == id))
+                {
+                    TempData["Error"] = "No se puede eliminar " + usuario.Correo + " porque está vinculado a un empleado. Primero dé de baja al empleado en Personal.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                try
+                {
+                    _context.Usuarios.Remove(usuario);
+                    await _context.SaveChangesAsync();
+                    TempData["Mensaje"] = "Usuario eliminado correctamente.";
+                }
+                catch (DbUpdateException)
+                {
+                    // Tiene registros relacionados (alertas, familiares, etc.)
+                    TempData["Error"] = "No se puede eliminar " + usuario.Correo + " porque tiene registros relacionados en el sistema.";
+                }
             }
 
             return RedirectToAction(nameof(Index));

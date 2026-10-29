@@ -71,7 +71,7 @@
                 </div>
 
                 <!-- Botones de Acción (Formulario corregido) -->
-                <form action="@Url.Action("Delete", "Usuarios")" method="post" class="pt-1">
+                <form action="@Url.Action("Delete", "Usuario", new { id = Model.IdUsuario })" method="post" class="pt-1">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="IdUsuario" />
 
