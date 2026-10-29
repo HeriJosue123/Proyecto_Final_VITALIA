@@ -2,88 +2,115 @@
 
 @{
     ViewData["Title"] = "Eliminar Alerta";
-    var claseEtiqueta = "text-muted d-block small text-uppercase fw-bold";
 }
 
-<div class="animate-fade-up py-2">
-    <!-- NAVEGACIÓN SUPERIOR SEPARADA -->
-    <div class="mb-3">
-        <a asp-action="Index" class="btn btn-sm bg-white text-muted border rounded-pill px-3 py-1 shadow-sm text-decoration-none fw-semibold">
-            <i class="bi bi-arrow-left me-1"></i> Cancelar
-        </a>
-    </div>
+<div class="d-flex justify-content-center align-items-center min-vh-100 py-4 animate-fade-up">
+    <div style="width: 100%; max-width: 500px;" class="my-auto">
 
-    <div class="row justify-content-center">
-        <div class="col-12 col-lg-9 col-xl-8">
-
-            <!-- ENCABEZADO CENTRADO CON ADVERTENCIA -->
-            <div class="text-center mb-3">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-2 bg-danger" style="width: 44px; height: 44px;">
-                    <i class="bi bi-bell-slash fs-5"></i>
+        <!-- Tarjeta Principal de Eliminación -->
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+            
+            <!-- Encabezado Rojo -->
+            <div class="py-3 px-4 text-center text-white" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-danger shadow-sm mb-2" style="width: 44px; height: 44px;">
+                    <i class="bi bi-trash3-fill fs-5"></i>
                 </div>
-                <h4 class="fw-bold mb-0 text-danger">Eliminar Alerta</h4>
-                <p class="text-muted small mb-0">¿Está seguro de que desea eliminar permanentemente este registro?</p>
+                <h5 class="fw-bold mb-1">Confirmar Eliminación</h5>
+                <!-- Texto menos opaco y más claro -->
+                <p class="text-white small mb-0 opacity-90 fw-medium" style="font-size: 0.85rem;">¿Desea eliminar permanentemente esta alerta?</p>
             </div>
 
-            <!-- TARJETA DE CONFIRMACIÓN -->
-            <div class="vitalia-card-pro p-3 p-md-4 position-relative overflow-hidden border-danger border-1">
-                <div style="position: absolute; top:0; left:0; right:0; height: 4px; background: #dc3545;"></div>
+            <div class="card-body p-3">
+                
+                <!-- Advertencia (Más ancha/gruesa) -->
+                <div class="p-3 px-3 rounded-3 mb-3 d-flex align-items-center gap-2" style="background-color: #fff5f5; border-left: 4px solid #dc3545;">
+                    <i class="bi bi-exclamation-octagon-fill text-danger fs-6 flex-shrink-0"></i>
+                    <div class="small text-danger-emphasis fw-medium" style="font-size: 0.8rem;">
+                        <strong>Atención:</strong> Esta acción no se puede deshacer.
+                    </div>
+                </div>
 
-                @if (Model.PuedeEliminar)
-                {
-                    <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-3 py-2 small text-start" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Esta acción eliminará la alerta definitivamente y no se puede deshacer.
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 py-2 small text-start" role="alert">
-                        <i class="bi bi-lock-fill me-2"></i>
-                        @Model.MotivoNoEliminar
-                    </div>
-                }
+                <!-- Título de la Alerta (Menos comprimido) -->
+                <div class="bg-light p-3 rounded-3 mb-3 border border-light-subtle">
+                    <span class="text-uppercase fw-bold text-muted d-block mb-1" style="font-size: 0.65rem; letter-spacing: 0.6px;">
+                        TÍTULO DE LA ALERTA
+                    </span>
+                    <span class="fs-6 fw-bold text-dark d-block lh-base">@Model.Titulo</span>
+                </div>
 
-                <div class="bg-light p-3 rounded-3 mb-3 text-start">
-                    <div class="mb-3">
-                        <span class="@claseEtiqueta">Título</span>
-                        <span class="fs-6 fw-bold text-dark">@Model.Titulo</span>
+                <!-- Grilla de Detalle -->
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <div class="p-2 px-3 rounded-3 bg-body-tertiary h-100">
+                            <span class="text-uppercase fw-bold text-muted d-block mb-1" style="font-size: 0.62rem; letter-spacing: 0.5px;">RESIDENTE</span>
+                            <div class="fw-bold text-dark lh-sm" style="font-size: 0.85rem;">@Model.Residente</div>
+                            <span class="badge bg-secondary-subtle text-secondary border mt-1" style="font-size: 0.65rem;">@Model.CodigoResidente</span>
+                        </div>
                     </div>
-                    <div class="row g-3">
-                        <div class="col-sm-6">
-                            <span class="@claseEtiqueta">Residente</span>
-                            <span class="text-dark">@Model.Residente (@Model.CodigoResidente)</span>
+
+                    <div class="col-6">
+                        <div class="p-2 px-3 rounded-3 bg-body-tertiary h-100">
+                            <span class="text-uppercase fw-bold text-muted d-block mb-1" style="font-size: 0.62rem; letter-spacing: 0.5px;">PRIORIDAD</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2 py-1" style="font-size: 0.75rem;">
+                                <i class="bi bi-tag-fill me-1"></i>@Model.Prioridad
+                            </span>
                         </div>
-                        <div class="col-sm-6">
-                            <span class="@claseEtiqueta">Prioridad</span>
-                            <span class="text-dark">@Model.Prioridad</span>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="p-2 px-3 rounded-3 bg-body-tertiary h-100">
+                            <!-- Separación entre título y fecha aumentada (mb-2) -->
+                            <span class="text-uppercase fw-bold text-muted d-block mb-2" style="font-size: 0.62rem; letter-spacing: 0.5px;">FECHA PROGRAMADA</span>
+                            <div class="fw-semibold text-dark lh-sm" style="font-size: 0.85rem;">
+                                <i class="bi bi-calendar3 me-1 text-muted"></i>@Model.FechaProgramada.ToString("dd/MM/yyyy")
+                            </div>
+                            <!-- Separación entre fecha y hora reducida (mt-1) -->
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-clock me-1"></i>@Model.FechaProgramada.ToString("HH:mm") hrs
+                            </small>
                         </div>
-                        <div class="col-sm-6">
-                            <span class="@claseEtiqueta">Fecha programada</span>
-                            <span class="text-dark">@Model.FechaProgramada.ToString("dd/MM/yyyy HH:mm")</span>
-                        </div>
-                        <div class="col-sm-6">
-                            <span class="@claseEtiqueta">Estado actual</span>
-                            <span class="text-dark">@Model.Estado</span>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="p-2 px-3 rounded-3 bg-body-tertiary h-100">
+                            <span class="text-uppercase fw-bold text-muted d-block mb-1" style="font-size: 0.62rem; letter-spacing: 0.5px;">ESTADO ACTUAL</span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold px-2 py-1" style="font-size: 0.75rem;">
+                                <i class="bi bi-hourglass-split me-1"></i>@Model.Estado
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- BOTONES DE ACCIÓN BALANCEADOS -->
-                <form asp-action="Delete" method="post" class="d-flex gap-2 pt-3 border-top">
+                <!-- Botones de Acción (Íconos más separados del texto) -->
+                <form asp-action="Delete" method="post" class="pt-1">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@Model.IdAlerta" />
-                    <a asp-action="Index" class="btn btn-light rounded-3 py-2 px-4 fw-semibold text-secondary flex-grow-1 text-center">
-                        Cancelar
-                    </a>
-                    @if (Model.PuedeEliminar)
-                    {
-                        <button type="submit" class="btn btn-danger rounded-3 py-2 px-4 fw-bold shadow-sm flex-grow-1">
-                            <i class="bi bi-trash me-1"></i> Confirmar Eliminar
-                        </button>
-                    }
-                </form>
-            </div>
 
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-3 py-2 fw-semibold w-100 d-flex align-items-center justify-content-center border-2 transition-all" style="font-size: 0.85rem;">
+                                <i class="bi bi-x-circle fs-6 me-2"></i> Cancelar
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <button type="submit" class="btn btn-danger rounded-3 py-2 fw-bold shadow-sm w-100 d-flex align-items-center justify-content-center transition-all" style="background-color: #dc3545; font-size: 0.85rem;">
+                                <i class="bi bi-trash-fill fs-6 me-2"></i> Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
         </div>
+
     </div>
 </div>
+
+<style>
+    .transition-all {
+        transition: all 0.2s ease-in-out;
+    }
+    .transition-all:hover {
+        transform: translateY(-1px);
+    }
+</style>
