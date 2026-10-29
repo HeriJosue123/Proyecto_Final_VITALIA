@@ -231,7 +231,6 @@ public class ResidentesCrudTests : IClassFixture<FabricaResidentes>
     [InlineData("7000-111")]      // 7 dígitos con guion
     [InlineData("7000111")]       // 7 dígitos sin guion
     [InlineData("7000-11111")]    // 9 dígitos
-    [InlineData("1234-5678")]     // no empieza por 2, 6 o 7
     [InlineData("7000-11a1")]     // contiene letras
     [InlineData("70-001111")]     // guion fuera de lugar
     public async Task CP13_TelefonoInvalido_NoSeGuarda(string telefono)
@@ -242,7 +241,7 @@ public class ResidentesCrudTests : IClassFixture<FabricaResidentes>
         var resp = await RegistrarAsync(datos);
 
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
-        Assert.Contains("El teléfono debe tener 8 dígitos y empezar por 2, 6 o 7 (ej. 7000-1111).",
+        Assert.Contains("El teléfono debe tener 8 dígitos (ej. 7000-1111).",
             WebUtility.HtmlDecode(await resp.Content.ReadAsStringAsync()));
         Assert.Null(BuscarPorCodigo(codigo));
     }
@@ -252,6 +251,7 @@ public class ResidentesCrudTests : IClassFixture<FabricaResidentes>
     [InlineData("7000-1111", "7000-1111")]
     [InlineData(" 2222-3333 ", "2222-3333")]
     [InlineData("61234567", "6123-4567")]
+    [InlineData("12345678", "1234-5678")]   // ya no importa con qué número empieza
     public async Task CP13b_TelefonoValido_SeGuardaConGuion(string telefono, string esperado)
     {
         string codigo = NuevoCodigo();
