@@ -1,0 +1,64 @@
+﻿@model VITALIA.Models.TipoAtencion
+
+@{
+    ViewData["Title"] = "Detalle del Tipo de Atención";
+}
+
+<div class="d-flex justify-content-center py-2">
+    <div style="width: 100%; max-width: 720px;">
+        
+        <!-- Banner Superior de Encabezado -->
+        <div class="vitalia-banner d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 p-3 rounded-4" style="background-color: #0b5e58; color: white;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-3 p-2 bg-white bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <i class="bi bi-info-circle-fill fs-4 text-white"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-white">Detalle del Tipo de Atención</h3>
+                    <p class="mb-0 small text-white-50">Información registrada para la categoría #@Model.IdTipoAtencion</p>
+                </div>
+            </div>
+            <div>
+                <a asp-controller="TipoAtencion" asp-action="Index" class="btn btn-light text-dark fw-semibold rounded-3 px-3 py-2 text-nowrap" style="font-size: 0.85rem;">
+                    ← Volver a la lista
+                </a>
+            </div>
+        </div>
+
+        <!-- Tarjeta Principal de Detalles -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            
+            <!-- CÓDIGO DE CATEGORÍA -->
+            <div class="mb-3">
+                <label class="form-label fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 0.5px;">CÓDIGO DE CATEGORÍA</label>
+                <div class="fs-6 fw-bold text-dark">#@Model.IdTipoAtencion</div>
+            </div>
+
+            <!-- NOMBRE DE LA CATEGORÍA -->
+            <div class="mb-3">
+                <label class="form-label fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 0.5px;">NOMBRE DE LA CATEGORÍA</label>
+                <div class="fs-5 fw-semibold text-dark">@Model.NombreCategoria</div>
+            </div>
+
+            <!-- DESCRIPCIÓN -->
+            <div class="mb-4">
+                <label class="form-label fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 0.5px;">DESCRIPCIÓN</label>
+                <div class="text-secondary bg-light p-3 rounded-3 border-light-subtle fs-6">
+                    @(string.IsNullOrWhiteSpace(Model.Descripcion) ? "Sin descripción detallada registrada." : Model.Descripcion)
+                </div>
+            </div>
+
+            <!-- ACCIONES -->
+            <div class="d-flex gap-2 mt-4 pt-2 border-top">
+                <a asp-controller="TipoAtencion" asp-action="Index" class="btn btn-light border py-2 fw-semibold text-dark rounded-3 flex-fill text-center">
+                    Volver
+                </a>
+                <a asp-controller="TipoAtencion" asp-action="Edit" asp-route-id="@Model.IdTipoAtencion" class="btn text-white py-2 fw-semibold rounded-3 flex-fill text-center d-flex align-items-center justify-content-center gap-2" style="background-color: #0e857c;">
+                    <i class="bi bi-pencil-square fs-5"></i> Editar Categoría
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</div>

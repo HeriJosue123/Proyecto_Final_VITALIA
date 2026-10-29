@@ -5,6 +5,18 @@
     var residentes = ViewBag.Residentes as List<SelectListItem> ?? new List<SelectListItem>();
     var empleados = ViewBag.Empleados as List<SelectListItem> ?? new List<SelectListItem>();
     var tiposAtencion = ViewBag.TiposAtencion as List<SelectListItem> ?? new List<SelectListItem>();
+
+    // Paleta cromática diversificada para los badges
+    string[] clasesColores = new string[]
+    {
+        "bg-primary-subtle text-primary border-primary-subtle",          // Azul
+        "bg-success-subtle text-success border-success-subtle",          // Verde
+        "bg-danger-subtle text-danger border-danger-subtle",            // Rojo
+        "bg-warning-subtle text-warning-emphasis border-warning-subtle", // Amarillo / Naranja
+        "bg-info-subtle text-info-emphasis border-info-subtle",          // Cyan / Azul Claro
+        "bg-secondary-subtle text-secondary border-secondary-subtle",    // Gris
+        "bg-dark-subtle text-dark border-dark-subtle"                    // Oscuro
+    };
 }
 
 <style>
@@ -47,7 +59,12 @@
             }
         </form>
 
-        <!-- Botón + Nueva atención (Permite abrir el panel para registrar tipos o atenciones) -->
+        <!-- Botón a Módulo Independiente de Tipos de Atención -->
+        <a asp-controller="TipoAtencion" asp-action="Index" class="btn btn-outline-secondary text-nowrap" title="Gestionar tipos de atención">
+            <i class="bi bi-gear-fill me-1"></i> Tipos
+        </a>
+
+        <!-- Botón + Nueva atención -->
         <button type="button" class="btn btn-vitalia text-nowrap" onclick="prepararNuevoRegistro()" @(residentes.Any() && empleados.Any() ? "" : "disabled") title="@(!residentes.Any() ? "Registre un residente primero" : !empleados.Any() ? "Registre personal primero" : "")">
             + Nueva atención
         </button>
@@ -113,18 +130,12 @@
                 {
                     @foreach (var item in Model)
                     {
-                        string badgeClass = "bg-primary-subtle text-primary border-primary-subtle";
                         var tipoMatch = tiposAtencion.FirstOrDefault(t => t.Value == item.IdTipoAtencion.ToString());
                         string tipoTexto = tipoMatch != null ? tipoMatch.Text : "Atención General";
 
-                        switch (item.IdTipoAtencion % 5)
-                        {
-                            case 1: badgeClass = "bg-primary-subtle text-primary border-primary-subtle"; break;
-                            case 2: badgeClass = "bg-danger-subtle text-danger border-danger-subtle"; break;
-                            case 3: badgeClass = "bg-success-subtle text-success border-success-subtle"; break;
-                            case 4: badgeClass = "bg-warning-subtle text-warning-emphasis border-warning-subtle"; break;
-                            case 0: badgeClass = "bg-info-subtle text-info-emphasis border-info-subtle"; break;
-                        }
+                        // Asignación de color consistente mediante el ID único del tipo de atención
+                        int indiceColor = Math.Abs(item.IdTipoAtencion.GetHashCode()) % clasesColores.Length;
+                        string badgeClass = clasesColores[indiceColor];
 
                         string empleadoNombre = item.IdEmpleadoNavigation != null
                             ? $"{item.IdEmpleadoNavigation.Nombre} {item.IdEmpleadoNavigation.Apellido}"
@@ -144,18 +155,17 @@
                                         <i class="bi bi-lock-fill"></i> sello del servidor
                                     </small>
 
+                                    <!-- Botón Editar -->
                                     <button type="button" class="btn btn-link text-primary p-0 border-0 ms-2" title="Editar registro"
                                             onclick="prepararEdicion(@item.IdAtencion, @item.IdResidente, @item.IdEmpleado, @item.IdTipoAtencion, '@item.Observaciones.Replace("'", "\\'").Replace("\r\n", " ").Replace("\n", " ")')">
                                         <i class="bi bi-pencil-square fs-6"></i>
                                     </button>
 
-                                    <form asp-controller="Bitacora" asp-action="Eliminar" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este registro?');" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@item.IdAtencion" />
-                                        <button type="submit" class="btn btn-link text-danger p-0 border-0 ms-1" title="Eliminar registro">
-                                            <i class="bi bi-trash-fill fs-6"></i>
-                                        </button>
-                                    </form>
+                                    <!-- Botón Eliminar con Modal -->
+                                    <button type="button" class="btn btn-link text-danger p-0 border-0 ms-1" title="Eliminar registro"
+                                            onclick="prepararEliminacion(@item.IdAtencion)">
+                                        <i class="bi bi-trash-fill fs-6"></i>
+                                    </button>
                                 </div>
                             </div>
                             <p class="mb-1 text-dark small fw-semibold">@item.Observaciones</p>
@@ -207,10 +217,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label text-muted small fw-bold uppercase mb-0" style="font-size: 0.68rem;">TIPO DE ATENCIÓN *</label>
-                        <a href="javascript:void(0)" class="small text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoTipo" style="font-size: 0.72rem;">+ Agregar tipo</a>
-                    </div>
+                    <label class="form-label text-muted small fw-bold uppercase mb-1" style="font-size: 0.68rem;">TIPO DE ATENCIÓN *</label>
                     @if (tiposAtencion.Any())
                     {
                         <select id="selectTipoAtencion" name="id_tipo_atencion" class="form-select form-select-sm" required>
@@ -267,31 +274,27 @@
     </div>
 </div>
 
-<!-- Modal Emergente para Agregar Nuevo Tipo de Atención -->
-<div class="modal fade" id="modalNuevoTipo" tabindex="-1" aria-labelledby="modalNuevoTipoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- Modal Confirmar Eliminación -->
+<div class="modal fade" id="modalEliminarAtencion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark" id="modalNuevoTipoLabel">Agregar Tipo de Atención</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-body text-center p-4">
+                <div class="text-danger mb-3">
+                    <i class="bi bi-exclamation-circle fs-1"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-2">¿Eliminar esta atención?</h6>
+                <p class="text-muted small mb-4">Esta acción no se podrá deshacer.</p>
+
+                <form id="formEliminarAtencion" asp-controller="Bitacora" asp-action="Eliminar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="inputEliminarId" name="id" value="0" />
+
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-light rounded-3 btn-sm flex-fill" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger rounded-3 btn-sm flex-fill">Eliminar</button>
+                    </div>
+                </form>
             </div>
-            <form asp-controller="Bitacora" asp-action="CrearTipoAtencion" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body py-3">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted fw-bold">NOMBRE DE LA CATEGORÍA *</label>
-                        <input type="text" name="nombre_categoria" class="form-control" placeholder="Ej: Control Térmico, Curaciones, etc." required />
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">DESCRIPCIÓN (OPCIONAL)</label>
-                        <textarea name="descripcion" class="form-control" rows="2" placeholder="Detalles o especificaciones del tipo de atención..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer border-top-0 pt-0">
-                    <button type="button" class="btn btn-light rounded-3 btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-vitalia rounded-3 btn-sm">Guardar Categoria</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
@@ -371,5 +374,11 @@
 
         document.getElementById('txtObservaciones').value = observaciones;
         document.getElementById('txtObservaciones').focus();
+    }
+
+    function prepararEliminacion(id) {
+        document.getElementById('inputEliminarId').value = id;
+        var modal = new bootstrap.Modal(document.getElementById('modalEliminarAtencion'));
+        modal.show();
     }
 </script>
