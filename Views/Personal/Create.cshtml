@@ -1,12 +1,17 @@
 @model VITALIA.Models.Empleado
 @{
     ViewData["Title"] = "Registrar Nuevo Empleado";
+
+    // Verificamos si hay usuarios disponibles aquí también,
+    // para poder deshabilitar el botón de "Guardar Empleado" si es necesario.
+    var usuarios = ViewData["IdUsuario"] as SelectList;
+    bool hayUsuarios = usuarios != null && usuarios.Any();
 }
 
 <div class="row justify-content-center">
     <div class="col-lg-8 col-xl-7">
 
-        @* Encabezado con el mismo estilo del panel principal *@
+        @* Encabezado con el estilo visual (Banner) del proyecto Vitalia *@
         <div class="vitalia-banner mb-4">
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                 <div class="d-flex align-items-center gap-3">
@@ -24,64 +29,28 @@
             </div>
         </div>
 
+        @* Tarjeta principal que contiene el formulario *@
         <div class="card border-0 shadow-sm rounded-4 p-4">
 
             <form asp-action="Create" method="post">
+                @* Token de seguridad para evitar ataques de falsificación de solicitudes (CSRF) *@
                 @Html.AntiForgeryToken()
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">NOMBRE</label>
-                    <input type="text" name="Nombre" value="@Model?.Nombre" class="form-control" placeholder="Ej. Ana" required />
-                    <span asp-validation-for="Nombre" class="text-danger small"></span>
-                </div>
+                @* 
+                   AQUÍ INYECTAMOS LA VISTA PARCIAL:
+                   Llamamos al archivo "_FormularioPersonal" y le pasamos el Modelo actual.
+                   Esto mantiene este archivo limpio y fácil de leer.
+                *@
+                @await Html.PartialAsync("_FormularioPersonal", Model)
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">APELLIDO</label>
-                    <input type="text" name="Apellido" value="@Model?.Apellido" class="form-control" placeholder="Ej. López" required />
-                    <span asp-validation-for="Apellido" class="text-danger small"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">CARGO</label>
-                    <input type="text" name="Cargo" value="@Model?.Cargo" class="form-control" placeholder="Ej. Enfermera, Cuidador..." required />
-                    <span asp-validation-for="Cargo" class="text-danger small"></span>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">VINCULAR USUARIO</label>
-                    @{
-                        var usuarios = ViewData["IdUsuario"] as SelectList;
-                        bool hayUsuarios = usuarios != null && usuarios.Any();
-                    }
-                    <select name="IdUsuario" class="form-select" required disabled="@(!hayUsuarios)">
-                        <option value="">@(hayUsuarios ? "-- Seleccione un usuario --" : "-- No hay usuarios disponibles --")</option>
-                        @if (hayUsuarios)
-                        {
-                            foreach (var item in usuarios!)
-                            {
-                                <option value="@item.Value" selected="@item.Selected">@item.Text</option>
-                            }
-                        }
-                    </select>
-                    @if (!hayUsuarios)
-                    {
-                        @* Sin usuarios libres no se puede guardar: se explica qué hacer primero *@
-                        <div class="text-muted small mt-1">
-                            No hay usuarios libres para vincular. Primero cree uno en
-                            <a asp-controller="Usuario" asp-action="Create" class="fw-semibold">Usuarios y Roles</a>
-                            (cada usuario solo puede estar vinculado a un empleado).
-                        </div>
-                    }
-                    <span asp-validation-for="IdUsuario" class="text-danger small"></span>
-                </div>
-
-                <div class="d-grid">
+                <div class="d-grid mt-2">
+                    @* El botón se deshabilita automáticamente si no hay usuarios libres en el sistema *@
                     <button type="submit" class="btn btn-vitalia" disabled="@(!hayUsuarios)">
                         <i class="bi bi-save me-1"></i> Guardar Empleado
                     </button>
                 </div>
 
-                @* Errores que no son de un campo (ej. al guardar en la base) *@
+                @* Bucle para mostrar errores generales del modelo (ej. fallos al guardar en base de datos) que no pertenecen a un campo específico *@
                 @foreach (var error in ViewData.ModelState[string.Empty]?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
                 {
                     <div class="text-danger small mt-2">@error.ErrorMessage</div>
@@ -90,3 +59,10 @@
         </div>
     </div>
 </div>
+
+@* Sección de scripts: Carga las librerías de validación de jQuery para validar sin recargar la página *@
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

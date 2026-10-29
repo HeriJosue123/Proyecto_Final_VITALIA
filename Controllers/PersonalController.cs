@@ -39,6 +39,26 @@ namespace VITALIA.Controllers
             return View(empleados);
         }
 
+        // GET: Personal/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var empleado = await _context.Empleados
+                .Include(e => e.IdUsuarioNavigation)
+                .FirstOrDefaultAsync(m => m.IdEmpleado == id);
+
+            if (empleado == null)
+            {
+                return NotFound();
+            }
+
+            return View(empleado);
+        }
+
         // GET: Personal/Create
         public IActionResult Create()
         {
@@ -57,10 +77,8 @@ namespace VITALIA.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdUsuario,Nombre,Apellido,Cargo")] Empleado empleado)
         {
-            // Remover explícitamente la navegación de la validación del ModelState
             ModelState.Remove(nameof(Empleado.IdUsuarioNavigation));
 
-            // Mensajes en español, debajo de cada campo
             CambiarMensaje(nameof(Empleado.Nombre), "El nombre es obligatorio.");
             CambiarMensaje(nameof(Empleado.Apellido), "El apellido es obligatorio.");
             CambiarMensaje(nameof(Empleado.Cargo), "El cargo es obligatorio.");
@@ -95,7 +113,6 @@ namespace VITALIA.Controllers
                 ModelState.AddModelError("", "Error al guardar: " + ex.Message);
             }
 
-            // Si falla, recargamos el dropdown
             var usuariosDisponibles = _context.Usuarios
                 .Where(u => u.Estado == true && u.Empleado == null)
                 .OrderBy(u => u.Correo)
@@ -105,7 +122,123 @@ namespace VITALIA.Controllers
             return View(empleado);
         }
 
-        // Reemplaza los mensajes automáticos en inglés de un campo por uno en español
+        // GET: Personal/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var empleado = await _context.Empleados.FindAsync(id);
+            if (empleado == null)
+            {
+                return NotFound();
+            }
+
+            // Para editar, mostramos los usuarios libres MÁS el usuario que el empleado ya tiene asignado
+            var usuariosDisponibles = _context.Usuarios
+                .Where(u => u.Estado == true && (u.Empleado == null || u.IdUsuario == empleado.IdUsuario))
+                .OrderBy(u => u.Correo)
+                .ToList();
+
+            ViewData["IdUsuario"] = new SelectList(usuariosDisponibles, "IdUsuario", "Correo", empleado.IdUsuario);
+            return View(empleado);
+        }
+
+        // POST: Personal/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("IdEmpleado,IdUsuario,Nombre,Apellido,Cargo")] Empleado empleado)
+        {
+            if (id != empleado.IdEmpleado)
+            {
+                return NotFound();
+            }
+
+            ModelState.Remove(nameof(Empleado.IdUsuarioNavigation));
+
+            CambiarMensaje(nameof(Empleado.Nombre), "El nombre es obligatorio.");
+            CambiarMensaje(nameof(Empleado.Apellido), "El apellido es obligatorio.");
+            CambiarMensaje(nameof(Empleado.Cargo), "El cargo es obligatorio.");
+            CambiarMensaje(nameof(Empleado.IdUsuario), "Debe seleccionar un usuario.");
+
+            // Validar que el nuevo usuario no esté tomado por OTRO empleado
+            if (empleado.IdUsuario > 0)
+            {
+                if (await _context.Empleados.AnyAsync(e => e.IdUsuario == empleado.IdUsuario && e.IdEmpleado != empleado.IdEmpleado))
+                {
+                    ModelState.AddModelError(nameof(Empleado.IdUsuario), "Ese usuario ya está vinculado a otro empleado.");
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    empleado.Estado = true; // Mantenerlo activo
+                    _context.Update(empleado);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!EmpleadoExists(empleado.IdEmpleado))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            var usuariosDisponibles = _context.Usuarios
+                .Where(u => u.Estado == true && (u.Empleado == null || u.IdUsuario == empleado.IdUsuario))
+                .OrderBy(u => u.Correo)
+                .ToList();
+
+            ViewData["IdUsuario"] = new SelectList(usuariosDisponibles, "IdUsuario", "Correo", empleado.IdUsuario);
+            return View(empleado);
+        }
+
+        // GET: Personal/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var empleado = await _context.Empleados
+                .Include(e => e.IdUsuarioNavigation)
+                .FirstOrDefaultAsync(m => m.IdEmpleado == id);
+
+            if (empleado == null)
+            {
+                return NotFound();
+            }
+
+            return View(empleado);
+        }
+
+        // POST: Personal/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var empleado = await _context.Empleados.FindAsync(id);
+            if (empleado != null)
+            {
+                empleado.Estado = false; // Baja lógica
+                _context.Update(empleado);
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Reemplaza los mensajes automáticos
         private void CambiarMensaje(string campo, string mensaje)
         {
             if (ModelState.TryGetValue(campo, out var entrada) && entrada.Errors.Count > 0)
@@ -115,19 +248,9 @@ namespace VITALIA.Controllers
             }
         }
 
-        // POST: Personal/Delete
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        private bool EmpleadoExists(int id)
         {
-            var empleado = await _context.Empleados.FindAsync(id);
-            if (empleado != null)
-            {
-                empleado.Estado = false;
-                _context.Update(empleado);
-                await _context.SaveChangesAsync();
-            }
-            return RedirectToAction(nameof(Index));
+            return _context.Empleados.Any(e => e.IdEmpleado == id);
         }
 
         // GET: Personal/Asignar
@@ -151,7 +274,6 @@ namespace VITALIA.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Asignar([Bind("IdEmpleado,IdResidente")] AsignacionCuidado asignacion)
         {
-            // Remover navegaciones de la validación
             ModelState.Remove("IdEmpleadoNavigation");
             ModelState.Remove("IdResidenteNavigation");
 

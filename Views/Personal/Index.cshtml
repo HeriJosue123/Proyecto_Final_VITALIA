@@ -20,7 +20,7 @@
             <input type="text" class="form-control border-start-0 rounded-end-3" placeholder="Buscar empleado...">
         </div>
         <a asp-action="Create" class="btn btn-vitalia text-nowrap" style="background-color: #12898e; color: white;">
-            <i class="bi bi-plus-lg me-1"></i> + Registrar Empleado
+            <i class="bi bi-plus-lg me-1"></i> Registrar Empleado
         </a>
     </div>
 </div>
@@ -67,11 +67,20 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <form asp-action="Delete" asp-route-id="@item.IdEmpleado" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Dar de baja">
+                                        <!-- AQUÍ ESTÁ EL CAMBIO: Botones de Detalles, Editar y Baja que navegan a las vistas correctas -->
+                                        <div class="d-flex gap-1 justify-content-start">
+                                            <a asp-action="Details" asp-route-id="@item.IdEmpleado" class="btn btn-sm btn-outline-info py-0 px-2" title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+
+                                            <a asp-action="Edit" asp-route-id="@item.IdEmpleado" class="btn btn-sm btn-outline-primary py-0 px-2" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+
+                                            <a asp-action="Delete" asp-route-id="@item.IdEmpleado" class="btn btn-sm btn-outline-danger py-0 px-2" title="Dar de baja">
                                                 <i class="bi bi-trash"></i> Baja
-                                            </button>
-                                        </form>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -91,7 +100,7 @@
         </div>
     </div>
 
-    <!-- Panel Lateral de Asignaciones (Simulando la vista de detalle) -->
+    <!-- Panel Lateral de Asignaciones -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">

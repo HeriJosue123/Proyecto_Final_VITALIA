@@ -24,7 +24,7 @@ public partial class Residente
     [NotMapped]
     [Display(Name = "Teléfono del contacto")]
     [Required(ErrorMessage = "El teléfono del contacto de emergencia es obligatorio.")]
-    [RegularExpression(ResidenteMetadata.PatronTelefono, ErrorMessage = "El teléfono debe tener 8 dígitos y empezar por 2, 6 o 7 (ej. 7000-1111).")]
+    [RegularExpression(ResidenteMetadata.PatronTelefono, ErrorMessage = "El teléfono debe tener 8 dígitos (ej. 7000-1111).")]
     public string? ContactoTelefono { get; set; }
 }
 
@@ -34,7 +34,7 @@ public class ResidenteMetadata
     public const string PatronNombre = @"^\s*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:[\s'.-]+[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*\.?\s*$";
 
     // Teléfono de El Salvador: 8 dígitos, con o sin guion (7000-1111 o 70001111)
-    public const string PatronTelefono = @"^\s*[267]\d{3}-?\d{4}\s*$";
+    public const string PatronTelefono = @"^\s*\d{4}-?\d{4}\s*$";
 
     [Display(Name = "Código único")]
     [Required(ErrorMessage = "El código único del residente es obligatorio.")]
