@@ -1,0 +1,51 @@
+﻿@model VITALIA.Models.Empleado
+@{
+    ViewData["Title"] = "Editar Empleado";
+    var usuarios = ViewData["IdUsuario"] as SelectList;
+    bool hayUsuarios = usuarios != null && usuarios.Any();
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="vitalia-banner mb-4">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 bg-white bg-opacity-25" style="width: 48px; height: 48px;">
+                        <i class="bi bi-pencil-square fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-1">Editar Empleado</h3>
+                        <p class="mb-0 opacity-75">Modifique los datos del miembro del personal</p>
+                    </div>
+                </div>
+                <a asp-action="Index" class="btn text-nowrap">
+                    ← Volver a la lista
+                </a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+
+                @* Campo oculto obligatorio para que la base de datos sepa qué registro actualizar *@
+                <input type="hidden" asp-for="IdEmpleado" />
+
+                @* Reutilizamos el mismo formulario del Create *@
+                @await Html.PartialAsync("_FormularioPersonal", Model)
+
+                <div class="d-grid mt-2">
+                    <button type="submit" class="btn btn-vitalia">
+                        <i class="bi bi-save me-1"></i> Actualizar Empleado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,58 @@
+﻿@model VITALIA.Models.Empleado
+@* 
+    Vista parcial: Contiene únicamente los campos de entrada de datos. 
+    Se separa para poder reciclarla fácilmente en las vistas de Create y Edit.
+*@
+
+<div class="mb-3">
+    <label asp-for="Nombre" class="form-label fw-semibold">NOMBRE</label>
+    @* asp-for enlaza automáticamente el input con la propiedad "Nombre" del modelo *@
+    <input asp-for="Nombre" class="form-control" placeholder="Ej. Ana" required />
+    @* Muestra el mensaje de error definido en las Data Annotations del modelo si falla la validación *@
+    <span asp-validation-for="Nombre" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Apellido" class="form-label fw-semibold">APELLIDO</label>
+    <input asp-for="Apellido" class="form-control" placeholder="Ej. López" required />
+    <span asp-validation-for="Apellido" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Cargo" class="form-label fw-semibold">CARGO</label>
+    <input asp-for="Cargo" class="form-control" placeholder="Ej. Enfermera, Cuidador..." required />
+    <span asp-validation-for="Cargo" class="text-danger small"></span>
+</div>
+
+<div class="mb-4">
+    <label asp-for="IdUsuario" class="form-label fw-semibold">VINCULAR USUARIO</label>
+    @{
+        // Recuperamos la lista de usuarios enviada desde el controlador (ViewBag/ViewData)
+        var usuarios = ViewData["IdUsuario"] as SelectList;
+        // Verificamos si la lista contiene elementos para habilitar o deshabilitar el campo
+        bool hayUsuarios = usuarios != null && usuarios.Any();
+    }
+
+    @* Si no hay usuarios disponibles, el select se bloquea (disabled) *@
+    <select asp-for="IdUsuario" class="form-select" required disabled="@(!hayUsuarios)">
+        <option value="">@(hayUsuarios ? "-- Seleccione un usuario --" : "-- No hay usuarios disponibles --")</option>
+        @if (hayUsuarios)
+        {
+            foreach (var item in usuarios!)
+            {
+                <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+            }
+        }
+    </select>
+
+    @* Mensaje de ayuda que solo aparece cuando no hay usuarios disponibles *@
+    @if (!hayUsuarios)
+    {
+        <div class="text-muted small mt-1">
+            No hay usuarios libres para vincular. Primero cree uno en
+            <a asp-controller="Usuario" asp-action="Create" class="fw-semibold">Usuarios y Roles</a>
+            (cada usuario solo puede estar vinculado a un empleado).
+        </div>
+    }
+    <span asp-validation-for="IdUsuario" class="text-danger small"></span>
+</div>

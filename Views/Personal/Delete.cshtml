@@ -1,0 +1,57 @@
+﻿@model VITALIA.Models.Empleado
+@{
+    ViewData["Title"] = "Eliminar Empleado";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+
+        <div class="vitalia-banner mb-4" style="background-color: #dc3545; color: white;">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 bg-white bg-opacity-25" style="width: 48px; height: 48px;">
+                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-1">Confirmar Eliminación</h3>
+                        <p class="mb-0 opacity-75">Está a punto de dar de baja a este empleado</p>
+                    </div>
+                </div>
+                <a asp-action="Index" class="btn text-nowrap text-white border-white">
+                    ← Cancelar
+                </a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 border-top border-danger border-4">
+            <div class="text-center mb-4">
+                <i class="bi bi-person-x text-danger" style="font-size: 3rem;"></i>
+                <h4 class="fw-bold mt-2">¿Está seguro que desea eliminar a @Model.Nombre @Model.Apellido?</h4>
+                <p class="text-muted">Esta acción no se puede deshacer y el empleado perderá el acceso al sistema.</p>
+            </div>
+
+            <div class="bg-light rounded-3 p-3 mb-4">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <small class="text-muted d-block fw-semibold">Cargo</small>
+                        <span class="fw-bold">@Model.Cargo</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block fw-semibold">Usuario</small>
+                        <span class="fw-bold">@(Model.IdUsuarioNavigation?.Correo ?? "Ninguno")</span>
+                    </div>
+                </div>
+            </div>
+
+            <form asp-action="Delete" method="post" class="d-flex justify-content-center gap-3">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="IdEmpleado" />
+
+                <a asp-action="Index" class="btn btn-outline-secondary px-4">Mantener empleado</a>
+                <button type="submit" class="btn btn-danger px-4">
+                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar empleado
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
