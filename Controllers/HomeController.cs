@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VITALIA.Data;
+using VITALIA.Models;
 
 namespace VITALIA.Controllers
 {
+    [Authorize(Roles = RolesSistema.PersonalClinico)]
     public class HomeController : Controller
     {
         private readonly VitaliaDbContext _context;

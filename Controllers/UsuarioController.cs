@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using VITALIA.Data;
@@ -6,6 +7,7 @@ using VITALIA.Models;
 
 namespace VITALIA.Controllers
 {
+    [Authorize(Roles = RolesSistema.Administrador)]
     public class UsuarioController : Controller
     {
         private readonly VitaliaDbContext _context;

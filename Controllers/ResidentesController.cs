@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
@@ -8,6 +9,7 @@ using VITALIA.Models.ViewModels;
 
 namespace VITALIA.Controllers
 {
+    [Authorize(Roles = RolesSistema.PersonalClinico)]
     public class ResidentesController : Controller
     {
         private readonly VitaliaDbContext _context;

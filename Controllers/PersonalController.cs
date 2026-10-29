@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using VITALIA.Models;
 
 namespace VITALIA.Controllers
 {
+    [Authorize(Roles = RolesSistema.Administrador)]
     public class PersonalController : Controller
     {
         private readonly VitaliaDbContext _context;
