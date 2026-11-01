@@ -1,6 +1,6 @@
 @{
     // Datos del usuario que inició sesión
-    bool esAdministrador = User.IsInRole(RolesSistema.Administrador);
+    bool esAdministrador = User.IsInRole("Administrador"); // Asegúrate de usar el string o la constante correcta aquí
     string nombreUsuario = User.Identity?.Name ?? "";
     string rolUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     string correoUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
@@ -9,7 +9,7 @@
     // Iniciales: "Daniela Rivera" -> DR; si solo hay correo, la primera letra (enfermera1@... -> E)
     var partesNombre = nombreUsuario.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     string iniciales = nombreEsCorreo || partesNombre.Length == 0
-        ? nombreUsuario.Substring(0, Math.Min(1, nombreUsuario.Length)).ToUpper()
+        ? (nombreUsuario.Length > 0 ? nombreUsuario.Substring(0, 1).ToUpper() : "")
         : string.Concat(partesNombre.Take(2).Select(p => char.ToUpper(p[0])));
 
     // Correo con un corte de línea permitido antes de la @ (enfermera1 / @vitalia.com)
@@ -315,7 +315,7 @@
                     transform: translateY(-2px);
                 }
 
-            /* Tarjeta de encabezado de los módulos (mismo degradado del panel principal) */
+            /* Tarjeta de encabezado de los módulos */
             .vitalia-banner {
                 background: linear-gradient(135deg, #0d3c3d 0%, #118a8b 100%);
                 color: #ffffff;
@@ -394,22 +394,22 @@
 
             @if (esAdministrador)
             {
-            <div class="sidebar-section-label">Sistema</div>
-            <ul class="sidebar-nav">
-                <li>
-                    <!-- Agaktibo daytoy no adda iti Usuario man weno Roles controller -->
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuario" || ViewContext.RouteData.Values["controller"]?.ToString() == "Roles" ? "active" : "")"
-                       asp-controller="Usuario" asp-action="Index">
-                        <i class="bi bi-shield-lock-fill"></i> Usuarios y Roles
-                    </a>
-                </li>
-                <li>
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Respaldos" ? "active" : "")"
-                       asp-controller="Home" asp-action="Index">
-                        <i class="bi bi-hdd-fill"></i> Respaldos
-                    </a>
-                </li>
-            </ul>
+                <div class="sidebar-section-label">Sistema</div>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuario" || ViewContext.RouteData.Values["controller"]?.ToString() == "Roles" ? "active" : "")"
+                           asp-controller="Usuario" asp-action="Index">
+                            <i class="bi bi-shield-lock-fill"></i> Usuarios y Roles
+                        </a>
+                    </li>
+                    <li>
+                        <!-- Aquí estaba el error: se cambió asp-controller="Home" por "Respaldos" -->
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Respaldos" ? "active" : "")"
+                           asp-controller="Respaldos" asp-action="Index">
+                            <i class="bi bi-hdd-fill"></i> Respaldos
+                        </a>
+                    </li>
+                </ul>
             }
 
             @* Usuario que inició sesión *@

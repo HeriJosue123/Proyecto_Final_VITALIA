@@ -1,4 +1,4 @@
-namespace VITALIA.Models;
+namespace VITALIA.Models.ViewModels;
 
 public class ErrorViewModel
 {
