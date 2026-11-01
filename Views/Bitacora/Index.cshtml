@@ -113,11 +113,18 @@
                 </div>
 
                 <div class="col-md-2 d-flex gap-1">
-                    <button type="submit" class="btn btn-vitalia btn-sm flex-fill">Filtrar</button>
-                    <button type="button" class="btn btn-outline-vitalia btn-sm flex-fill" title="Exportar PDF">
-                        <i class="bi bi-file-earmark-pdf-fill"></i>
-                    </button>
-                </div>
+                     <button type="submit" class="btn btn-vitalia btn-sm flex-fill">Filtrar</button>
+                     <a asp-controller="Bitacora" asp-action="ExportarPdf" 
+                     asp-route-idResidente="@ViewBag.IdResidenteSeleccionado" 
+                     asp-route-fechaInicio="@ViewBag.FechaInicio" 
+                     asp-route-fechaFin="@ViewBag.FechaFin" 
+                     asp-route-idTipoAtencion="@ViewBag.IdTipoAtencionSeleccionado" 
+                     asp-route-busqueda="@ViewBag.BusquedaActual"
+                     class="btn btn-outline-vitalia btn-sm flex-fill d-flex align-items-center justify-content-center" 
+                     title="Exportar PDF">
+                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                 </a>
+               </div>
             </form>
 
             <p class="text-muted small mb-4" style="font-size: 0.78rem;">

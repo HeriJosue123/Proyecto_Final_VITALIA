@@ -172,5 +172,56 @@ namespace VITALIA.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        // 6. EXPORTAR PDF REAL CON ROTATIVA
+        public async Task<IActionResult> ExportarPdf(int? idResidente, DateTime? fechaInicio, DateTime? fechaFin, int? idTipoAtencion, string busqueda)
+        {
+            var query = _context.AtencionDiaria
+                .AsNoTracking()
+                .Include(a => a.IdResidenteNavigation)
+                .Include(a => a.IdEmpleadoNavigation)
+                .Include(a => a.IdTipoAtencionNavigation) // <-- Incluido para mostrar la categoría/tipo de atención en el PDF
+                .AsQueryable();
+
+            if (idResidente.HasValue && idResidente.Value > 0)
+            {
+                query = query.Where(a => a.IdResidente == idResidente.Value);
+            }
+
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                query = query.Where(a => a.Observaciones.Contains(busqueda) ||
+                                         a.IdResidente.ToString().Contains(busqueda) ||
+                                         a.IdAtencion.ToString().Contains(busqueda));
+            }
+
+            if (idTipoAtencion.HasValue && idTipoAtencion.Value > 0)
+            {
+                query = query.Where(a => a.IdTipoAtencion == idTipoAtencion.Value);
+            }
+
+            if (fechaInicio.HasValue)
+            {
+                query = query.Where(a => a.FechaHora >= fechaInicio.Value.Date);
+            }
+
+            if (fechaFin.HasValue)
+            {
+                var finDelDia = fechaFin.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(a => a.FechaHora <= finDelDia);
+            }
+
+            var atenciones = await query
+                  .OrderByDescending(a => a.FechaHora)
+                  .ToListAsync();
+
+            // Retorna la vista PdfExportar convertida a archivo PDF mediante Rotativa
+            return new Rotativa.AspNetCore.ViewAsPdf("PdfExportar", atenciones)
+            {
+                FileName = $"Bitacora_Atenciones_{DateTime.Now:yyyyMMdd_HHmmss}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape
+            };
+        }
     }
 }
