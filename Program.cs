@@ -2,14 +2,14 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using VITALIA.Data;
+using Rotativa.AspNetCore; // <-- 1. Agrega este using arriba
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Agregar soporte para controladores y vistas (MVC)
-//    Todas las páginas piden haber iniciado sesión, salvo las marcadas con [AllowAnonymous]
 builder.Services.AddControllersWithViews(opciones => opciones.Filters.Add(new AuthorizeFilter()));
 
-// Inicio de sesión con cookie (usuarios de la tabla USUARIO)
+// Inicio de sesión con cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(opciones =>
     {
@@ -20,11 +20,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         opciones.SlidingExpiration = true;
     });
 
-// 2. Conexión a SQL Server (Persistencia Real)
+// 2. Conexión a SQL Server
 builder.Services.AddDbContext<VitaliaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var builderApp = builder.Build();
+
+// ==========================================
+// 3. CONFIGURACIÓN DE ROTATIVA (AÑADE ESTO)
+// ==========================================
+RotativaConfiguration.Setup(builderApp.Environment.WebRootPath, "Rotativa");
+
 
 // Roles y usuarios por defecto (solo se crean si no existen)
 using (var scope = builderApp.Services.CreateScope())
@@ -36,12 +42,11 @@ using (var scope = builderApp.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        // Si la base no está disponible, el sistema arranca igual y lo avisa en la consola
         builderApp.Logger.LogWarning("No se pudieron crear los roles y usuarios por defecto: {Mensaje}", ex.Message);
     }
 }
 
-// 3. Configuración del pipeline de solicitudes HTTP
+// 4. Configuración del pipeline de solicitudes HTTP
 if (!builderApp.Environment.IsDevelopment())
 {
     builderApp.UseExceptionHandler("/Home/Error");
@@ -53,8 +58,8 @@ builderApp.UseStaticFiles();
 builderApp.UseRouting();
 builderApp.UseAuthentication();
 builderApp.UseAuthorization();
-builderApp.MapStaticAssets();
 
+builderApp.MapStaticAssets();
 builderApp.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")

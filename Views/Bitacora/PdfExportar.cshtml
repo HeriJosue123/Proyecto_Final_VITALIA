@@ -1,0 +1,110 @@
+﻿@model IEnumerable<VITALIA.Models.AtencionDiaria>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Bitácora de Atenciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #333333;
+            margin: 20px;
+        }
+        h2 {
+            color: #14828a;
+            margin-bottom: 2px;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 10px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-weight: bold;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        td {
+            font-size: 10px;
+        }
+        .badge-tipo {
+            background-color: #e2e8f0;
+            color: #0f172a;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 9px;
+            display: inline-block;
+        }
+        .text-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Reporte de Bitácora de Atenciones</h2>
+    <div class="subtitle">Generado el @DateTime.Now.ToString("dd/MM/yyyy HH:mm") hrs</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 13%;">Fecha y Hora</th>
+                <th style="width: 18%;">Residente</th>
+                <th style="width: 15%;">Tipo de Atención</th>
+                <th style="width: 32%;">Observaciones</th>
+                <th style="width: 15%;">Empleado</th>
+                <th style="width: 7%;">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@(item.IdResidenteNavigation != null ? $"{item.IdResidenteNavigation.Nombre} {item.IdResidenteNavigation.Apellido}" : "N/D")</td>
+                        <td>
+                            <span class="badge-tipo">
+                                @(item.IdTipoAtencionNavigation != null ? item.IdTipoAtencionNavigation.NombreCategoria : "N/D")
+                            </span>
+                        </td>
+                        <td>@item.Observaciones</td>
+                        <td>@(item.IdEmpleadoNavigation != null ? $"{item.IdEmpleadoNavigation.Nombre} {item.IdEmpleadoNavigation.Apellido}" : "N/D")</td>
+                        <td>@(string.IsNullOrEmpty(item.EstadoCumplimiento) ? "Completado" : item.EstadoCumplimiento)</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center" style="color: #64748b; padding: 20px;">
+                        No se encontraron registros con los filtros seleccionados.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</body>
+</html>
