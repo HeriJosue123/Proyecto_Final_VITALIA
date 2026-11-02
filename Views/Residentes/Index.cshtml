@@ -228,7 +228,16 @@
 
             <!-- Familiares Vinculados -->
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-                <h6 class="fw-bold text-dark mb-3">Familiares vinculados</h6>
+                <div class="d-flex align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Familiares vinculados</h6>
+                    @if (User.IsInRole(RolesSistema.Administrador))
+                    {
+                        <a asp-controller="VinculosFamiliares" asp-action="Create" asp-route-idResidente="@sel.IdResidente"
+                           class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 ms-auto" style="font-size: .75rem;">
+                            <i class="bi bi-plus-lg"></i> Vincular
+                        </a>
+                    }
+                </div>
                 @if (sel.FamiliarResidentes.Any())
                 {
                     foreach (var fam in sel.FamiliarResidentes)

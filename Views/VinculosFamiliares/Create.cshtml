@@ -1,0 +1,102 @@
+@model VITALIA.Models.ViewModels.VinculoFamiliarViewModel
+@{
+    ViewData["Title"] = "Vincular familiar";
+    var usuarios = ViewBag.Usuarios as SelectList;
+    bool hayUsuarios = usuarios != null && usuarios.Any();
+}
+
+<div class="animate-fade-up mt-5 pt-4 pb-5 d-flex justify-content-center">
+    <div style="width: 100%; max-width: 680px;" class="px-3">
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+
+            <div class="p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm flex-shrink-0" style="width: 44px; height: 44px; color: #14828a;">
+                        <i class="bi bi-person-heart fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">Vincular familiar</h4>
+                        <p class="text-white-50 small mb-0">Residente: @Model.ResidenteNombre</p>
+                    </div>
+                </div>
+                <a asp-controller="Residentes" asp-action="Details" asp-route-id="@Model.IdResidente" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-1.5 fw-semibold shadow-sm text-decoration-none">
+                    ← Volver a la ficha
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="IdResidente" />
+
+                    <div class="mb-3">
+                        <label asp-for="IdUsuario" class="fw-bold text-dark text-uppercase mb-1 d-block" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-person-circle me-1" style="color: #14828a;"></i> Usuario del familiar
+                        </label>
+                        <select asp-for="IdUsuario" class="form-select form-select-lg rounded-3 fs-6 shadow-none" style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;" disabled="@(!hayUsuarios)">
+                            <option value="0">@(hayUsuarios ? "-- Seleccione un usuario --" : "-- No hay usuarios Familiar disponibles --")</option>
+                            @if (hayUsuarios)
+                            {
+                                foreach (var item in usuarios!)
+                                {
+                                    <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="IdUsuario" class="text-danger small"></span>
+                        @if (!hayUsuarios)
+                        {
+                            <div class="form-text small">
+                                Primero cree un usuario con el rol <strong>Familiar</strong> en
+                                <a asp-controller="Usuario" asp-action="Create" class="fw-semibold">Usuarios y Roles</a>.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Parentesco" class="fw-bold text-dark text-uppercase mb-1 d-block" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-diagram-2 me-1" style="color: #14828a;"></i> Parentesco
+                            </label>
+                            <select asp-for="Parentesco" class="form-select rounded-3 shadow-none" style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;">
+                                <option value="">-- Seleccione --</option>
+                                @foreach (var p in VITALIA.Models.ViewModels.VinculoFamiliarViewModel.Parentescos)
+                                {
+                                    <option value="@p">@p</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Parentesco" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Telefono" class="fw-bold text-dark text-uppercase mb-1 d-block" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-telephone me-1" style="color: #14828a;"></i> Teléfono del familiar
+                            </label>
+                            <input asp-for="Telefono" type="tel" inputmode="numeric" maxlength="9" class="form-control rounded-3 shadow-none" placeholder="Ej. 7000-1111" style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;" />
+                            <span asp-validation-for="Telefono" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="small text-muted mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        El familiar podrá ver la ficha, la bitácora y las alertas de este residente desde su usuario, en modo de solo lectura.
+                    </div>
+
+                    <button type="submit" class="btn text-white fw-bold rounded-3 py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);" disabled="@(!hayUsuarios)">
+                        <i class="bi bi-link-45deg fs-5"></i> Vincular familiar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Teléfono: solo dígitos, máximo 8, con el guion en medio (7000-1111)
+    document.addEventListener('DOMContentLoaded', function () {
+        var telefono = document.getElementById('Telefono');
+        telefono.addEventListener('input', function () {
+            var digitos = telefono.value.replace(/\D/g, '').slice(0, 8);
+            telefono.value = digitos.length > 4 ? digitos.slice(0, 4) + '-' + digitos.slice(4) : digitos;
+        });
+    });
+</script>

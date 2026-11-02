@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using VITALIA.Data;
 using VITALIA.Models;
+using VITALIA.Models.ViewModels;
 
 namespace VITALIA.Controllers
 {
@@ -256,18 +257,9 @@ namespace VITALIA.Controllers
         }
 
         // GET: Personal/Asignar
-        public IActionResult Asignar()
+        public async Task<IActionResult> Asignar()
         {
-            ViewData["IdEmpleado"] = new SelectList(
-                _context.Empleados.Where(e => e.Estado).OrderBy(e => e.Nombre).ToList(),
-                "IdEmpleado",
-                "Nombre");
-
-            ViewData["IdResidente"] = new SelectList(
-                _context.Residentes.Where(r => r.Estado).OrderBy(r => r.Nombre).ToList(),
-                "IdResidente",
-                "Nombre");
-
+            await CargarListasAsignacionAsync(null, null);
             return View();
         }
 
@@ -279,14 +271,38 @@ namespace VITALIA.Controllers
             ModelState.Remove("IdEmpleadoNavigation");
             ModelState.Remove("IdResidenteNavigation");
 
-            var existe = await _context.AsignacionCuidados
-                .AnyAsync(a => a.IdEmpleado == asignacion.IdEmpleado
-                            && a.IdResidente == asignacion.IdResidente
-                            && a.Estado == true);
-
-            if (existe)
+            if (asignacion.IdEmpleado <= 0)
             {
-                ModelState.AddModelError("", "El empleado ya está asignado a este residente actualmente.");
+                ModelState.AddModelError("", "Debe seleccionar un empleado.");
+            }
+            if (asignacion.IdResidente <= 0)
+            {
+                ModelState.AddModelError("", "Debe seleccionar un residente.");
+            }
+
+            // Regla: cada residente puede tener un médico y un cuidador (o enfermero) activos, no dos del mismo tipo
+            var empleado = await _context.Empleados
+                .Include(e => e.IdUsuarioNavigation).ThenInclude(u => u!.IdRolNavigation)
+                .FirstOrDefaultAsync(e => e.IdEmpleado == asignacion.IdEmpleado);
+
+            if (empleado != null)
+            {
+                string tipo = TiposAsignacion.De(empleado);
+                var asignacionesActuales = await _context.AsignacionCuidados
+                    .Include(a => a.IdResidenteNavigation)
+                    .Include(a => a.IdEmpleadoNavigation).ThenInclude(e => e.IdUsuarioNavigation).ThenInclude(u => u!.IdRolNavigation)
+                    .Where(a => a.IdResidente == asignacion.IdResidente && a.Estado == true)
+                    .ToListAsync();
+                var mismoTipo = asignacionesActuales.FirstOrDefault(a => TiposAsignacion.De(a.IdEmpleadoNavigation) == tipo);
+
+                if (mismoTipo != null)
+                {
+                    ModelState.AddModelError("",
+                        mismoTipo.IdResidenteNavigation.Nombre + " " + mismoTipo.IdResidenteNavigation.Apellido +
+                        " ya tiene " + (tipo == TiposAsignacion.Medico ? "un médico" : "un cuidador") + " asignado (" +
+                        mismoTipo.IdEmpleadoNavigation.Nombre + " " + mismoTipo.IdEmpleadoNavigation.Apellido +
+                        "). Cada residente puede tener un médico y un cuidador; para cambiarlo, primero finalice esa asignación en la lista de Personal.");
+                }
             }
 
             if (ModelState.IsValid)
@@ -295,12 +311,57 @@ namespace VITALIA.Controllers
                 asignacion.Estado = true;
                 _context.Add(asignacion);
                 await _context.SaveChangesAsync();
+
+                TempData["Mensaje"] = "Asignación creada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["IdEmpleado"] = new SelectList(_context.Empleados.Where(e => e.Estado).OrderBy(e => e.Nombre).ToList(), "IdEmpleado", "Nombre", asignacion.IdEmpleado);
-            ViewData["IdResidente"] = new SelectList(_context.Residentes.Where(r => r.Estado).OrderBy(r => r.Nombre).ToList(), "IdResidente", "Nombre", asignacion.IdResidente);
+            await CargarListasAsignacionAsync(asignacion.IdEmpleado, asignacion.IdResidente);
             return View(asignacion);
+        }
+
+        // Listas del formulario Asignar: cada empleado con su tipo (médico o cuidador) y cada residente
+        // con quién lo atiende ahora, para desactivar los lugares que ya están ocupados.
+        private async Task CargarListasAsignacionAsync(int? idEmpleado, int? idResidente)
+        {
+            var empleados = await _context.Empleados
+                .Include(e => e.IdUsuarioNavigation).ThenInclude(u => u!.IdRolNavigation)
+                .Where(e => e.Estado)
+                .OrderBy(e => e.Nombre).ThenBy(e => e.Apellido)
+                .ToListAsync();
+
+            ViewBag.Empleados = empleados.Select(e => new EmpleadoAsignacionOpcion
+            {
+                IdEmpleado = e.IdEmpleado,
+                Texto = e.Nombre + " " + e.Apellido + " · " + e.Cargo,
+                Tipo = TiposAsignacion.De(e)
+            }).ToList();
+
+            var asignaciones = await _context.AsignacionCuidados
+                .Include(a => a.IdEmpleadoNavigation).ThenInclude(e => e.IdUsuarioNavigation).ThenInclude(u => u!.IdRolNavigation)
+                .Where(a => a.Estado == true)
+                .ToListAsync();
+
+            var residentes = await _context.Residentes
+                .Where(r => r.Estado)
+                .OrderBy(r => r.Nombre).ThenBy(r => r.Apellido)
+                .ToListAsync();
+
+            string? Quien(int idRes, string tipo) => asignaciones
+                .Where(a => a.IdResidente == idRes && TiposAsignacion.De(a.IdEmpleadoNavigation) == tipo)
+                .Select(a => a.IdEmpleadoNavigation.Nombre + " " + a.IdEmpleadoNavigation.Apellido)
+                .FirstOrDefault();
+
+            ViewBag.Residentes = residentes.Select(r => new ResidenteAsignacionOpcion
+            {
+                IdResidente = r.IdResidente,
+                Nombre = r.Nombre + " " + r.Apellido,
+                Cuidador = Quien(r.IdResidente, TiposAsignacion.Cuidador),
+                Medico = Quien(r.IdResidente, TiposAsignacion.Medico)
+            }).ToList();
+
+            ViewBag.IdEmpleadoSeleccionado = idEmpleado;
+            ViewBag.IdResidenteSeleccionado = idResidente;
         }
 
         // POST: Personal/FinalizarAsignacion
@@ -315,6 +376,7 @@ namespace VITALIA.Controllers
                 asignacion.FechaFin = DateTime.Now;
                 _context.Update(asignacion);
                 await _context.SaveChangesAsync();
+                TempData["Mensaje"] = "Asignación finalizada. El residente ya puede recibir otro cuidador.";
             }
             return RedirectToAction(nameof(Index));
         }

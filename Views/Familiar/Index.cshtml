@@ -1,0 +1,71 @@
+@model List<VITALIA.Models.ViewModels.FamiliarResidenteTarjeta>
+@{
+    ViewData["Title"] = "Mi familiar";
+}
+
+<div class="vitalia-banner mb-4">
+    <h3 class="fw-bold mb-1">Hola, @User.Identity?.Name</h3>
+    <p class="text-muted mb-0">Aquí puede consultar cómo está su familiar: sus cuidados, la bitácora de atenciones y sus alertas.</p>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 64px; height: 64px;">
+            <i class="bi bi-person-heart fs-3"></i>
+        </div>
+        <h5 class="fw-bold text-dark mb-2">Todavía no tiene un residente vinculado</h5>
+        <p class="text-muted small mb-0">Consulte con el administrador de VITALIA para que vincule su usuario con su familiar.</p>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var r in Model)
+        {
+            var iniciales = string.Concat(r.Nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpper(p[0])));
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width: 56px; height: 56px; background-color: #12898e; font-size: 1.2rem;">@iniciales</div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">@r.Nombre</h5>
+                            <small class="text-muted">@r.CodigoUnico · @r.Edad años · Hab. @r.Habitacion</small>
+                        </div>
+                    </div>
+
+                    <div class="small mb-3">
+                        <div class="text-muted mb-1"><i class="bi bi-heart me-1"></i> Usted es su <strong>@r.Parentesco.ToLower()</strong></div>
+                        <div class="text-muted mb-1">
+                            <i class="bi bi-person-badge me-1"></i>
+                            @(r.Equipo.Any() ? string.Join(" / ", r.Equipo) : "Sin personal asignado todavía")
+                        </div>
+                        <div class="text-muted">
+                            <i class="bi bi-journal-check me-1"></i>
+                            Última atención: @(r.UltimaAtencion?.ToString("dd/MM/yyyy HH:mm") ?? "sin registros")
+                        </div>
+                    </div>
+
+                    <div class="mt-auto d-flex align-items-center justify-content-between gap-2">
+                        @if (r.AlertasActivas > 0)
+                        {
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-2">
+                                <i class="bi bi-bell-fill me-1"></i>@r.AlertasActivas alerta(s) activa(s)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                                <i class="bi bi-check-circle-fill me-1"></i>Sin alertas activas
+                            </span>
+                        }
+                        <a asp-action="Residente" asp-route-id="@r.IdResidente" class="btn btn-vitalia btn-sm text-nowrap">
+                            Ver ficha <i class="bi bi-arrow-right-short"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

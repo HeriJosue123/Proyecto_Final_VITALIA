@@ -1,6 +1,7 @@
 @{
     // Datos del usuario que inició sesión
-    bool esAdministrador = User.IsInRole("Administrador");
+    bool esAdministrador = User.IsInRole(RolesSistema.Administrador);
+    bool esFamiliar = User.IsInRole(RolesSistema.Familiar);
     bool puedeAccederFarmacia = User.IsInRole("Administrador") || User.IsInRole("Medico") || User.IsInRole("Médico") || User.IsInRole("Enfermero");
     string nombreUsuario = User.Identity?.Name ?? "";
     string rolUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
@@ -98,7 +99,21 @@
                 left: 0;
                 z-index: 1000;
                 padding: 1.5rem 1rem;
+                /* Si el menú no cabe en la pantalla, se desplaza solo él */
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
             }
+
+                .vitalia-sidebar::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                .vitalia-sidebar::-webkit-scrollbar-thumb {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    border-radius: 3px;
+                }
 
             .vitalia-content {
                 margin-left: 250px;
@@ -212,6 +227,22 @@
                 font-size: 0.68rem;
                 font-weight: 600;
             }
+
+            .sidebar-user-enlace {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.4rem;
+                margin-top: 0.75rem;
+                color: #a3c2c4;
+                font-size: 0.75rem;
+                text-decoration: none;
+            }
+
+                .sidebar-user-enlace:hover {
+                    color: #ffffff;
+                    text-decoration: underline;
+                }
 
             .btn-cerrar-sesion {
                 width: 100%;
@@ -349,13 +380,28 @@
     <div class="vitalia-wrapper">
         <!-- Sidebar Oscuro -->
         <aside class="vitalia-sidebar">
-            <a class="sidebar-brand" asp-controller="Home" asp-action="Index">
+            <a class="sidebar-brand" asp-controller="@(esFamiliar ? "Familiar" : "Home")" asp-action="Index">
                 <div class="brand-icon">
                     <i class="bi bi-suit-heart-fill"></i>
                 </div>
                 <span>VITALIA</span>
             </a>
 
+            @if (esFamiliar)
+            {
+                @* El familiar solo ve su propia sección *@
+                <div class="sidebar-section-label">Familia</div>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Familiar" ? "active" : "")"
+                           asp-controller="Familiar" asp-action="Index">
+                            <i class="bi bi-person-heart"></i> Mi familiar
+                        </a>
+                    </li>
+                </ul>
+            }
+            else
+            {
             <div class="sidebar-section-label">Módulos</div>
             <ul class="sidebar-nav">
                 <li>
@@ -404,6 +450,7 @@
                     </li>
                 }
             </ul>
+            }
 
             @if (esAdministrador)
             {
@@ -437,6 +484,9 @@
                         <span class="sidebar-user-rol"><i class="bi bi-shield-check"></i> @rolUsuario</span>
                     </div>
                 </div>
+                <a asp-controller="Perfil" asp-action="CambiarContrasena" class="sidebar-user-enlace">
+                    <i class="bi bi-key"></i> Cambiar contraseña
+                </a>
                 <button type="button" class="btn-cerrar-sesion" data-bs-toggle="modal" data-bs-target="#modalCerrarSesion">
                     <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                 </button>

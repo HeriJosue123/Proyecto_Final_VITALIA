@@ -26,7 +26,9 @@ namespace VITALIA.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                return RedirectToAction("Index", "Home");
+                return User.IsInRole(RolesSistema.Familiar)
+                    ? RedirectToAction("Index", "Familiar")
+                    : RedirectToAction("Index", "Home");
             }
 
             ViewData["ReturnUrl"] = returnUrl;
@@ -83,6 +85,15 @@ namespace VITALIA.Controllers
                 new ClaimsPrincipal(identidad),
                 new AuthenticationProperties { IsPersistent = modelo.Recordarme });
 
+            // El familiar siempre entra a su vista (solo vuelve a la página anterior si era de su sección)
+            if (usuario.IdRolNavigation.NombreRol == RolesSistema.Familiar)
+            {
+                return !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)
+                       && returnUrl.StartsWith("/Familiar", StringComparison.OrdinalIgnoreCase)
+                    ? Redirect(returnUrl)
+                    : RedirectToAction("Index", "Familiar");
+            }
+
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
@@ -100,8 +111,13 @@ namespace VITALIA.Controllers
         }
 
         // GET: Cuenta/AccesoDenegado
-        public IActionResult AccesoDenegado()
+        public IActionResult AccesoDenegado(string? returnUrl)
         {
+            // Si el familiar abre la dirección principal (localhost/), se le lleva a su vista
+            if (User.IsInRole(RolesSistema.Familiar) && (string.IsNullOrEmpty(returnUrl) || returnUrl == "/"))
+            {
+                return RedirectToAction("Index", "Familiar");
+            }
             return View();
         }
 

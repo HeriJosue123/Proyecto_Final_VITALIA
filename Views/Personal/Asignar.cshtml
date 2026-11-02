@@ -1,5 +1,10 @@
+@using VITALIA.Models.ViewModels
 @{
     ViewData["Title"] = "Asignar Personal a Residente";
+    var empleados = ViewBag.Empleados as List<EmpleadoAsignacionOpcion> ?? new();
+    var residentes = ViewBag.Residentes as List<ResidenteAsignacionOpcion> ?? new();
+    int? idEmpleadoSel = ViewBag.IdEmpleadoSeleccionado;
+    int? idResidenteSel = ViewBag.IdResidenteSeleccionado;
 }
 
 <!-- Contenedor ajustado con margen y padding superior para posicionar la tarjeta más abajo -->
@@ -8,7 +13,7 @@
 
         <!-- Tarjeta Principal con Encabezado Verde Integrado -->
         <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
-            
+
             <!-- Encabezado Estilo Bloque Verde (De borde a borde) -->
             <div class="p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
                 <div class="d-flex align-items-center gap-3">
@@ -29,47 +34,58 @@
 
             <!-- Cuerpo del Formulario -->
             <div class="card-body p-4">
-                
+
+                @* Errores al guardar (residente que ya tiene alguien de ese tipo, campos vacíos) *@
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 small" role="alert">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div><i class="bi bi-exclamation-triangle-fill me-1"></i> @error.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
                 <form asp-action="Asignar" method="post">
                     @Html.AntiForgeryToken()
 
                     <!-- CAMPO: EMPLEADO -->
                     <div class="mb-3">
-                        <label class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                        <label for="IdEmpleado" class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                             <i class="bi bi-person me-1" style="color: #14828a;"></i> EMPLEADO
                         </label>
-                        <select name="IdEmpleado" class="form-select form-select-lg rounded-3 fs-6 shadow-none" required style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;">
+                        <select id="IdEmpleado" name="IdEmpleado" class="form-select form-select-lg rounded-3 fs-6 shadow-none" required style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;">
                             <option value="">-- Seleccione un empleado --</option>
-                            @if (ViewData["IdEmpleado"] is SelectList empleados)
+                            @foreach (var e in empleados)
                             {
-                                foreach (var item in empleados)
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
+                                <option value="@e.IdEmpleado" data-tipo="@e.Tipo" selected="@(e.IdEmpleado == idEmpleadoSel)">@e.Texto (@e.Tipo.ToLower())</option>
                             }
                         </select>
                     </div>
 
                     <!-- CAMPO: RESIDENTE -->
                     <div class="mb-3">
-                        <label class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                        <label for="IdResidente" class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                             <i class="bi bi-person-heart me-1" style="color: #14828a;"></i> RESIDENTE
                         </label>
-                        <select name="IdResidente" class="form-select form-select-lg rounded-3 fs-6 shadow-none" required style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;">
+                        <select id="IdResidente" name="IdResidente" class="form-select form-select-lg rounded-3 fs-6 shadow-none" required style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;">
                             <option value="">-- Seleccione un residente --</option>
-                            @if (ViewData["IdResidente"] is SelectList residentes)
+                            @foreach (var r in residentes)
                             {
-                                foreach (var item in residentes)
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
+                                <option value="@r.IdResidente" data-cuidador="@(r.Cuidador != null ? "1" : "0")" data-medico="@(r.Medico != null ? "1" : "0")"
+                                        selected="@(r.IdResidente == idResidenteSel)">@r.Texto</option>
                             }
                         </select>
+                        <div class="form-text small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Cada residente puede tener <strong>un médico</strong> y <strong>un cuidador</strong> (o enfermero).
+                            Al elegir el empleado, se desactivan los residentes que ya tienen a alguien de ese tipo.
+                        </div>
                     </div>
 
                     <!-- BOTÓN DE GUARDAR CAMBIOS -->
                     <div class="pt-2 mt-3">
-                        <button type="submit" class="btn text-white fw-bold rounded-3 py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); transition: all 0.2s ease;">
+                        <button type="submit" class="btn text-white fw-bold rounded-3 py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); transition: all 0.2s ease;" disabled="@(empleados.Count == 0)">
                             <i class="bi bi-link-45deg fs-5"></i> Crear Asignación
                         </button>
                     </div>
@@ -80,3 +96,27 @@
 
     </div>
 </div>
+
+<script>
+    // Desactiva los residentes que ya tienen a alguien del mismo tipo que el empleado elegido
+    document.addEventListener('DOMContentLoaded', function () {
+        var empleado = document.getElementById('IdEmpleado');
+        var residente = document.getElementById('IdResidente');
+
+        function actualizar() {
+            var opcion = empleado.options[empleado.selectedIndex];
+            var tipo = opcion ? opcion.getAttribute('data-tipo') : null;
+            for (var i = 1; i < residente.options.length; i++) {
+                var r = residente.options[i];
+                var ocupado = tipo === 'Médico' ? r.getAttribute('data-medico') === '1'
+                            : tipo === 'Cuidador' ? r.getAttribute('data-cuidador') === '1'
+                            : false;
+                r.disabled = ocupado;
+                if (ocupado && r.selected) residente.value = '';
+            }
+        }
+
+        empleado.addEventListener('change', actualizar);
+        actualizar();
+    });
+</script>

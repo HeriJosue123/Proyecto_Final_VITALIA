@@ -128,15 +128,18 @@ public class LoginTests : IClassFixture<FabricaLogin>
     }
 
     [Fact]
-    public async Task Familiar_VeAvisoDeVistaEnConstruccion()
+    public async Task Familiar_EntraASuVistaYNoAlPanelDelPersonal()
     {
         var cliente = NuevoCliente();
-        await EntrarAsync(cliente, "familiar@prueba.com", FabricaLogin.Contrasena);
+        var login = await EntrarAsync(cliente, "familiar@prueba.com", FabricaLogin.Contrasena);
+        Assert.Equal("/Familiar", login.Headers.Location!.OriginalString);
 
-        var resp = await cliente.GetAsync("/");
+        var html = WebUtility.HtmlDecode(await cliente.GetStringAsync("/Familiar"));
+        Assert.Contains("Mi familiar", html);
+        Assert.DoesNotContain("Alertas y Tareas", html);
+
+        var resp = await cliente.GetAsync("/Residentes");
         Assert.StartsWith("/Cuenta/AccesoDenegado", resp.Headers.Location!.PathAndQuery);
-        var html = WebUtility.HtmlDecode(await cliente.GetStringAsync("/Cuenta/AccesoDenegado"));
-        Assert.Contains("La vista para familiares todavía está en construcción", html);
     }
 
     [Theory]

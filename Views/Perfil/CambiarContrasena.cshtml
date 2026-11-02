@@ -1,0 +1,58 @@
+@model VITALIA.Models.ViewModels.CambiarContrasenaViewModel
+@{
+    ViewData["Title"] = "Cambiar contraseña";
+}
+
+<div class="animate-fade-up mt-5 pt-4 pb-5 d-flex justify-content-center">
+    <div style="width: 100%; max-width: 520px;" class="px-3">
+
+        @if (TempData["Mensaje"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Mensaje"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+        }
+
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+            <div class="p-4 text-white d-flex align-items-center gap-3" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm flex-shrink-0" style="width: 44px; height: 44px; color: #14828a;">
+                    <i class="bi bi-key-fill fs-5"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0">Cambiar contraseña</h4>
+                    <p class="text-white-50 small mb-0 text-break">@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</p>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <form asp-action="CambiarContrasena" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="ContrasenaActual" class="form-label fw-semibold small">Contraseña actual</label>
+                        <input asp-for="ContrasenaActual" class="form-control rounded-3" autocomplete="current-password" />
+                        <span asp-validation-for="ContrasenaActual" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ContrasenaNueva" class="form-label fw-semibold small">Contraseña nueva</label>
+                        <input asp-for="ContrasenaNueva" class="form-control rounded-3" autocomplete="new-password" />
+                        <div class="form-text small">Mínimo 8 caracteres, con al menos una letra y un número.</div>
+                        <span asp-validation-for="ContrasenaNueva" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ConfirmarContrasena" class="form-label fw-semibold small">Repita la contraseña nueva</label>
+                        <input asp-for="ConfirmarContrasena" class="form-control rounded-3" autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmarContrasena" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn text-white fw-bold rounded-3 py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+                        <i class="bi bi-shield-lock-fill"></i> Guardar contraseña nueva
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
