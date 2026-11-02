@@ -1,141 +1,341 @@
 @model IEnumerable<VITALIA.Models.Empleado>
 
 @{
-    ViewData["Title"] = "Personal";
-    // Recuperamos las asignaciones enviadas desde el controlador
+    ViewData["Title"] = "Personal y Asignaciones";
     var asignaciones = ViewBag.Asignaciones as IEnumerable<VITALIA.Models.AsignacionCuidado>;
 }
 
-<!-- Encabezado del Módulo -->
-<div class="vitalia-banner d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-    <div>
-        <h3 class="fw-bold text-dark mb-1">Personal y Asignaciones</h3>
-        <p class="text-muted small mb-0">Gestión de empleados y vinculación con residentes</p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-        <div class="input-group search-box" style="width: 280px;">
-            <span class="input-group-text bg-white border-end-0 rounded-start-3 text-muted">
-                <i class="bi bi-search"></i>
-            </span>
-            <input type="text" class="form-control border-start-0 rounded-end-3" placeholder="Buscar empleado...">
-        </div>
-        <a asp-action="Create" class="btn btn-vitalia text-nowrap" style="background-color: #12898e; color: white;">
-            <i class="bi bi-plus-lg me-1"></i> Registrar Empleado
-        </a>
-    </div>
-</div>
+<style>
+    /* Estilos estandarizados VITALIA */
+    .vitalia-text-main {
+        color: #14828a !important;
+    }
 
-<div class="row g-4">
-    <!-- Tabla Principal de Empleados -->
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm rounded-3 border-light-subtle" style="width: auto;">
-                        <option>Estado: Activos</option>
-                        <option>Estado: Inactivos</option>
-                        <option>Todos</option>
+    .vitalia-bg-main {
+        background-color: #14828a !important;
+    }
+
+    .vitalia-bg-subtle {
+        background-color: #e8f4f5 !important;
+    }
+
+    .hover-elevate {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .hover-elevate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08) !important;
+        }
+
+    /* Botonera CRUD profesional y limpia */
+    .action-btn {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        color: #6c757d;
+        text-decoration: none;
+    }
+
+    .action-btn-view:hover {
+        color: #14828a;
+        border-color: #14828a;
+        background-color: #e8f4f5;
+    }
+
+    .action-btn-edit:hover {
+        color: #0d6efd;
+        border-color: #0d6efd;
+        background-color: #e9ecef;
+    }
+
+    .action-btn-delete:hover {
+        color: #dc3545;
+        border-color: #dc3545;
+        background-color: #f8d7da;
+    }
+
+    /* Tarjeta de asignación */
+    .asig-card {
+        border-left: 4px solid #14828a !important;
+    }
+</style>
+
+<div class="animate-fade-up">
+    <!-- Encabezado del Módulo -->
+    <div class="vitalia-banner p-4 rounded-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 text-white shadow-sm" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+        <div>
+            <h2 class="fw-bold mb-1 text-white">Personal y Asignaciones</h2>
+            <p class="text-white-50 mb-0"><i class="bi bi-info-circle me-1"></i>Gestión integral de empleados y vinculación con residentes</p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <div class="input-group input-group-sm search-box shadow-sm" style="width: 280px;">
+                <span class="input-group-text bg-white border-0 rounded-start-pill text-muted ps-3">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" id="inputBuscarEmpleado" class="form-control border-0 rounded-end-pill py-2" placeholder="Buscar por nombre o cargo...">
+            </div>
+            <a asp-action="Create" class="btn bg-white rounded-pill px-4 py-2 fw-bold shadow-sm text-nowrap hover-elevate" style="color: #14828a;">
+                <i class="bi bi-plus-lg me-1"></i> Registrar Empleado
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Tabla Principal de Empleados -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="vitalia-bg-subtle p-2 rounded-3 vitalia-text-main d-flex align-items-center justify-content-center">
+                            <i class="bi bi-people-fill fs-5"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-0">Lista de Personal</h5>
+                    </div>
+                    <select id="selectFiltroEstado" class="form-select form-select-sm rounded-pill border-light-subtle ps-3 pe-4 py-2 bg-light text-muted" style="width: auto; min-width: 160px;">
+                        <option value="todos">Todos los estados</option>
+                        <option value="activo" selected>Estado: Activos</option>
+                        <option value="inactivo">Estado: Inactivos</option>
                     </select>
                 </div>
-                <small class="text-muted">Mostrando personal registrado</small>
-            </div>
 
-            <!-- Tabla -->
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-muted small text-uppercase">
-                        <tr>
-                            <th>Empleado</th>
-                            <th>Cargo</th>
-                            <th>Usuario Vinculado</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="small">
-                        @if (Model != null && Model.Any())
-                        {
-                            @foreach (var item in Model)
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="tablaEmpleados">
+                        <thead class="table-light text-muted small text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <tr>
+                                <th class="ps-3 py-3 border-0 rounded-start-3">Empleado</th>
+                                <th class="border-0">Cargo</th>
+                                <th class="border-0">Usuario Vinculado</th>
+                                <th class="text-center border-0">Estado</th>
+                                <th class="text-center border-0 rounded-end-3">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small border-top-0">
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var item in Model)
+                                {
+                                    var badgeEstado = item.Estado
+                                        ? "bg-success-subtle text-success border border-success-subtle"
+                                        : "bg-secondary-subtle text-secondary border border-secondary-subtle";
+
+                                    <tr class="fila-empleado" data-estado="@(item.Estado ? "activo" : "inactivo")">
+                                        <td class="ps-3 py-3">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle vitalia-bg-subtle vitalia-text-main fw-bold flex-shrink-0" style="width: 40px; height: 40px; font-size: 0.95rem;">
+                                                    @item.Nombre.Substring(0, 1)@item.Apellido.Substring(0, 1)
+                                                </div>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold text-dark nombre-empleado fs-6">@item.Nombre @item.Apellido</span>
+                                                    <span class="text-muted" style="font-size: 0.75rem;">ID: #@item.IdEmpleado</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="fw-medium text-secondary cargo-empleado">
+                                            <div class="d-flex align-items-center text-nowrap">
+                                                <i class="bi bi-briefcase me-2 opacity-50"></i>
+                                                <span class="texto-filtrable">@item.Cargo</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-muted">
+                                            <div class="d-flex align-items-center text-nowrap">
+                                                <i class="bi bi-envelope me-2 opacity-50 vitalia-text-main"></i>
+                                                <span>@(item.IdUsuarioNavigation?.Correo ?? "Sin asignar")</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge rounded-pill px-3 py-2 @badgeEstado fw-semibold" style="font-size: 0.72rem;">
+                                                <i class="bi @(item.Estado ? "bi-check-circle-fill" : "bi-dash-circle-fill") me-1"></i>@(item.Estado ? "Activo" : "Inactivo")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-2 justify-content-center">
+                                                <a asp-action="Details" asp-route-id="@item.IdEmpleado" class="action-btn action-btn-view shadow-sm" title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@item.IdEmpleado" class="action-btn action-btn-edit shadow-sm" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a asp-action="Delete" asp-route-id="@item.IdEmpleado" class="action-btn action-btn-delete shadow-sm" title="Dar de baja">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <td class="fw-bold text-dark">@item.Nombre @item.Apellido</td>
-                                    <td class="fw-semibold">@item.Cargo</td>
-                                    <td>@(item.IdUsuarioNavigation?.Correo ?? "Sin usuario")</td>
-                                    <td>
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                            @(item.Estado ? "Activo" : "Inactivo")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <!-- AQUÍ ESTÁ EL CAMBIO: Botones de Detalles, Editar y Baja que navegan a las vistas correctas -->
-                                        <div class="d-flex gap-1 justify-content-start">
-                                            <a asp-action="Details" asp-route-id="@item.IdEmpleado" class="btn btn-sm btn-outline-info py-0 px-2" title="Ver detalles">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-
-                                            <a asp-action="Edit" asp-route-id="@item.IdEmpleado" class="btn btn-sm btn-outline-primary py-0 px-2" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-
-                                            <a asp-action="Delete" asp-route-id="@item.IdEmpleado" class="btn btn-sm btn-outline-danger py-0 px-2" title="Dar de baja">
-                                                <i class="bi bi-trash"></i> Baja
-                                            </a>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3" style="width: 60px; height: 60px;">
+                                            <i class="bi bi-people fs-2 opacity-50"></i>
                                         </div>
+                                        <h6 class="fw-bold text-dark">Sin empleados registrados</h6>
+                                        <p class="small mb-0">No se encontraron registros en el sistema.</p>
                                     </td>
                                 </tr>
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">
-                                    <i class="bi bi-person-x fs-4 d-block mb-2"></i>
-                                    No hay empleados registrados actualmente.
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Panel Lateral de Asignaciones -->
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold text-dark mb-0">Asignaciones Activas</h6>
-                <a asp-action="Asignar" class="btn btn-sm btn-outline-primary py-0">Nueva</a>
-            </div>
+        <!-- Panel Lateral de Asignaciones -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="vitalia-bg-subtle rounded-3 vitalia-text-main d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                            <i class="bi bi-clipboard2-pulse fs-5"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0">Asignaciones Activas</h6>
+                    </div>
+                    <a asp-action="Asignar" class="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-semibold shadow-sm hover-elevate vitalia-bg-main" style="font-size: 0.8rem;">
+                        <i class="bi bi-plus-lg me-1"></i> Nueva
+                    </a>
+                </div>
 
-            @if (asignaciones != null && asignaciones.Any())
-            {
-                <div class="list-group list-group-flush">
-                    @foreach (var asig in asignaciones)
-                    {
-                        <div class="list-group-item px-0 py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                                    <i class="bi bi-person-hearts"></i>
+                @if (asignaciones != null && asignaciones.Any())
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var asig in asignaciones)
+                        {
+                            <div class="p-3 rounded-3 bg-white border border-light-subtle hover-elevate asig-card">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 vitalia-bg-subtle vitalia-text-main fw-bold" style="width: 42px; height: 42px;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark fs-6 lh-sm mb-1">
+                                            @asig.IdEmpleadoNavigation?.Nombre
+                                        </div>
+                                        <div class="text-muted small" style="font-size: 0.82rem;">
+                                            Cuida a: <strong class="text-dark bg-light px-2 py-1 rounded-pill border">@asig.IdResidenteNavigation?.Nombre</strong>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="fw-bold text-dark small">@asig.IdEmpleadoNavigation?.Nombre cuida a @asig.IdResidenteNavigation?.Nombre</div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Desde: @asig.FechaInicio.ToString("dd/MM/yyyy")</small>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top border-light-subtle">
+                                    <span class="text-muted fw-medium" style="font-size: 0.75rem;">
+                                        <i class="bi bi-calendar3 me-2 opacity-50"></i>@asig.FechaInicio.ToString("dd/MM/yyyy")
+                                    </span>
+
+                                    <!-- Formulario con Modal de Confirmación VITALIA -->
+                                    <form id="form-finalizar-@asig.IdAsignacion" asp-action="FinalizarAsignacion" asp-route-id="@asig.IdAsignacion" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="button" class="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-semibold d-flex align-items-center"
+                                                onclick="confirmarFinalizacion('form-finalizar-@asig.IdAsignacion', '@asig.IdEmpleadoNavigation?.Nombre', '@asig.IdResidenteNavigation?.Nombre')">
+                                            Finalizar <i class="bi bi-arrow-right-short fs-5 lh-1"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                            <form asp-action="FinalizarAsignacion" asp-route-id="@asig.IdAsignacion" method="post" class="mt-2 text-end">
-                                <button type="submit" class="btn btn-sm btn-light text-danger" style="font-size: 0.75rem;">Finalizar tarea</button>
-                            </form>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="small text-muted mb-0 bg-light p-3 rounded-3 border text-center">
-                    No hay asignaciones de cuidado activas en este momento.
-                </p>
-            }
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="p-4 rounded-4 bg-light border border-light-subtle text-center h-100 d-flex flex-column justify-content-center align-items-center">
+                        <i class="bi bi-journal-x fs-1 text-muted opacity-25 mb-3"></i>
+                        <h6 class="fw-bold text-dark">Sin asignaciones</h6>
+                        <p class="text-muted small mb-0">No hay vinculaciones activas en este momento.</p>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
+
+<!-- MODAL DE CONFIRMACIÓN DE VITALIA -->
+<div class="modal fade" id="modalConfirmarFinalizacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 rounded-4 shadow overflow-hidden">
+            <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-danger shadow-sm mb-2" style="width: 48px; height: 48px;">
+                    <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-1">Finalizar Asignación</h5>
+                <p class="text-white-50 small mb-0">¿Está seguro de completar esta acción?</p>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="text-secondary mb-3" style="font-size: 0.95rem;">
+                    Se dará por terminada la vinculación de cuidado entre <strong id="modalNombreEmpleado" class="text-dark"></strong> y el residente <strong id="modalNombreResidente" class="text-dark"></strong>.
+                </p>
+                <div class="d-flex gap-2 pt-2">
+                    <button type="button" class="btn btn-light rounded-3 py-2 fw-semibold text-secondary flex-grow-1" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="button" id="btnConfirmarAccion" class="btn btn-danger rounded-3 py-2 fw-bold shadow-sm flex-grow-1 d-flex align-items-center justify-content-center gap-2" style="background-color: #dc3545;">
+                        <i class="bi bi-check-circle-fill"></i> Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let formAEnviar = null;
+
+        function confirmarFinalizacion(formId, nombreEmpleado, nombreResidente) {
+            formAEnviar = document.getElementById(formId);
+            document.getElementById('modalNombreEmpleado').textContent = nombreEmpleado;
+            document.getElementById('modalNombreResidente').textContent = nombreResidente;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalConfirmarFinalizacion'));
+            modal.show();
+        }
+
+        document.getElementById('btnConfirmarAccion').addEventListener('click', function () {
+            if (formAEnviar) {
+                formAEnviar.submit();
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputBuscar = document.getElementById("inputBuscarEmpleado");
+            const selectEstado = document.getElementById("selectFiltroEstado");
+            const filas = document.querySelectorAll(".fila-empleado");
+
+            function filtrarTabla() {
+                if (!inputBuscar || !selectEstado) return;
+
+                const textoBusqueda = inputBuscar.value.toLowerCase().trim();
+                const filtroEstado = selectEstado.value;
+
+                filas.forEach(fila => {
+                    const nombre = (fila.querySelector(".nombre-empleado")?.textContent || "").toLowerCase().trim();
+                    const cargo = (fila.querySelector(".texto-filtrable")?.textContent || "").toLowerCase().trim();
+                    const estadoFila = fila.getAttribute("data-estado") || "";
+
+                    const coincideTexto = nombre.includes(textoBusqueda) || cargo.includes(textoBusqueda);
+                    const coincideEstado = (filtroEstado === "todos") || (estadoFila === filtroEstado);
+
+                    if (coincideTexto && coincideEstado) {
+                        fila.style.display = "";
+                    } else {
+                        fila.style.display = "none";
+                    }
+                });
+            }
+
+            if (inputBuscar) {
+                inputBuscar.addEventListener("keyup", filtrarTabla);
+                inputBuscar.addEventListener("input", filtrarTabla);
+            }
+            if (selectEstado) {
+                selectEstado.addEventListener("change", filtrarTabla);
+            }
+
+            filtrarTabla();
+        });
+    </script>
+}

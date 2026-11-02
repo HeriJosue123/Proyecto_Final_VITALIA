@@ -2,43 +2,52 @@
 
 @{
     ViewData["Title"] = "Nueva Alerta";
-}
+}<div class="animate-fade-up py-4 d-flex justify-content-center">
+    <div style="width: 100%; max-width: 680px;" class="px-3">
 
-<div class="d-flex justify-content-center py-2">
-    <div style="width: 100%; max-width: 720px;">
-        
-        <!-- Banner Superior de Encabezado -->
-        <div class="vitalia-banner d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 p-3 rounded-4" style="background-color: #0b5e58; color: white;">
-            <div class="d-flex align-items-center gap-3">
-                <div class="rounded-3 p-2 bg-white bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="bi bi-bell-fill fs-4 text-white"></i>
+        <!-- Tarjeta Principal con Encabezado Verde Integrado -->
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+            
+            <!-- Encabezado Estilo Bloque Verde (De borde a borde) -->
+            <div class="p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-dark shadow-sm" style="width: 44px; height: 44px; color: #14828a !important;">
+                        <i class="bi bi-bell-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">Nueva Alerta</h4>
+                        <p class="text-white-50 small mb-0">Se crea en estado <strong>Pendiente</strong> y registra fecha, hora y usuario.</p>
+                    </div>
                 </div>
                 <div>
-                    <h3 class="fw-bold mb-0 text-white">Nueva Alerta</h3>
-                    <p class="mb-0 small text-white-50">Se crea en estado Pendiente y se registra la fecha, hora y usuario.</p>
+                    <a asp-action="Index" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-1.5 fw-semibold shadow-sm text-decoration-none">
+                        ← Volver a la lista
+                    </a>
                 </div>
             </div>
-            <div>
-                <a asp-action="Index" class="btn btn-light text-dark fw-semibold rounded-3 px-3 py-2 text-nowrap" style="font-size: 0.85rem;">
-                    ← Volver a la lista
-                </a>
+
+            <!-- Cuerpo del Formulario -->
+            <div class="card-body p-4 p-md-5">
+                
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-4 small" role="alert"></div>
+
+                    <!-- Campos parciales del formulario -->
+                    <partial name="_AlertaFormCampos" model="Model" />
+
+                    <!-- BOTONES DE ACCIÓN BALANCEADOS -->
+                    <div class="d-flex gap-2 pt-3 border-top mt-4">
+                        <a asp-action="Index" class="btn btn-light rounded-3 py-2.5 px-4 fw-semibold text-secondary flex-grow-1 text-center">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn text-white fw-bold rounded-3 py-2.5 px-4 shadow-sm flex-grow-1 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); transition: all 0.2s ease;">
+                            <i class="bi bi-check-circle-fill"></i> Guardar Alerta
+                        </button>
+                    </div>
+                </form>
+
             </div>
-        </div>
-
-        <!-- Tarjeta Principal del Formulario -->
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-            <form asp-action="Create" method="post">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 small" role="alert"></div>
-
-                <partial name="_AlertaFormCampos" model="Model" />
-
-                <!-- BOTÓN GUARDAR ALERTA -->
-                <div class="mt-4">
-                    <button type="submit" class="btn w-100 py-2 fw-semibold text-white rounded-3 d-flex align-items-center justify-content-center gap-2" style="background-color: #0e857c; font-size: 1rem;">
-                        <i class="bi bi-box-arrow-in-down fs-5"></i> Guardar Alerta
-                    </button>
-                </div>
-            </form>
         </div>
 
     </div>

@@ -1,65 +1,98 @@
 ﻿@model VITALIA.Models.Empleado
+
 @{
     ViewData["Title"] = "Detalles del Empleado";
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-8 col-xl-7">
+<div class="animate-fade-up py-4 d-flex justify-content-center">
+    <div style="width: 100%; max-width: 680px;" class="px-3">
 
-        <div class="vitalia-banner mb-4">
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+        <!-- Tarjeta Principal -->
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+            
+            <!-- Encabezado Estilo Bloque Verde -->
+            <div class="p-4 text-white d-flex justify-content-between align-items-start" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="d-flex align-items-center justify-content-center rounded-3 bg-white bg-opacity-25" style="width: 48px; height: 48px;">
-                        <i class="bi bi-person-vcard fs-4"></i>
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-dark shadow-sm flex-shrink-0" style="width: 44px; height: 44px; color: #14828a !important;">
+                        <i class="bi bi-person-vcard fs-5"></i>
                     </div>
                     <div>
-                        <h3 class="fw-bold mb-1">Detalles del Empleado</h3>
-                        <p class="mb-0 opacity-75">Información completa del miembro del personal</p>
+                        <h4 class="fw-bold mb-1">Detalles del Empleado</h4>
+                        <p class="text-white-50 small mb-0">Información completa del miembro del personal</p>
                     </div>
                 </div>
-                <a asp-action="Index" class="btn text-nowrap">
+                <a asp-action="Index" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-2 fw-semibold shadow-sm text-decoration-none text-nowrap ms-3">
                     ← Volver a la lista
                 </a>
             </div>
-        </div>
 
-        <div class="card border-0 shadow-sm rounded-4 p-4">
-            <h5 class="fw-bold mb-4 border-bottom pb-2">Datos Personales y de Sistema</h5>
-
-            <dl class="row mb-0">
-                <dt class="col-sm-4 text-muted fw-semibold mb-2">Nombre completo</dt>
-                <dd class="col-sm-8 mb-3 fw-bold">@Model.Nombre @Model.Apellido</dd>
-
-                <dt class="col-sm-4 text-muted fw-semibold mb-2">Cargo</dt>
-                <dd class="col-sm-8 mb-3">
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
-                        @Model.Cargo
+            <!-- Cuerpo de la Tarjeta -->
+            <div class="card-body p-4 p-md-5">
+                
+                <!-- Perfil Cabecera -->
+                <div class="text-center mb-4 pb-4 border-bottom">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary mb-3 shadow-sm border border-light-subtle" style="width: 80px; height: 80px;">
+                        <i class="bi bi-person-fill" style="font-size: 2.5rem; color: #cbd5e1;"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">@Model.Nombre @Model.Apellido</h3>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-4 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
+                        <i class="bi bi-briefcase-fill me-1"></i> @Model.Cargo
                     </span>
-                </dd>
+                </div>
 
-                <dt class="col-sm-4 text-muted fw-semibold mb-2">Usuario Vinculado</dt>
-                <dd class="col-sm-8 mb-3">
-                    @(Model.IdUsuarioNavigation?.Correo ?? "Sin usuario vinculado al sistema")
-                </dd>
+                <!-- Grilla de Información -->
+                <div class="row g-3 mb-4">
+                    <!-- Usuario Vinculado -->
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 bg-light border border-light-subtle h-100 d-flex flex-column justify-content-center text-center">
+                            <span class="text-uppercase fw-bold text-muted d-block mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-envelope-at me-1" style="color: #14828a;"></i> USUARIO VINCULADO
+                            </span>
+                            <span class="fw-bold text-dark fs-6 d-block text-truncate" title="@(Model.IdUsuarioNavigation?.Correo ?? "Sin usuario vinculado al sistema")">
+                                @(Model.IdUsuarioNavigation?.Correo ?? "Sin usuario vinculado")
+                            </span>
+                        </div>
+                    </div>
 
-                <dt class="col-sm-4 text-muted fw-semibold mb-2">Estado</dt>
-                <dd class="col-sm-8 mb-3">
-                    @if (Model.Estado)
-                    {
-                        <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i> Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle me-1"></i> Inactivo</span>
-                    }
-                </dd>
-            </dl>
+                    <!-- Estado -->
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 bg-light border border-light-subtle h-100 d-flex flex-column justify-content-center text-center align-items-center">
+                            <span class="text-uppercase fw-bold text-muted d-block mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-shield-check me-1" style="color: #14828a;"></i> ESTADO
+                            </span>
+                            <div>
+                                @if (Model.Estado)
+                                {
+                                    <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle fw-semibold px-3 py-1 rounded-pill" style="font-size: 0.85rem;">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Activo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle fw-semibold px-3 py-1 rounded-pill" style="font-size: 0.85rem;">
+                                        <i class="bi bi-dash-circle-fill me-1"></i> Inactivo
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                <a asp-action="Edit" asp-route-id="@Model.IdEmpleado" class="btn btn-vitalia">
-                    <i class="bi bi-pencil-square me-1"></i> Editar Empleado
-                </a>
+                <!-- Botón de Acción -->
+                <div class="pt-2 mt-4 border-top">
+                    <a asp-action="Edit" asp-route-id="@Model.IdEmpleado" class="btn text-white fw-bold rounded-3 py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); transition: all 0.2s ease;">
+                        <i class="bi bi-pencil-square"></i> Editar Empleado
+                    </a>
+                </div>
+
             </div>
         </div>
+
     </div>
 </div>
+
+<style>
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+</style>

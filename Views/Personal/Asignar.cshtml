@@ -2,56 +2,81 @@
     ViewData["Title"] = "Asignar Personal a Residente";
 }
 
-<div class="vitalia-banner d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold mb-1">Asignar Personal a Residente</h3>
-        <p class="text-muted mb-0">Vincula un empleado con un residente para el cuidado</p>
-    </div>
-    <a asp-action="Index" class="btn btn-outline-secondary">
-        ← Volver a la lista
-    </a>
-</div>
+<!-- Contenedor ajustado con margen y padding superior para posicionar la tarjeta más abajo -->
+<div class="animate-fade-up mt-5 pt-4 pb-5 d-flex justify-content-center">
+    <div style="width: 100%; max-width: 680px;" class="px-3">
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm rounded-4 p-4">
-            <form asp-action="Asignar" method="post">
-                @Html.AntiForgeryToken()
+        <!-- Tarjeta Principal con Encabezado Verde Integrado -->
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+            
+            <!-- Encabezado Estilo Bloque Verde (De borde a borde) -->
+            <div class="p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-dark shadow-sm flex-shrink-0" style="width: 44px; height: 44px; color: #14828a !important;">
+                        <i class="bi bi-diagram-3 fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">Asignar Personal a Residente</h4>
+                        <p class="text-white-50 small mb-0">Vincula un empleado con un residente para el cuidado</p>
+                    </div>
+                </div>
+                <div>
+                    <a asp-action="Index" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-1.5 fw-semibold shadow-sm text-decoration-none">
+                        ← Volver a la lista
+                    </a>
+                </div>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Empleado</label>
-                    <select name="IdEmpleado" class="form-select" required>
-                        <option value="">-- Seleccione un empleado --</option>
-                        @if (ViewData["IdEmpleado"] is SelectList empleados)
-                        {
-                            foreach (var item in empleados)
+            <!-- Cuerpo del Formulario -->
+            <div class="card-body p-4">
+                
+                <form asp-action="Asignar" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- CAMPO: EMPLEADO -->
+                    <div class="mb-3">
+                        <label class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-person me-1" style="color: #14828a;"></i> EMPLEADO
+                        </label>
+                        <select name="IdEmpleado" class="form-select form-select-lg rounded-3 fs-6 shadow-none" required style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;">
+                            <option value="">-- Seleccione un empleado --</option>
+                            @if (ViewData["IdEmpleado"] is SelectList empleados)
                             {
-                                <option value="@item.Value">@item.Text</option>
+                                foreach (var item in empleados)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             }
-                        }
-                    </select>
-                </div>
+                        </select>
+                    </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Residente</label>
-                    <select name="IdResidente" class="form-select" required>
-                        <option value="">-- Seleccione un residente --</option>
-                        @if (ViewData["IdResidente"] is SelectList residentes)
-                        {
-                            foreach (var item in residentes)
+                    <!-- CAMPO: RESIDENTE -->
+                    <div class="mb-3">
+                        <label class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-person-heart me-1" style="color: #14828a;"></i> RESIDENTE
+                        </label>
+                        <select name="IdResidente" class="form-select form-select-lg rounded-3 fs-6 shadow-none" required style="border-color: #cbd5e1; padding: 0.6rem 0.8rem;">
+                            <option value="">-- Seleccione un residente --</option>
+                            @if (ViewData["IdResidente"] is SelectList residentes)
                             {
-                                <option value="@item.Value">@item.Text</option>
+                                foreach (var item in residentes)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             }
-                        }
-                    </select>
-                </div>
+                        </select>
+                    </div>
 
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-vitalia">
-                        <i class="bi bi-link-45deg me-1"></i> Crear Asignación
-                    </button>
-                </div>
-            </form>
+                    <!-- BOTÓN DE GUARDAR CAMBIOS -->
+                    <div class="pt-2 mt-3">
+                        <button type="submit" class="btn text-white fw-bold rounded-3 py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); transition: all 0.2s ease;">
+                            <i class="bi bi-link-45deg fs-5"></i> Crear Asignación
+                        </button>
+                    </div>
+                </form>
+
+            </div>
         </div>
+
     </div>
 </div>

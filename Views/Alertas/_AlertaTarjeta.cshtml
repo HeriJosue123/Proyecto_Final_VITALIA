@@ -1,82 +1,111 @@
 @model VITALIA.Models.ViewModels.AlertaTarjetaViewModel
 
 @{
-    var claseBadge = Model.Prioridad switch
+    var (claseBorde, badgePrioridad) = Model.Prioridad switch
     {
-        "Urgente" => "bg-danger-subtle text-danger-emphasis",
-        "Programada" => "bg-warning-subtle text-warning-emphasis",
-        _ => "bg-info-subtle text-info-emphasis"
+        "Urgente" => ("border-danger", "bg-danger-subtle text-danger border border-danger-subtle"),
+        "Programada" => ("border-warning", "bg-warning-subtle text-warning-emphasis border border-warning-subtle"),
+        _ => ("border-info", "bg-info-subtle text-info-emphasis border border-info-subtle")
     };
 }
 
-<div class="card alerta-card prio-@Model.Prioridad.ToLowerInvariant() shadow-sm mb-3">
-    <div class="card-body p-3">
-        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-            <h6 class="fw-bold mb-0">@Model.Titulo</h6>
-            <span class="badge rounded-pill @claseBadge flex-shrink-0">@Model.Prioridad</span>
+<div class="card border-0 border-start border-4 @claseBorde rounded-4 shadow-sm mb-3 bg-white vitalia-card-pro" style="transition: all 0.2s ease-in-out;">
+    <div class="card-body p-3.5">
+
+        <!-- Encabezado de Tarjeta -->
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+            <h6 class="fw-bold text-dark mb-0 fs-6 lh-sm">@Model.Titulo</h6>
+            <span class="badge rounded-pill @badgePrioridad px-2.5 py-1 flex-shrink-0" style="font-size: 0.73rem;">
+                @Model.Prioridad
+            </span>
         </div>
 
-        <p class="small text-secondary mb-2">@Model.Descripcion</p>
+        <!-- Descripción -->
+        @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+        {
+            <p class="small text-muted mb-3 lh-base" style="font-size: 0.85rem;">
+                @Model.Descripcion
+            </p>
+        }
 
-        <div class="small text-muted d-flex flex-column gap-1">
-            <span><i class="bi bi-person-fill me-1"></i>@Model.Residente <span class="text-body-tertiary">(@Model.CodigoResidente)</span></span>
-            <span><i class="bi bi-person-badge me-1"></i>Responsable: @(Model.Responsable ?? "Sin asignar")</span>
-            <span><i class="bi bi-clock me-1"></i>Programada: @Model.FechaProgramada.ToString("dd/MM/yyyy HH:mm")</span>
-            <span><i class="bi bi-pencil-square me-1"></i>Creada por: @Model.CreadaPor</span>
+        <!-- Lista Limpia de Metadatos (Sin fondo pesado) -->
+        <div class="small mb-3 d-flex flex-column gap-2" style="font-size: 0.82rem;">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-person-circle fs-6" style="color: #14828a;"></i>
+                <span class="text-secondary">Residente: <strong class="text-dark">@Model.Residente</strong> <span class="text-muted small">(@Model.CodigoResidente)</span></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-person-badge fs-6" style="color: #14828a;"></i>
+                <span class="text-secondary">Responsable: <span class="text-dark fw-semibold">@(Model.Responsable ?? "Sin asignar")</span></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-calendar-event fs-6" style="color: #14828a;"></i>
+                <span class="text-secondary">Programada: <span class="text-dark fw-semibold">@Model.FechaProgramada.ToString("dd/MM/yyyy HH:mm")</span></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-person-gear fs-6" style="color: #14828a;"></i>
+                <span class="text-secondary">Creada por: <span class="text-dark fw-semibold">@Model.CreadaPor</span></span>
+            </div>
         </div>
 
+        <!-- Accion Principal de Estado -->
         @if (Model.Estado == "Pendiente")
         {
-            <form asp-controller="Alertas" asp-action="CambiarEstado" method="post" class="mt-3">
+            <form asp-controller="Alertas" asp-action="CambiarEstado" method="post" class="mb-3">
                 <input type="hidden" name="id" value="@Model.IdAlerta" />
                 <input type="hidden" name="estadoEsperado" value="@Model.Estado" />
-                <button type="submit" class="btn btn-sm btn-vitalia">Iniciar → En Proceso</button>
+                <button type="submit" class="btn w-100 text-white fw-bold rounded-3 py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm border-0" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); font-size: 0.85rem;">
+                    <span>Iniciar → En Proceso</span>
+                </button>
             </form>
         }
         else if (Model.Estado == "En Proceso")
         {
-            <form asp-controller="Alertas" asp-action="CambiarEstado" method="post" class="mt-3">
+            <form asp-controller="Alertas" asp-action="CambiarEstado" method="post" class="mb-3">
                 <input type="hidden" name="id" value="@Model.IdAlerta" />
                 <input type="hidden" name="estadoEsperado" value="@Model.Estado" />
-                <button type="submit" class="btn btn-sm btn-success fw-semibold">
-                    <i class="bi bi-check2-circle me-1"></i>Marcar Atendida
+                <button type="submit" class="btn btn-success w-100 fw-bold rounded-3 py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm border-0" style="font-size: 0.85rem;">
+                    <i class="bi bi-check2-circle fs-6"></i> Marcar Atendida
                 </button>
             </form>
         }
         else
         {
-            <div class="mt-3 small">
-                <span class="badge bg-success-subtle text-success-emphasis me-1">Cerrada</span>
-                @if (Model.FechaCierre.HasValue)
-                {
-                    <span class="text-muted">
-                        Atendida el @Model.FechaCierre.Value.ToString("dd/MM/yyyy HH:mm")
-                        por @(Model.CerradaPor ?? "—")
-                    </span>
-                }
+            <div class="mb-3 p-2.5 rounded-3 bg-success-subtle text-success-emphasis border border-success-subtle small d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill fs-6"></i>
+                <div style="font-size: 0.78rem;">
+                    <strong>Cerrada:</strong> Atendida el @(Model.FechaCierre?.ToString("dd/MM/yyyy HH:mm") ?? "—") por @(Model.CerradaPor ?? "—")
+                </div>
             </div>
         }
 
-        <!-- Acciones CRUD -->
-        <div class="d-flex gap-2 mt-3 pt-2 border-top">
-            <a asp-controller="Alertas" asp-action="Details" asp-route-id="@Model.IdAlerta"
-               class="btn btn-sm btn-outline-secondary flex-fill">
-                <i class="bi bi-eye me-1"></i>Ver
-            </a>
+        <!-- Botonera CRUD Limpia y Balanceada -->
+        <div class="row g-1.5 pt-2 border-top">
+            <div class="col-4">
+                <a asp-controller="Alertas" asp-action="Details" asp-route-id="@Model.IdAlerta"
+                   class="btn btn-sm btn-light border text-dark rounded-3 w-100 py-1.5 d-flex align-items-center justify-content-center gap-1 fw-semibold" style="font-size: 0.78rem;">
+                    <i class="bi bi-eye text-muted"></i> Ver
+                </a>
+            </div>
             @if (Model.Estado != "Atendida")
             {
-                <a asp-controller="Alertas" asp-action="Edit" asp-route-id="@Model.IdAlerta"
-                   class="btn btn-sm btn-outline-vitalia flex-fill">
-                    <i class="bi bi-pencil-square me-1"></i>Editar
-                </a>
+                <div class="col-4">
+                    <a asp-controller="Alertas" asp-action="Edit" asp-route-id="@Model.IdAlerta"
+                       class="btn btn-sm btn-light border rounded-3 w-100 py-1.5 d-flex align-items-center justify-content-center gap-1 fw-semibold" style="font-size: 0.78rem; color: #14828a;">
+                        <i class="bi bi-pencil-square"></i> Editar
+                    </a>
+                </div>
             }
             @if (Model.Estado == "Pendiente")
             {
-                <a asp-controller="Alertas" asp-action="Delete" asp-route-id="@Model.IdAlerta"
-                   class="btn btn-sm btn-outline-danger flex-fill">
-                    <i class="bi bi-trash me-1"></i>Eliminar
-                </a>
+                <div class="col-4">
+                    <a asp-controller="Alertas" asp-action="Delete" asp-route-id="@Model.IdAlerta"
+                       class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-3 w-100 py-1.5 d-flex align-items-center justify-content-center gap-1 fw-semibold" style="font-size: 0.78rem;">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                </div>
             }
         </div>
+
     </div>
 </div>
