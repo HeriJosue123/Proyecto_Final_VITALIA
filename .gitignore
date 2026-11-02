@@ -480,3 +480,10 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Carpeta privada de respaldos
+Storage/Respaldos/*.bak
+Storage/
+
+# Ejecutable binario de Rotativa (PDF)
+wwwroot/Rotativa/wkhtmltopdf.exe

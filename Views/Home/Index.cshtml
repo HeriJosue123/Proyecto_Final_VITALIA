@@ -4,19 +4,81 @@
     int totalPersonal = ViewBag.TotalPersonal ?? 0;
     int atencionesHoy = ViewBag.AtencionesHoy ?? 0;
     int alertasPendientes = ViewBag.AlertasPendientes ?? 0;
+    int totalMedicamentos = ViewBag.TotalMedicamentos ?? 0;
+    bool esAdmin = User.IsInRole(RolesSistema.Administrador);
 }
 
 <style>
+    /* Bloquea de raíz cualquier desbordamiento horizontal en esta página */
+    body, .vitalia-content {
+        overflow-x: hidden !important;
+    }
+
     .dashboard-banner {
         background: linear-gradient(135deg, #0d3c3d 0%, #118a8b 100%);
         color: white;
         border-radius: 1rem;
     }
 
+    /* Contenedor exterior estricto: no permite que NADA salga fuera del ancho */
+    .kpi-carousel-outer {
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        padding: 0 45px; /* Espacio exacto reservado para las flechas dentro del marco */
+        box-sizing: border-box;
+    }
+
+    /* Pista interna deslizable */
+    .kpi-scroll-track {
+        display: flex;
+        gap: 0.75rem;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE / Edge */
+        padding: 0.4rem 0.1rem;
+        cursor: grab;
+        user-select: none;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .kpi-scroll-track:active {
+        cursor: grabbing;
+    }
+
+    .kpi-scroll-track::-webkit-scrollbar {
+        display: none; /* Chrome / Safari / Edge */
+    }
+
+    /* Tarjetas cuadradas y compactas (4 exactas encajadas en pantalla) */
+    .kpi-card-item {
+        flex: 0 0 calc((100% - 2.25rem) / 4);
+        min-width: 200px;
+        box-sizing: border-box;
+    }
+
+    @@media (max-width: 1100px) {
+        .kpi-card-item { flex: 0 0 calc((100% - 1.5rem) / 3); }
+    }
+
+    @@media (max-width: 768px) {
+        .kpi-card-item { flex: 0 0 calc((100% - 0.75rem) / 2); }
+    }
+
+    @@media (max-width: 500px) {
+        .kpi-card-item { flex: 0 0 100%; }
+    }
+
+    /* Estilo de tarjetas KPI original */
     .kpi-card {
         border: none;
         border-radius: 1rem;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+        background-color: #ffffff;
     }
 
     .kpi-card:hover {
@@ -25,13 +87,50 @@
     }
 
     .kpi-icon-box {
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
+        font-size: 1.3rem;
+    }
+
+    /* Flechas situadas 100% adentro en los extremos del padding sin tocar las tarjetas */
+    .btn-kpi-extreme {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid #cbd5e1;
+        background-color: #ffffff;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(9, 52, 55, 0.12);
+        z-index: 20;
+    }
+
+    .btn-kpi-extreme:hover {
+        background: linear-gradient(135deg, #118a8b 0%, #0d3c3d 100%);
+        color: #ffffff;
+        border-color: #118a8b;
+        transform: translateY(-50%) scale(1.08);
+        box-shadow: 0 6px 14px rgba(17, 138, 139, 0.3);
+    }
+
+    .btn-kpi-prev-extreme {
+        left: 2px;
+    }
+
+    .btn-kpi-next-extreme {
+        right: 2px;
     }
 
     .module-card {
@@ -81,93 +180,160 @@
     </div>
 </div>
 
-<!-- Tarjetas KPI (Métricas Rápidas) -->
-<div class="row g-3 mb-4">
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card kpi-card shadow-sm p-3 bg-white">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Residentes Activos</span>
-                    <h3 class="fw-bold mb-0 text-dark">@totalResidentes</h3>
-                </div>
-                <div class="kpi-icon-box bg-primary-subtle text-primary">
-                    <i class="bi bi-people-fill"></i>
-                </div>
-            </div>
-            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
-                <small class="text-muted" style="font-size: 0.75rem;">Expedientes registrados</small>
-                <a asp-controller="Residentes" asp-action="Index" class="text-decoration-none small fw-bold text-primary">Ver todos →</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card kpi-card shadow-sm p-3 bg-white">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Personal Activo</span>
-                    <h3 class="fw-bold mb-0 text-dark">@totalPersonal</h3>
-                </div>
-                <div class="kpi-icon-box bg-info-subtle text-info-emphasis">
-                    <i class="bi bi-person-vcard-fill"></i>
-                </div>
-            </div>
-            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
-                <small class="text-muted" style="font-size: 0.75rem;">Cuidadores y médicos</small>
-                @* Solo el Administrador puede entrar a Personal *@
-                @if (User.IsInRole(RolesSistema.Administrador))
-                {
-                    <a asp-controller="Personal" asp-action="Index" class="text-decoration-none small fw-bold text-info-emphasis">Ver equipo →</a>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card kpi-card shadow-sm p-3 bg-white">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Atenciones Hoy</span>
-                    <h3 class="fw-bold mb-0 text-dark">@atencionesHoy</h3>
-                </div>
-                <div class="kpi-icon-box bg-success-subtle text-success">
-                    <i class="bi bi-journal-check"></i>
-                </div>
-            </div>
-            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
-                <small class="text-muted" style="font-size: 0.75rem;">Registros de bitácora</small>
-                <a asp-controller="Bitacora" asp-action="Index" class="text-decoration-none small fw-bold text-success">Ver bitácora →</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card kpi-card shadow-sm p-3 bg-white">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Alertas Activas</span>
-                    <h3 class="fw-bold mb-0 @(alertasPendientes > 0 ? "text-danger" : "text-dark")">@alertasPendientes</h3>
-                </div>
-                <div class="kpi-icon-box @(alertasPendientes > 0 ? "bg-danger-subtle text-danger" : "bg-light text-muted")">
-                    <i class="bi bi-bell-fill"></i>
-                </div>
-            </div>
-            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
-                <small class="text-muted" style="font-size: 0.75rem;">Requieren atención</small>
-                <a asp-controller="Alertas" asp-action="Index" class="text-decoration-none small fw-bold text-danger">Ver alertas →</a>
-            </div>
-        </div>
-    </div>
+<!-- TÍTULO RESUMEN GENERAL -->
+<div class="mb-2 px-1">
+    <span class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.6px;">
+        <i class="bi bi-speedometer2 me-1" style="color: #118a8b;"></i> RESUMEN GENERAL DEL SISTEMA
+    </span>
 </div>
 
-<!-- Módulos de Acceso Rápido -->
+<!-- CONTENEDOR TOTALMENTE FIJO SIN SCROLLBAR EN EL NAVEGADOR -->
+<div class="kpi-carousel-outer mb-4">
+    
+    <!-- Botón Izquierdo -->
+    <button type="button" id="kpiPrevBtn" class="btn-kpi-extreme btn-kpi-prev-extreme" title="Anterior">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <!-- Pista de Tarjetas Deslizable -->
+    <div class="kpi-scroll-track" id="kpiScrollTrack">
+        
+        <!-- 1. Residentes -->
+        <div class="kpi-card-item">
+            <div class="card kpi-card shadow-sm p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Residentes Activos</span>
+                        <h3 class="fw-bold mb-0 text-dark">@totalResidentes</h3>
+                    </div>
+                    <div class="kpi-icon-box bg-primary-subtle text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.75rem;">Expedientes registrados</small>
+                    <a asp-controller="Residentes" asp-action="Index" class="text-decoration-none small fw-bold text-primary">Ver todos →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Personal -->
+        <div class="kpi-card-item">
+            <div class="card kpi-card shadow-sm p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Personal Activo</span>
+                        <h3 class="fw-bold mb-0 text-dark">@totalPersonal</h3>
+                    </div>
+                    <div class="kpi-icon-box bg-info-subtle text-info-emphasis">
+                        <i class="bi bi-person-vcard-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.75rem;">Cuidadores y médicos</small>
+                    @if (esAdmin)
+                    {
+                        <a asp-controller="Personal" asp-action="Index" class="text-decoration-none small fw-bold text-info-emphasis">Ver equipo →</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Atenciones -->
+        <div class="kpi-card-item">
+            <div class="card kpi-card shadow-sm p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Atenciones Hoy</span>
+                        <h3 class="fw-bold mb-0 text-dark">@atencionesHoy</h3>
+                    </div>
+                    <div class="kpi-icon-box bg-success-subtle text-success">
+                        <i class="bi bi-journal-check"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.75rem;">Registros de bitácora</small>
+                    <a asp-controller="Bitacora" asp-action="Index" class="text-decoration-none small fw-bold text-success">Ver bitácora →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Alertas -->
+        <div class="kpi-card-item">
+            <div class="card kpi-card shadow-sm p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Alertas Activas</span>
+                        <h3 class="fw-bold mb-0 @(alertasPendientes > 0 ? "text-danger" : "text-dark")">@alertasPendientes</h3>
+                    </div>
+                    <div class="kpi-icon-box @(alertasPendientes > 0 ? "bg-danger-subtle text-danger" : "bg-light text-muted")">
+                        <i class="bi bi-bell-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.75rem;">Requieren atención</small>
+                    <a asp-controller="Alertas" asp-action="Index" class="text-decoration-none small fw-bold text-danger">Ver alertas →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Farmacia y Stock -->
+        <div class="kpi-card-item">
+            <div class="card kpi-card shadow-sm p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Stock Farmacia</span>
+                        <h3 class="fw-bold mb-0 text-dark">@totalMedicamentos</h3>
+                    </div>
+                    <div class="kpi-icon-box bg-warning-subtle text-warning-emphasis">
+                        <i class="bi bi-capsule"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.75rem;">Fármacos registrados</small>
+                    <a asp-controller="Farmacia" asp-action="Index" class="text-decoration-none small fw-bold text-warning-emphasis">Ver inventario →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Respaldos del Sistema -->
+        <div class="kpi-card-item">
+            <div class="card kpi-card shadow-sm p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Copias de Seguridad</span>
+                        <h3 class="fw-bold mb-0 text-success" style="font-size: 1.25rem;"><i class="bi bi-check-circle-fill"></i> Al Día</h3>
+                    </div>
+                    <div class="kpi-icon-box bg-secondary-subtle text-dark">
+                        <i class="bi bi-hdd-fill"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.75rem;">Base de Datos SQL</small>
+                    @if (esAdmin)
+                    {
+                        <a asp-controller="Respaldos" asp-action="Index" class="text-decoration-none small fw-bold text-dark">Gestionar →</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Botón Derecho -->
+    <button type="button" id="kpiNextBtn" class="btn-kpi-extreme btn-kpi-next-extreme" title="Siguiente">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+</div>
+
+<!-- MÓDULOS OPERATIVOS -->
 <div class="mb-3">
-    <h5 class="fw-bold text-dark mb-1">Módulos del Sistema</h5>
-    <p class="text-muted small mb-3">Acceso rápido a las herramientas operativas de Vitalia</p>
+    <h5 class="fw-bold text-dark mb-1">Módulos Operativos</h5>
+    <p class="text-muted small mb-3">Herramientas diarias para el cuidado y seguimiento de residentes</p>
 </div>
 
 <div class="row g-4 mb-4">
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-3">
         <div class="card module-card shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
             <div>
                 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -188,7 +354,7 @@
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-3">
         <div class="card module-card shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
             <div>
                 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -199,7 +365,7 @@
                 </div>
                 <h5 class="fw-bold text-dark mb-2">Bitácora de Atenciones</h5>
                 <p class="text-muted small mb-4">
-                    Registro cronológico inmutable de medicaciones, signos vitales, alimentación y actividades.
+                    Registro cronológico de medicaciones, signos vitales, alimentación y actividades diarias.
                 </p>
             </div>
             <a asp-controller="Bitacora" asp-action="Index" class="btn btn-vitalia-accent w-100 py-2 d-flex align-items-center justify-content-center gap-2">
@@ -209,7 +375,7 @@
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-3">
         <div class="card module-card shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
             <div>
                 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -229,4 +395,153 @@
             </a>
         </div>
     </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card module-card shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="kpi-icon-box bg-info-subtle text-info-emphasis">
+                        <i class="bi bi-capsule"></i>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Módulo Activo</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Farmacia y Stock</h5>
+                <p class="text-muted small mb-4">
+                    Control de inventario de medicamentos, lotes, insumos médicos y alertas de stock bajo.
+                </p>
+            </div>
+            <a asp-controller="Farmacia" asp-action="Index" class="btn btn-vitalia-accent w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                <span>Ingresar al Módulo</span>
+                <i class="bi bi-arrow-right-short fs-5"></i>
+            </a>
+        </div>
+    </div>
 </div>
+
+@if (esAdmin)
+{
+    <!-- MÓDULOS DE ADMINISTRACIÓN Y SISTEMA -->
+    <div class="mb-3 pt-2">
+        <h5 class="fw-bold text-dark mb-1">Administración del Sistema</h5>
+        <p class="text-muted small mb-3">Gestión de personal, seguridad de accesos y resguardo de la base de datos</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card module-card shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="kpi-icon-box bg-secondary-subtle text-secondary">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Administración</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Personal</h5>
+                    <p class="text-muted small mb-4">
+                        Gestión de empleados, médicos, cuidadores, turnos de trabajo e información laboral.
+                    </p>
+                </div>
+                <a asp-controller="Personal" asp-action="Index" class="btn btn-vitalia-accent w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                    <span>Ingresar al Módulo</span>
+                    <i class="bi bi-arrow-right-short fs-5"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card module-card shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="kpi-icon-box bg-dark-subtle text-dark">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Seguridad</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Usuarios y Roles</h5>
+                    <p class="text-muted small mb-4">
+                        Control de credenciales de acceso, políticas de contraseñas y asignación de permisos.
+                    </p>
+                </div>
+                <a asp-controller="Usuario" asp-action="Index" class="btn btn-vitalia-accent w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                    <span>Ingresar al Módulo</span>
+                    <i class="bi bi-arrow-right-short fs-5"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card module-card shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="kpi-icon-box bg-success-subtle text-success">
+                            <i class="bi bi-hdd-fill"></i>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Mantenimiento</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Respaldos</h5>
+                    <p class="text-muted small mb-4">
+                        Generación de copias de seguridad (.bak) de SQL Server y restauración del sistema.
+                    </p>
+                </div>
+                <a asp-controller="Respaldos" asp-action="Index" class="btn btn-vitalia-accent w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                    <span>Ingresar al Módulo</span>
+                    <i class="bi bi-arrow-right-short fs-5"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const track = document.getElementById('kpiScrollTrack');
+            const prevBtn = document.getElementById('kpiPrevBtn');
+            const nextBtn = document.getElementById('kpiNextBtn');
+
+            if (!track) return;
+
+            if (prevBtn && nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const card = track.querySelector('.kpi-card-item');
+                    const step = card ? card.offsetWidth + 12 : 230;
+                    track.scrollBy({ left: step, behavior: 'smooth' });
+                });
+
+                prevBtn.addEventListener('click', function () {
+                    const card = track.querySelector('.kpi-card-item');
+                    const step = card ? card.offsetWidth + 12 : 230;
+                    track.scrollBy({ left: -step, behavior: 'smooth' });
+                });
+            }
+
+            track.addEventListener('wheel', function (e) {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    track.scrollLeft += e.deltaY;
+                }
+            }, { passive: false });
+
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            track.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - track.offsetLeft;
+                scrollLeft = track.scrollLeft;
+            });
+
+            track.addEventListener('mouseleave', () => { isDown = false; });
+            track.addEventListener('mouseup', () => { isDown = false; });
+
+            track.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - track.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                track.scrollLeft = scrollLeft - walk;
+            });
+        });
+    </script>
+}

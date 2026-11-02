@@ -1,46 +1,55 @@
 ﻿@model VITALIA.Models.Empleado
+
 @{
     ViewData["Title"] = "Editar Empleado";
-    var usuarios = ViewData["IdUsuario"] as SelectList;
-    bool hayUsuarios = usuarios != null && usuarios.Any();
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-8 col-xl-7">
-        <div class="vitalia-banner mb-4">
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+<div class="animate-fade-up py-4 d-flex justify-content-center">
+    <div style="width: 100%; max-width: 680px;" class="px-3">
+
+        <!-- Tarjeta Principal con Encabezado Verde Integrado -->
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+
+            <!-- Encabezado Estilo Bloque Verde (De borde a borde) -->
+            <div class="p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="d-flex align-items-center justify-content-center rounded-3 bg-white bg-opacity-25" style="width: 48px; height: 48px;">
-                        <i class="bi bi-pencil-square fs-4"></i>
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-dark shadow-sm" style="width: 44px; height: 44px; color: #14828a !important;">
+                        <i class="bi bi-person-lines-fill fs-5"></i>
                     </div>
                     <div>
-                        <h3 class="fw-bold mb-1">Editar Empleado</h3>
-                        <p class="mb-0 opacity-75">Modifique los datos del miembro del personal</p>
+                        <h4 class="fw-bold mb-0">Editar Empleado</h4>
+                        <p class="text-white-50 small mb-0">Modifique los datos del miembro del personal</p>
                     </div>
                 </div>
-                <a asp-action="Index" class="btn text-nowrap">
-                    ← Volver a la lista
-                </a>
+                <div>
+                    <a asp-action="Index" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-1.5 fw-semibold shadow-sm text-decoration-none">
+                        ← Volver a Empleados
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cuerpo del Formulario -->
+            <div class="card-body p-4">
+
+                <form asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 small" role="alert"></div>
+
+                    <input type="hidden" asp-for="IdEmpleado" />
+
+                    <!-- Llamada a la vista parcial -->
+                    @await Html.PartialAsync("_FormularioPersonal", Model)
+
+                    <!-- BOTÓN DE GUARDAR CAMBIOS -->
+                    <div class="pt-2">
+                        <button type="submit" class="btn text-white fw-bold rounded-3 py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); transition: all 0.2s ease;">
+                            <i class="bi bi-check-circle-fill"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm rounded-4 p-4">
-            <form asp-action="Edit" method="post">
-                @Html.AntiForgeryToken()
-
-                @* Campo oculto obligatorio para que la base de datos sepa qué registro actualizar *@
-                <input type="hidden" asp-for="IdEmpleado" />
-
-                @* Reutilizamos el mismo formulario del Create *@
-                @await Html.PartialAsync("_FormularioPersonal", Model)
-
-                <div class="d-grid mt-2">
-                    <button type="submit" class="btn btn-vitalia">
-                        <i class="bi bi-save me-1"></i> Actualizar Empleado
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 </div>
 

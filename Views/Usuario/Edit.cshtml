@@ -7,13 +7,13 @@
 <div class="animate-fade-up py-4 d-flex justify-content-center">
     <div style="width: 100%; max-width: 680px;" class="px-3">
 
-        <!-- Tarjeta Principal con Encabezado Verde Integrado (Estilo Editar Alerta) -->
+        <!-- Tarjeta Principal -->
         <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
-            
-            <!-- Encabezado Estilo Bloque Verde (De borde a borde) -->
-            <div class="p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+
+            <!-- Encabezado Estilo Bloque Verde -->
+            <div class="p-4 text-white d-flex justify-content-between align-items-start" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-dark shadow-sm" style="width: 44px; height: 44px; color: #14828a !important;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-dark shadow-sm flex-shrink-0" style="width: 44px; height: 44px; color: #14828a !important;">
                         <i class="bi bi-person-gear fs-5"></i>
                     </div>
                     <div>
@@ -21,16 +21,14 @@
                         <p class="text-white-50 small mb-0">Modifique la información, contraseña y permisos de la cuenta</p>
                     </div>
                 </div>
-                <div>
-                    <a asp-action="Index" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-1.5 fw-semibold shadow-sm text-decoration-none">
-                        ← Volver a Usuarios
-                    </a>
-                </div>
+                <a asp-action="Index" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-2 fw-semibold shadow-sm text-decoration-none text-nowrap ms-3">
+                    ← Volver a Usuarios
+                </a>
             </div>
 
             <!-- Cuerpo del Formulario -->
             <div class="card-body p-4">
-                
+
                 <form asp-action="Edit" method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 small" role="alert"></div>
 
@@ -77,7 +75,7 @@
                         </div>
                     </div>
 
-                    <!-- BOTÓN DE GUARDAR CAMBIOS (Idéntico al de Editar Alerta) -->
+                    <!-- BOTÓN DE GUARDAR CAMBIOS -->
                     <div class="pt-2">
                         <button type="submit" class="btn text-white fw-bold rounded-3 py-3 w-100 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); transition: all 0.2s ease;">
                             <i class="bi bi-check-circle-fill"></i> Guardar Cambios
@@ -92,12 +90,14 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
         document.getElementById('togglePasswordBtn').addEventListener('click', function () {
             const passwordInput = document.getElementById('passwordInput');
             const toggleIcon = document.getElementById('toggleIcon');
-            
+
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 toggleIcon.classList.remove('bi-eye');

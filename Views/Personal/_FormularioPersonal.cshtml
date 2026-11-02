@@ -1,40 +1,44 @@
 ﻿@model VITALIA.Models.Empleado
-@* 
-    Vista parcial: Contiene únicamente los campos de entrada de datos. 
-    Se separa para poder reciclarla fácilmente en las vistas de Create y Edit.
-*@
 
-<div class="mb-3">
-    <label asp-for="Nombre" class="form-label fw-semibold">NOMBRE</label>
-    @* asp-for enlaza automáticamente el input con la propiedad "Nombre" del modelo *@
-    <input asp-for="Nombre" class="form-control" placeholder="Ej. Ana" required />
-    @* Muestra el mensaje de error definido en las Data Annotations del modelo si falla la validación *@
-    <span asp-validation-for="Nombre" class="text-danger small"></span>
+<!-- CAMPO: NOMBRE -->
+<div class="mb-2">
+    <label asp-for="Nombre" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-1 d-block text-start">
+        <i class="bi bi-person me-1" style="color: #14828a;"></i> NOMBRE
+    </label>
+    <input asp-for="Nombre" class="form-control form-control-lg rounded-3 fs-6 shadow-none" placeholder="Ej. Ana" required style="border-color: #cbd5e1; padding: 0.65rem 1rem;" />
+    <span asp-validation-for="Nombre" class="text-danger small ms-1"></span>
 </div>
 
-<div class="mb-3">
-    <label asp-for="Apellido" class="form-label fw-semibold">APELLIDO</label>
-    <input asp-for="Apellido" class="form-control" placeholder="Ej. López" required />
-    <span asp-validation-for="Apellido" class="text-danger small"></span>
+<!-- CAMPO: APELLIDO -->
+<div class="mb-2">
+    <label asp-for="Apellido" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-1 d-block text-start">
+        <i class="bi bi-person-badge me-1" style="color: #14828a;"></i> APELLIDO
+    </label>
+    <input asp-for="Apellido" class="form-control form-control-lg rounded-3 fs-6 shadow-none" placeholder="Ej. López" required style="border-color: #cbd5e1; padding: 0.65rem 1rem;" />
+    <span asp-validation-for="Apellido" class="text-danger small ms-1"></span>
 </div>
 
-<div class="mb-3">
-    <label asp-for="Cargo" class="form-label fw-semibold">CARGO</label>
-    <input asp-for="Cargo" class="form-control" placeholder="Ej. Enfermera, Cuidador..." required />
-    <span asp-validation-for="Cargo" class="text-danger small"></span>
+<!-- CAMPO: CARGO -->
+<div class="mb-2">
+    <label asp-for="Cargo" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-1 d-block text-start">
+        <i class="bi bi-briefcase me-1" style="color: #14828a;"></i> CARGO
+    </label>
+    <input asp-for="Cargo" class="form-control form-control-lg rounded-3 fs-6 shadow-none" placeholder="Ej. Enfermera, Cuidador..." required style="border-color: #cbd5e1; padding: 0.65rem 1rem;" />
+    <span asp-validation-for="Cargo" class="text-danger small ms-1"></span>
 </div>
 
-<div class="mb-4">
-    <label asp-for="IdUsuario" class="form-label fw-semibold">VINCULAR USUARIO</label>
+<!-- CAMPO: VINCULAR USUARIO -->
+<div class="mb-2">
+    <label asp-for="IdUsuario" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-1 d-block text-start">
+        <i class="bi bi-link-45deg me-1 fs-5 align-middle" style="color: #14828a;"></i> VINCULAR USUARIO
+    </label>
+    
     @{
-        // Recuperamos la lista de usuarios enviada desde el controlador (ViewBag/ViewData)
         var usuarios = ViewData["IdUsuario"] as SelectList;
-        // Verificamos si la lista contiene elementos para habilitar o deshabilitar el campo
         bool hayUsuarios = usuarios != null && usuarios.Any();
     }
 
-    @* Si no hay usuarios disponibles, el select se bloquea (disabled) *@
-    <select asp-for="IdUsuario" class="form-select" required disabled="@(!hayUsuarios)">
+    <select asp-for="IdUsuario" class="form-select form-select-lg rounded-3 fs-6 shadow-none" required disabled="@(!hayUsuarios)" style="border-color: #cbd5e1; padding: 0.65rem 1rem;">
         <option value="">@(hayUsuarios ? "-- Seleccione un usuario --" : "-- No hay usuarios disponibles --")</option>
         @if (hayUsuarios)
         {
@@ -45,14 +49,13 @@
         }
     </select>
 
-    @* Mensaje de ayuda que solo aparece cuando no hay usuarios disponibles *@
     @if (!hayUsuarios)
     {
-        <div class="text-muted small mt-1">
-            No hay usuarios libres para vincular. Primero cree uno en
-            <a asp-controller="Usuario" asp-action="Create" class="fw-semibold">Usuarios y Roles</a>
-            (cada usuario solo puede estar vinculado a un empleado).
+        <div class="text-muted small mt-1 ms-1">
+            <i class="bi bi-info-circle me-1"></i> No hay usuarios libres para vincular. Primero cree uno en
+            <a asp-controller="Usuario" asp-action="Create" class="fw-semibold text-decoration-none" style="color: #14828a;">Usuarios y Roles</a>
         </div>
     }
-    <span asp-validation-for="IdUsuario" class="text-danger small"></span>
+    
+    <span asp-validation-for="IdUsuario" class="text-danger small ms-1"></span>
 </div>
