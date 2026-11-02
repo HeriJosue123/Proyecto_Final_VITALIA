@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VITALIA.Data;
 using VITALIA.Models;
 
 namespace VITALIA.Controllers
 {
+    // Restringe el acceso global a Administrador, Médico (con/sin tilde) y Enfermero. Bloquea a Familiar.
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
     public class FarmaciaController : Controller
     {
         private readonly VitaliaDbContext _context;
@@ -14,7 +17,7 @@ namespace VITALIA.Controllers
             _context = context;
         }
 
-        // GET: Farmacia
+        // GET: Farmacia (Ver catálogo: Admin, Médico, Enfermero)
         public async Task<IActionResult> Index()
         {
             var medicamentos = await _context.Medicamentos
@@ -23,13 +26,29 @@ namespace VITALIA.Controllers
             return View(medicamentos);
         }
 
-        // GET: Farmacia/Create
+        // GET: Farmacia/Details/5 (Ver detalle: Admin, Médico, Enfermero)
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var medicamento = await _context.Medicamentos
+                .Include(m => m.LoteMedicamentos)
+                .FirstOrDefaultAsync(m => m.IdMedicamento == id);
+
+            if (medicamento == null) return NotFound();
+
+            return View(medicamento);
+        }
+
+        // GET: Farmacia/Create (Agregar: Solo Admin y Médico)
+        [Authorize(Roles = "Administrador, Medico, Médico")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Farmacia/Create
+        // POST: Farmacia/Create (Agregar: Solo Admin y Médico)
+        [Authorize(Roles = "Administrador, Medico, Médico")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Medicamento medicamento, string numeroLote, int? stockInicial, DateTime? fechaVencimiento)
@@ -50,7 +69,7 @@ namespace VITALIA.Controllers
 
             if (ModelState.IsValid)
             {
-                // 1. Guardar Medicamento (incluye Codigo)
+                // 1. Guardar Medicamento
                 _context.Add(medicamento);
                 await _context.SaveChangesAsync();
 
@@ -77,7 +96,8 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // GET: Farmacia/Edit/5
+        // GET: Farmacia/Edit/5 (Editar: Solo Admin y Médico)
+        [Authorize(Roles = "Administrador, Medico, Médico")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -91,7 +111,8 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // POST: Farmacia/Edit/5
+        // POST: Farmacia/Edit/5 (Editar: Solo Admin y Médico)
+        [Authorize(Roles = "Administrador, Medico, Médico")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Medicamento medicamento, string numeroLote, int? stockInicial, DateTime? fechaVencimiento)
@@ -157,21 +178,8 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // GET: Farmacia/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var medicamento = await _context.Medicamentos
-                .Include(m => m.LoteMedicamentos)
-                .FirstOrDefaultAsync(m => m.IdMedicamento == id);
-
-            if (medicamento == null) return NotFound();
-
-            return View(medicamento);
-        }
-
-        // GET: Farmacia/Delete/5
+        // GET: Farmacia/Delete/5 (Eliminar: Solo Administrador)
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -184,7 +192,8 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // POST: Farmacia/Delete/5
+        // POST: Farmacia/Delete/5 (Eliminar: Solo Administrador)
+        [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
