@@ -12,8 +12,8 @@ using VITALIA.Data;
 namespace VITALIA.Migrations
 {
     [DbContext(typeof(VitaliaDbContext))]
-    [Migration("20261102164311_AgregarModuloFarmacia")]
-    partial class AgregarModuloFarmacia
+    [Migration("20261102165758_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
