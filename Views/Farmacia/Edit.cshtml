@@ -1,0 +1,262 @@
+﻿@model VITALIA.Models.Medicamento
+
+@{
+    ViewData["Title"] = "Editar Medicamento";
+    var primerLote = Model.LoteMedicamentos?.FirstOrDefault();
+    string numeroLoteVal = ViewBag.NumeroLote ?? primerLote?.NumeroLote ?? "";
+    int? stockInicialVal = ViewBag.StockInicial ?? primerLote?.Stock;
+    string fechaVencimientoVal = ViewBag.FechaVencimiento ?? primerLote?.FechaVencimiento.ToString("yyyy-MM-dd") ?? "";
+}
+
+<div class="animate-fade-up py-4 d-flex justify-content-center">
+    <div style="width: 100%; max-width: 680px;" class="px-3">
+
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+            
+            <div class="p-4 text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white shadow-sm flex-shrink-0" style="width: 44px; height: 44px;">
+                        <i class="bi bi-capsule fs-5" style="color: #14828a !important;"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">Editar Medicamento</h4>
+                        <p class="text-white-50 small mb-0">Modifique las especificaciones técnicas y la información de stock</p>
+                    </div>
+                </div>
+                <a asp-action="Index" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-2 fw-semibold shadow-sm text-decoration-none text-nowrap ms-3">
+                    ← Volver a Farmacia
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                
+                <form asp-action="Edit" method="post" id="formMedicamento" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 small" role="alert"></div>
+
+                    <input type="hidden" asp-for="IdMedicamento" />
+
+                    <!-- CÓDIGO Y NOMBRE -->
+                    <div class="row g-3 mb-2">
+                        <div class="col-md-4">
+                            <label asp-for="Codigo" class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-barcode me-1" style="color: #14828a;"></i> CÓDIGO <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Codigo" class="form-control rounded-3 shadow-none font-monospace" placeholder="Ej. MED-001" autocomplete="off" style="border-color: #cbd5e1; padding: 0.6rem 0.85rem; font-size: 0.92rem;" />
+                            <span asp-validation-for="Codigo" class="text-danger small ms-1"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="Nombre" class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                <i class="bi bi-capsule me-1" style="color: #14828a;"></i> NOMBRE DEL MEDICAMENTO <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Nombre" class="form-control rounded-3 shadow-none" placeholder="Ej. Paracetamol, Acetaminofén, Losartán..." autocomplete="off" style="border-color: #cbd5e1; padding: 0.6rem 0.85rem; font-size: 0.92rem;" />
+                            <span asp-validation-for="Nombre" class="text-danger small ms-1"></span>
+                        </div>
+                    </div>
+
+                    <!-- PRESENTACIÓN DINÁMICA -->
+                    <div class="p-3.5 p-md-4 rounded-3 mb-3.5 border bg-light" style="margin-bottom: 1.1rem; padding: 1.1rem !important;">
+                        <span class="fw-bold text-dark text-uppercase d-block mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px; color: #14828a !important;">
+                            <i class="bi bi-sliders me-1"></i> ESPECIFICACIÓN DE PRESENTACIÓN <span class="text-danger">*</span>
+                        </span>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">Vía de Administración</label>
+                                <select id="selectVia" class="form-select rounded-3 shadow-none" style="border-color: #cbd5e1; padding: 0.55rem 0.75rem;">
+                                    <option value="Oral">Oral</option>
+                                    <option value="Inyectable">Inyectable</option>
+                                    <option value="Tópica">Tópica / Cutánea</option>
+                                    <option value="Oftálmica">Oftálmica / Otológica</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">Forma Farmacéutica</label>
+                                <select id="selectForma" class="form-select rounded-3 shadow-none" style="border-color: #cbd5e1; padding: 0.55rem 0.75rem;"></select>
+                            </div>
+                        </div>
+
+                        <div class="row g-2.5 align-items-center mb-3">
+                            <div class="col-7 col-md-8">
+                                <label class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">Concentración / Cantidad</label>
+                                <input type="number" step="any" min="0" id="inputDosis" class="form-control rounded-3 shadow-none" placeholder="Ej. 500, 120, 10..." style="border-color: #cbd5e1; padding: 0.55rem 0.75rem;" />
+                            </div>
+                            <div class="col-5 col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">Unidad</label>
+                                <select id="selectUnidad" class="form-select rounded-3 shadow-none" style="border-color: #cbd5e1; padding: 0.55rem 0.75rem;">
+                                    <option value="mg">mg</option>
+                                    <option value="g">g</option>
+                                    <option value="ml">ml</option>
+                                    <option value="mcg">mcg</option>
+                                    <option value="IU">IU</option>
+                                    <option value="%">%</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-1">
+                            <label asp-for="Presentacion" class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">Texto Final de Presentación</label>
+                            <input asp-for="Presentacion" id="inputPresentacionFinal" class="form-control rounded-3 shadow-none bg-white fw-bold text-primary" readonly style="border-color: #cbd5e1; padding: 0.55rem 0.75rem;" />
+                            <span asp-validation-for="Presentacion" class="text-danger small ms-1"></span>
+                        </div>
+                    </div>
+
+                    <!-- INVENTARIO Y LOTE OBLIGATORIO -->
+                    <div class="p-3.5 p-md-4 rounded-3 mb-3.5 border bg-light" style="margin-bottom: 1.1rem; padding: 1.1rem !important;">
+                        <span class="fw-bold text-dark text-uppercase d-block mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px; color: #14828a !important;">
+                            <i class="bi bi-box-seam me-1"></i> INVENTARIO Y LOTE <span class="text-danger">*</span>
+                        </span>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">N° de Lote <span class="text-danger">*</span></label>
+                                <input type="text" name="numeroLote" class="form-control rounded-3 shadow-none" placeholder="Ej. LOT-2026-01" value="@numeroLoteVal" style="border-color: #cbd5e1; padding: 0.55rem 0.75rem; font-size: 0.9rem;" />
+                                @if (ViewData.ModelState["numeroLote"]?.Errors.Count > 0)
+                                {
+                                    <span class="text-danger small ms-1">@ViewData.ModelState["numeroLote"].Errors[0].ErrorMessage</span>
+                                }
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">Stock Actual (Unidades) <span class="text-danger">*</span></label>
+                                <input type="number" min="0" name="stockInicial" class="form-control rounded-3 shadow-none" placeholder="Ej. 50" value="@stockInicialVal" style="border-color: #cbd5e1; padding: 0.55rem 0.75rem; font-size: 0.9rem;" />
+                                @if (ViewData.ModelState["stockInicial"]?.Errors.Count > 0)
+                                {
+                                    <span class="text-danger small ms-1">@ViewData.ModelState["stockInicial"].Errors[0].ErrorMessage</span>
+                                }
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">Fecha de Vencimiento <span class="text-danger">*</span></label>
+                                <input type="date" name="fechaVencimiento" class="form-control rounded-3 shadow-none" value="@fechaVencimientoVal" style="border-color: #cbd5e1; padding: 0.55rem 0.75rem; font-size: 0.9rem;" />
+                                @if (ViewData.ModelState["fechaVencimiento"]?.Errors.Count > 0)
+                                {
+                                    <span class="text-danger small ms-1">@ViewData.ModelState["fechaVencimiento"].Errors[0].ErrorMessage</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DESCRIPCIÓN -->
+                    <div class="mb-3.5" style="margin-bottom: 1.1rem;">
+                        <label asp-for="Descripcion" class="fw-bold text-dark text-uppercase mb-2 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-card-text me-1" style="color: #14828a;"></i> DESCRIPCIÓN / INDICACIONES
+                        </label>
+                        <textarea asp-for="Descripcion" class="form-control rounded-3 shadow-none" rows="3" placeholder="Ej. Tomar cada 8 horas después de alimentos..." style="border-color: #cbd5e1; padding: 0.6rem 0.85rem; font-size: 0.92rem;"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger small ms-1"></span>
+                    </div>
+
+                    <!-- ESTADO -->
+                    <div class="mb-4 p-3 rounded-3 border" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                        <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0">
+                            <label class="form-check-label fw-bold text-dark small text-uppercase tracking-wider mb-0" for="switchEstado" style="cursor: pointer;">
+                                Disponibilidad / Estado Activo
+                            </label>
+                            <input class="form-check-input ms-auto shadow-none" type="checkbox" asp-for="Estado" id="switchEstado" style="width: 2.8em; height: 1.4em; cursor: pointer;">
+                        </div>
+                    </div>
+
+                    <!-- BOTONES -->
+                    <div class="d-flex gap-2 pt-3.5 mt-2 border-top">
+                        <a asp-action="Index" class="btn btn-light rounded-3 py-2.5 px-4 fw-semibold text-secondary flex-grow-1 text-center text-decoration-none" style="font-size: 0.92rem;">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn text-white fw-bold rounded-3 py-2.5 px-4 shadow-sm flex-grow-1 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); font-size: 0.92rem;">
+                            <i class="bi bi-check-circle-fill"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        const formasPorVia = {
+            'Oral': ['Tableta', 'Cápsula', 'Jarabe', 'Solución Oral', 'Gotas', 'Polvo / Sobre'],
+            'Inyectable': ['Ampolla (IV)', 'Ampolla (IM)', 'Vial / Frasco', 'Jeringa Prellenada'],
+            'Tópica': ['Crema', 'Pomada', 'Gel', 'Ungüento', 'Parche Transdérmico'],
+            'Oftálmica': ['Gotas Oftálmicas', 'Gotas Otológicas', 'Ungüento Oftálmico']
+        };
+
+        const selectVia = document.getElementById('selectVia');
+        const selectForma = document.getElementById('selectForma');
+        const inputDosis = document.getElementById('inputDosis');
+        const selectUnidad = document.getElementById('selectUnidad');
+        const inputFinal = document.getElementById('inputPresentacionFinal');
+        const valorInicial = @Json.Serialize(Model.Presentacion ?? "");
+
+        function parsearPresentacionActual(texto) {
+            if (!texto) return;
+            const viaMatch = Object.keys(formasPorVia).find(v => texto.startsWith(v));
+            if (viaMatch) {
+                selectVia.value = viaMatch;
+                actualizarFormas();
+
+                const resto = texto.substring(viaMatch.length + 3);
+                const parentesisIdx = resto.indexOf('(');
+                
+                if (parentesisIdx !== -1) {
+                    const forma = resto.substring(0, parentesisIdx).trim();
+                    if (Array.from(selectForma.options).some(o => o.value === forma)) {
+                        selectForma.value = forma;
+                    }
+                    const dosisUnidad = resto.substring(parentesisIdx + 1, resto.indexOf(')')).trim();
+                    const partes = dosisUnidad.split(' ');
+                    if (partes.length >= 2) {
+                        inputDosis.value = partes[0];
+                        selectUnidad.value = partes[1];
+                    }
+                } else {
+                    const forma = resto.trim();
+                    if (Array.from(selectForma.options).some(o => o.value === forma)) {
+                        selectForma.value = forma;
+                    }
+                }
+            }
+        }
+
+        function actualizarFormas() {
+            const via = selectVia.value;
+            const opciones = formasPorVia[via] || [];
+            const valorPrevio = selectForma.value;
+            selectForma.innerHTML = '';
+            
+            opciones.forEach(forma => {
+                const opt = document.createElement('option');
+                opt.value = forma;
+                opt.textContent = forma;
+                selectForma.appendChild(opt);
+            });
+
+            if (opciones.includes(valorPrevio)) {
+                selectForma.value = valorPrevio;
+            }
+            actualizarTextoFinal();
+        }
+
+        function actualizarTextoFinal() {
+            const via = selectVia.value;
+            const forma = selectForma.value || '';
+            const dosis = inputDosis.value ? inputDosis.value.trim() : '';
+            const unidad = selectUnidad.value;
+
+            if (dosis) {
+                inputFinal.value = `${via} - ${forma} (${dosis} ${unidad})`;
+            } else {
+                inputFinal.value = `${via} - ${forma}`;
+            }
+        }
+
+        selectVia.addEventListener('change', actualizarFormas);
+        selectForma.addEventListener('change', actualizarTextoFinal);
+        inputDosis.addEventListener('input', actualizarTextoFinal);
+        selectUnidad.addEventListener('change', actualizarTextoFinal);
+
+        actualizarFormas();
+        parsearPresentacionActual(valorInicial);
+        actualizarTextoFinal();
+    </script>
+}
