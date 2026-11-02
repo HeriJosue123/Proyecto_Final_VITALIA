@@ -27,6 +27,9 @@ public partial class VitaliaDbContext : DbContext
     public virtual DbSet<Rol> Roles { get; set; }
     public virtual DbSet<TipoAtencion> TipoAtencions { get; set; }
     public virtual DbSet<Usuario> Usuarios { get; set; }
+    public virtual DbSet<Medicamento> Medicamentos { get; set; } = null!;
+    public virtual DbSet<LoteMedicamento> LoteMedicamentos { get; set; } = null!;
+    public virtual DbSet<EntregaMedicamento> EntregaMedicamentos { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -204,6 +207,65 @@ public partial class VitaliaDbContext : DbContext
             entity.Property(e => e.Estado).HasDefaultValue(true, "DF_USUARIO_estado").HasColumnName("estado");
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.Usuarios).HasForeignKey(d => d.IdRol).OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_USUARIO_ROL");
+        });
+
+        modelBuilder.Entity<Medicamento>(entity =>
+        {
+            entity.HasKey(e => e.IdMedicamento);
+            entity.ToTable("MEDICAMENTO");
+            entity.Property(e => e.IdMedicamento).HasColumnName("id_medicamento");
+            entity.Property(e => e.Nombre).HasMaxLength(150).IsUnicode(false).HasColumnName("nombre");
+            entity.Property(e => e.Descripcion).HasMaxLength(255).IsUnicode(false).HasColumnName("descripcion");
+            entity.Property(e => e.Presentacion).HasMaxLength(50).IsUnicode(false).HasColumnName("presentacion");
+            entity.Property(e => e.Estado).HasDefaultValue(true, "DF_MEDICAMENTO_estado").HasColumnName("estado");
+        });
+
+        modelBuilder.Entity<LoteMedicamento>(entity =>
+        {
+            entity.HasKey(e => e.IdLote);
+            entity.ToTable("LOTE_MEDICAMENTO");
+            entity.Property(e => e.IdLote).HasColumnName("id_lote");
+            entity.Property(e => e.IdMedicamento).HasColumnName("id_medicamento");
+            entity.Property(e => e.NumeroLote).HasMaxLength(50).IsUnicode(false).HasColumnName("numero_lote");
+            entity.Property(e => e.FechaVencimiento).HasColumnType("date").HasColumnName("fecha_vencimiento");
+            entity.Property(e => e.Stock).HasColumnName("stock");
+
+            entity.HasOne(d => d.IdMedicamentoNavigation)
+                .WithMany(p => p.LoteMedicamentos)
+                .HasForeignKey(d => d.IdMedicamento)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_LOTE_MEDICAMENTO");
+        });
+
+        modelBuilder.Entity<EntregaMedicamento>(entity =>
+        {
+            entity.HasKey(e => e.IdEntrega);
+            entity.ToTable("ENTREGA_MEDICAMENTO");
+            entity.Property(e => e.IdEntrega).HasColumnName("id_entrega");
+            entity.Property(e => e.IdLote).HasColumnName("id_lote");
+            entity.Property(e => e.IdResidente).HasColumnName("id_residente");
+            entity.Property(e => e.IdEmpleado).HasColumnName("id_empleado");
+            entity.Property(e => e.Cantidad).HasColumnName("cantidad");
+            entity.Property(e => e.FechaHora).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("fecha_hora");
+            entity.Property(e => e.Observaciones).HasMaxLength(255).IsUnicode(false).HasColumnName("observaciones");
+
+            entity.HasOne(d => d.IdLoteNavigation)
+                .WithMany(p => p.EntregaMedicamentos)
+                .HasForeignKey(d => d.IdLote)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ENTREGA_LOTE");
+
+            entity.HasOne(d => d.IdResidenteNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdResidente)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ENTREGA_RESIDENTE");
+
+            entity.HasOne(d => d.IdEmpleadoNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdEmpleado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ENTREGA_EMPLEADO");
         });
 
         OnModelCreatingPartial(modelBuilder);
