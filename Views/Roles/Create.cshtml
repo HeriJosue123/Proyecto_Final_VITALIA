@@ -1,66 +1,117 @@
 ﻿@model VITALIA.Models.Rol
 
 @{
-    ViewData["Title"] = "Nuevo Rol";
+    ViewData["Title"] = "Crear Rol";
 }
 
-<div class="animate-fade-up py-3">
-    <!-- NAVEGACIÓN SUPERIOR -->
-    <div class="mb-3">
-        <a asp-action="Index" class="btn btn-sm bg-white text-muted border rounded-pill px-3 py-1 shadow-sm text-decoration-none fw-semibold">
-            <i class="bi bi-arrow-left me-1"></i> Volver a Roles
-        </a>
-    </div>
+<div class="animate-fade-up py-4 d-flex justify-content-center">
+    <div style="width: 100%; max-width: 680px;" class="px-3">
 
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-9 col-lg-7 col-xl-6">
-
-            <!-- ENCABEZADO CENTRADO -->
-            <div class="text-center mb-4">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-2" style="width: 58px; height: 58px; background: linear-gradient(135deg, #14828a, #093437);">
-                    <i class="bi bi-shield-plus fs-3"></i>
+        <!-- Tarjeta Principal con Encabezado Verde Integrado (Estilo Registrar Residente) -->
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
+            
+            <!-- Encabezado Estilo Bloque Verde (De borde a borde) -->
+            <div class="p-4 text-white d-flex justify-content-between align-items-start" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-dark shadow-sm flex-shrink-0" style="width: 44px; height: 44px; color: #14828a !important;">
+                        <i class="bi bi-shield-plus fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1">Crear Nuevo Rol</h4>
+                        <p class="text-white-50 small mb-0">Define la jerarquía y permisos para los usuarios del sistema</p>
+                    </div>
                 </div>
-                <h3 class="fw-bold mb-1" style="color: #1a252f;">Crear Nuevo Rol</h3>
-                <p class="text-muted small mb-0">Define la jerarquía y permisos para los usuarios del sistema</p>
+                <a asp-action="Index" class="btn btn-sm btn-light text-dark rounded-pill px-3 py-2 fw-semibold shadow-sm text-decoration-none text-nowrap ms-3">
+                    ← Volver a Roles
+                </a>
             </div>
 
-            <!-- TARJETA DEL FORMULARIO -->
-            <div class="vitalia-card-pro p-4 p-md-5 position-relative overflow-hidden">
-                <div style="position: absolute; top:0; left:0; right:0; height: 4px; background: linear-gradient(90deg, #14828a, #093437);"></div>
-
-                <form asp-action="Create" method="post" class="mt-1">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+            <!-- Cuerpo del Formulario -->
+            <div class="card-body p-4 p-md-5">
+                
+                <form asp-action="Create" method="post" id="formRol" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-4 small" role="alert"></div>
 
                     <!-- CAMPO: NOMBRE DEL ROL -->
                     <div class="mb-4">
-                        <label asp-for="NombreRol" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2 d-block text-start">
-                            <i class="bi bi-shield-lock text-primary me-1"></i> Nombre del Rol
+                        <label asp-for="NombreRol" class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-shield-lock me-1" style="color: #14828a;"></i> NOMBRE DEL ROL
                         </label>
-                        <input asp-for="NombreRol" class="form-control form-control-lg rounded-3 fs-6" placeholder="Ej. Médico General, Administrador..." required autocomplete="off" style="border-color: #cbd5e1; padding: 0.75rem 1rem;" />
-                        <span asp-validation-for="NombreRol" class="text-danger small ms-1"></span>
+                        <input asp-for="NombreRol" class="form-control rounded-3 shadow-none" placeholder="Ej. Médico General, Administrador..." data-val-required="El nombre del rol es obligatorio." autocomplete="off" style="border-color: #cbd5e1; padding: 0.6rem 0.8rem; font-size: 0.95rem;" />
+                        <span asp-validation-for="NombreRol" class="text-danger small ms-1 d-block mt-1"></span>
                     </div>
 
                     <!-- CAMPO: DESCRIPCIÓN -->
                     <div class="mb-4">
-                        <label asp-for="Descripcion" class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2 d-block text-start">
-                            <i class="bi bi-card-text text-primary me-1"></i> Descripción del Perfil
+                        <label asp-for="Descripcion" class="fw-bold text-dark text-uppercase mb-1 d-block text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-card-text me-1" style="color: #14828a;"></i> DESCRIPCIÓN DEL PERFIL
                         </label>
-                        <textarea asp-for="Descripcion" class="form-control rounded-3 fs-6" rows="3" placeholder="Especifica las funciones o accesos de este rol..." style="border-color: #cbd5e1; padding: 0.75rem 1rem;"></textarea>
+                        <textarea asp-for="Descripcion" class="form-control rounded-3 shadow-none" rows="3" placeholder="Especifica las funciones o accesos de este rol..." style="border-color: #cbd5e1; padding: 0.6rem 0.8rem; font-size: 0.95rem;"></textarea>
                         <span asp-validation-for="Descripcion" class="text-danger small ms-1"></span>
                     </div>
 
-                    <!-- BOTONES DE ACCIÓN -->
-                    <div class="d-flex gap-2 pt-3 border-top">
-                        <a asp-action="Index" class="btn btn-light rounded-3 py-2 px-4 fw-semibold text-secondary flex-grow-1 text-center">
+                    <!-- BOTONES DE ACCIÓN BALANCEADOS -->
+                    <div class="d-flex gap-2 pt-4 mt-4 border-top">
+                        <a asp-action="Index" class="btn btn-light rounded-3 py-2.5 px-4 fw-semibold text-secondary flex-grow-1 text-center text-decoration-none">
                             Cancelar
                         </a>
-                        <button type="submit" class="btn text-white rounded-3 py-2 px-4 fw-bold shadow-sm flex-grow-1" style="background-color: #14828a;">
-                            <i class="bi bi-check-circle-fill me-1"></i> Guardar Rol
+                        <button type="submit" class="btn text-white fw-bold rounded-3 py-2.5 px-4 shadow-sm flex-grow-1 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #14828a 0%, #093437 100%); transition: all 0.2s ease;">
+                            <i class="bi bi-save-fill"></i> Guardar Rol
                         </button>
                     </div>
                 </form>
-            </div>
 
+            </div>
         </div>
+
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Sobrescribir mensajes predeterminados de jQuery Validate a Español
+            if (window.jQuery && $.validator) {
+                $.extend($.validator.messages, {
+                    required: "Este campo es obligatorio."
+                });
+            }
+
+            const nombreRolInput = document.getElementById('NombreRol');
+            const nombreRolError = document.querySelector('[data-valmsg-for="NombreRol"]');
+            const formRol = document.getElementById('formRol');
+
+            // Validacion Nombre del Rol en Tiempo Real
+            function validarNombreRol() {
+                if (!nombreRolInput) return true;
+                const val = nombreRolInput.value.trim();
+
+                if (val.length === 0) {
+                    if (nombreRolError) nombreRolError.textContent = "El nombre del rol es obligatorio.";
+                    nombreRolInput.classList.add("is-invalid");
+                    return false;
+                } else {
+                    if (nombreRolError) nombreRolError.textContent = "";
+                    nombreRolInput.classList.remove("is-invalid");
+                    return true;
+                }
+            }
+
+            // Escuchadores de Eventos en Tiempo Real
+            if (nombreRolInput) {
+                nombreRolInput.addEventListener('input', validarNombreRol);
+                nombreRolInput.addEventListener('blur', validarNombreRol);
+            }
+
+            // Validacion al Enviar Formulario
+            if (formRol) {
+                formRol.addEventListener('submit', function (e) {
+                    if (!validarNombreRol()) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    </script>
+}
