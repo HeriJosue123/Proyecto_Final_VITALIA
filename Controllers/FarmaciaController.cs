@@ -185,9 +185,14 @@ namespace VITALIA.Controllers
             if (id == null) return NotFound();
 
             var medicamento = await _context.Medicamentos
+                .Include(m => m.LoteMedicamentos).ThenInclude(l => l.EntregaMedicamentos)
                 .FirstOrDefaultAsync(m => m.IdMedicamento == id);
 
             if (medicamento == null) return NotFound();
+
+            // Para avisar en la pantalla qué se borra junto con el medicamento
+            ViewBag.Lotes = medicamento.LoteMedicamentos.Count;
+            ViewBag.Entregas = medicamento.LoteMedicamentos.Sum(l => l.EntregaMedicamentos.Count);
 
             return View(medicamento);
         }
@@ -198,12 +203,28 @@ namespace VITALIA.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var medicamento = await _context.Medicamentos.FindAsync(id);
+            var medicamento = await _context.Medicamentos
+                .Include(m => m.LoteMedicamentos).ThenInclude(l => l.EntregaMedicamentos)
+                .FirstOrDefaultAsync(m => m.IdMedicamento == id);
+
             if (medicamento != null)
             {
+                // Si ya se entregó a residentes, borrarlo haría perder ese historial
+                int entregas = medicamento.LoteMedicamentos.Sum(l => l.EntregaMedicamentos.Count);
+                if (entregas > 0)
+                {
+                    TempData["Error"] = $"No se puede eliminar «{medicamento.Nombre}» porque ya tiene {entregas} entrega(s) a residentes y se perdería ese historial. Si ya no se usa, márquelo como Inactivo desde Editar.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Sin entregas: se borran también sus lotes (la base no deja borrar el medicamento si tiene lotes)
+                int lotes = medicamento.LoteMedicamentos.Count;
+                _context.LoteMedicamentos.RemoveRange(medicamento.LoteMedicamentos);
                 _context.Medicamentos.Remove(medicamento);
                 await _context.SaveChangesAsync();
-                TempData["Mensaje"] = "Medicamento eliminado correctamente.";
+                TempData["Mensaje"] = lotes > 0
+                    ? $"Medicamento eliminado correctamente junto con sus {lotes} lote(s)."
+                    : "Medicamento eliminado correctamente.";
             }
             return RedirectToAction(nameof(Index));
         }

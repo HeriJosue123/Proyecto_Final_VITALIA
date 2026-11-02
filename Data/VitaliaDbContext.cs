@@ -218,6 +218,9 @@ public partial class VitaliaDbContext : DbContext
             entity.Property(e => e.Descripcion).HasMaxLength(255).IsUnicode(false).HasColumnName("descripcion");
             entity.Property(e => e.Presentacion).HasMaxLength(50).IsUnicode(false).HasColumnName("presentacion");
             entity.Property(e => e.Estado).HasDefaultValue(true, "DF_MEDICAMENTO_estado").HasColumnName("estado");
+            // Las entregas se relacionan con el lote, no con el medicamento: sin esto EF busca una columna
+            // "MedicamentoIdMedicamento" que no existe en ENTREGA_MEDICAMENTO
+            entity.Ignore(e => e.EntregaMedicamentos);
         });
 
         modelBuilder.Entity<LoteMedicamento>(entity =>

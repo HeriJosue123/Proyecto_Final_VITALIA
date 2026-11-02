@@ -26,6 +26,14 @@
                     <i class="bi bi-exclamation-octagon-fill text-danger fs-4 flex-shrink-0"></i>
                     <div class="small text-danger-emphasis fw-medium lh-base">
                         <strong>Atención:</strong> Esta acción eliminará permanentemente el registro del catálogo principal de la farmacia.
+                        @if ((ViewBag.Entregas ?? 0) > 0)
+                        {
+                            <div class="mt-1">Este medicamento ya tiene <strong>@ViewBag.Entregas entrega(s)</strong> a residentes, así que <strong>no se podrá eliminar</strong>. Si ya no se usa, márquelo como Inactivo desde Editar.</div>
+                        }
+                        else if ((ViewBag.Lotes ?? 0) > 0)
+                        {
+                            <div class="mt-1">También se eliminarán sus <strong>@ViewBag.Lotes lote(s)</strong> de inventario.</div>
+                        }
                     </div>
                 </div>
 

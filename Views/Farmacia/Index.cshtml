@@ -16,6 +16,15 @@
         </div>
     }
 
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 alert-dismissible fade show mb-4 d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+            <div class="fw-semibold">@TempData["Error"]</div>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <!-- Tarjeta Contenedora Principal -->
     <div class="card border-0 rounded-4 shadow-sm overflow-hidden bg-white">
         
