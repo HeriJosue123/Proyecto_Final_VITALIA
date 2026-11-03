@@ -1,3 +1,4 @@
+@inject VITALIA.Data.VitaliaDbContext BaseDatos
 @{
     // Datos del usuario que inició sesión
     bool esAdministrador = User.IsInRole(RolesSistema.Administrador);
@@ -17,6 +18,32 @@
     // Correo con corte de línea antes del @
     Func<string, Microsoft.AspNetCore.Html.IHtmlContent> correoPartido = texto =>
         new Microsoft.AspNetCore.Html.HtmlString(string.Join("<wbr>@", texto.Split('@').Select(System.Net.WebUtility.HtmlEncode)));
+
+    // Datos para la tarjeta del perfil (cargo y a cuántos residentes atiende o tiene vinculados)
+    string? cargoPerfil = null;
+    int residentesPerfil = 0;
+    if (int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var idUsuarioPerfil))
+    {
+        try
+        {
+            if (esFamiliar)
+            {
+                residentesPerfil = BaseDatos.FamiliarResidentes.Count(f => f.IdUsuario == idUsuarioPerfil);
+            }
+            else
+            {
+                var empleadoPerfil = BaseDatos.Empleados.Where(e => e.IdUsuario == idUsuarioPerfil)
+                    .Select(e => new { e.IdEmpleado, e.Cargo }).FirstOrDefault();
+                if (empleadoPerfil != null)
+                {
+                    cargoPerfil = empleadoPerfil.Cargo;
+                    residentesPerfil = BaseDatos.AsignacionCuidados.Count(a => a.IdEmpleado == empleadoPerfil.IdEmpleado && a.Estado);
+                }
+            }
+        }
+        catch { }
+    }
+    string etiquetaResidentes = esFamiliar ? "Familiares vinculados" : "Residentes a su cargo";
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -208,13 +235,6 @@
                 overflow-wrap: anywhere;
             }
 
-            .sidebar-user-correo {
-                color: #a3c2c4;
-                font-size: 0.72rem;
-                line-height: 1.25;
-                overflow-wrap: anywhere;
-            }
-
             .sidebar-user-rol {
                 display: inline-flex;
                 align-items: center;
@@ -227,45 +247,6 @@
                 font-size: 0.68rem;
                 font-weight: 600;
             }
-
-            .sidebar-user-enlace {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.4rem;
-                margin-top: 0.75rem;
-                color: #a3c2c4;
-                font-size: 0.75rem;
-                text-decoration: none;
-            }
-
-                .sidebar-user-enlace:hover {
-                    color: #ffffff;
-                    text-decoration: underline;
-                }
-
-            .btn-cerrar-sesion {
-                width: 100%;
-                margin-top: 0.75rem;
-                padding: 0.45rem 0.75rem;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 10px;
-                background-color: transparent;
-                color: #b1d1d3;
-                font-size: 0.8rem;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.45rem;
-                transition: all 0.2s ease;
-            }
-
-                .btn-cerrar-sesion:hover {
-                    background-color: #dc3545;
-                    border-color: #dc3545;
-                    color: #ffffff;
-                }
 
             .user-avatar {
                 flex-shrink: 0;
@@ -374,6 +355,345 @@
                     .vitalia-banner .btn:hover {
                         background-color: #e6f4f4 !important;
                     }
+
+            /* ===== Tarjeta del perfil (se abre al tocar el usuario del menú) ===== */
+            .perfil-disparador {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                gap: 0.65rem;
+                padding: 0;
+                border: 0;
+                background: transparent;
+                color: inherit;
+                text-align: left;
+                cursor: pointer;
+            }
+
+            .sidebar-user {
+                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+                cursor: pointer;
+            }
+
+                .sidebar-user:hover {
+                    background-color: rgba(255, 255, 255, 0.13);
+                    border-color: rgba(255, 255, 255, 0.16);
+                }
+
+                .sidebar-user.abierto {
+                    background-color: rgba(23, 162, 168, 0.22);
+                    border-color: rgba(23, 162, 168, 0.55);
+                }
+
+            .perfil-chevron {
+                color: #a3c2c4;
+                font-size: 1rem;
+                transition: transform 0.25s ease, color 0.2s ease;
+            }
+
+            .sidebar-user:hover .perfil-chevron, .sidebar-user.abierto .perfil-chevron {
+                color: #ffffff;
+            }
+
+            .sidebar-user.abierto .perfil-chevron {
+                transform: rotate(180deg);
+            }
+
+            .perfil-fondo {
+                position: fixed;
+                inset: 0;
+                z-index: 1040;
+                background: rgba(9, 52, 55, 0.18);
+                backdrop-filter: blur(2px);
+                opacity: 0;
+                transition: opacity 0.22s ease;
+            }
+
+                .perfil-fondo.visible {
+                    opacity: 1;
+                }
+
+            .perfil-tarjeta {
+                position: fixed;
+                left: 262px;
+                bottom: 18px;
+                z-index: 1045;
+                width: 340px;
+                max-width: calc(100vw - 24px);
+                max-height: calc(100vh - 36px);
+                overflow-y: auto;
+                background: #ffffff;
+                border-radius: 22px;
+                box-shadow: 0 24px 60px rgba(9, 52, 55, 0.28), 0 4px 14px rgba(9, 52, 55, 0.12);
+                transform-origin: bottom left;
+                opacity: 0;
+                transform: translateY(10px) scale(0.94);
+                transition: opacity 0.22s ease, transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+            }
+
+                .perfil-tarjeta.visible {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+
+            .perfil-cabecera {
+                position: relative;
+                overflow: hidden;
+                padding: 1.6rem 1.4rem 1.3rem;
+                text-align: center;
+                color: #ffffff;
+                background: linear-gradient(140deg, #093437 0%, #0e6c70 55%, #17a2a8 100%);
+            }
+
+                .perfil-cabecera::before, .perfil-cabecera::after {
+                    content: "";
+                    position: absolute;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.08);
+                    pointer-events: none;
+                }
+
+                .perfil-cabecera::before {
+                    width: 190px;
+                    height: 190px;
+                    top: -90px;
+                    right: -60px;
+                }
+
+                .perfil-cabecera::after {
+                    width: 120px;
+                    height: 120px;
+                    bottom: -70px;
+                    left: -40px;
+                }
+
+            .perfil-cerrar {
+                position: absolute;
+                top: 0.75rem;
+                right: 0.75rem;
+                z-index: 1;
+                width: 32px;
+                height: 32px;
+                border: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.14);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color 0.2s ease;
+            }
+
+                .perfil-cerrar:hover {
+                    background: rgba(255, 255, 255, 0.28);
+                }
+
+            .perfil-avatar {
+                position: relative;
+                z-index: 1;
+                width: 78px;
+                height: 78px;
+                margin: 0 auto 0.8rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.6rem;
+                font-weight: 800;
+                letter-spacing: 0.02em;
+                color: #ffffff;
+                background: linear-gradient(145deg, #f3b75a 0%, #e09f3e 60%, #c9832a 100%);
+                box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.18), 0 10px 24px rgba(0, 0, 0, 0.25);
+            }
+
+                .perfil-avatar .perfil-en-linea {
+                    position: absolute;
+                    right: 3px;
+                    bottom: 4px;
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: #2ecc71;
+                    border: 3px solid #0e6c70;
+                }
+
+            .perfil-nombre {
+                position: relative;
+                z-index: 1;
+                font-size: 1.12rem;
+                font-weight: 800;
+                line-height: 1.25;
+                overflow-wrap: anywhere;
+            }
+
+            .perfil-correo {
+                position: relative;
+                z-index: 1;
+                font-size: 0.8rem;
+                color: rgba(255, 255, 255, 0.75);
+                overflow-wrap: anywhere;
+                margin-top: 0.15rem;
+            }
+
+            .perfil-insignia {
+                position: relative;
+                z-index: 1;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                margin-top: 0.75rem;
+                padding: 0.3rem 0.8rem;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.16);
+                border: 1px solid rgba(255, 255, 255, 0.22);
+                font-size: 0.75rem;
+                font-weight: 700;
+            }
+
+            .perfil-cuerpo {
+                padding: 1.1rem 1.2rem 1.2rem;
+            }
+
+            .perfil-dato {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.55rem 0.2rem;
+            }
+
+                .perfil-dato + .perfil-dato {
+                    border-top: 1px solid #eef2f4;
+                }
+
+            .perfil-dato-icono {
+                flex-shrink: 0;
+                width: 36px;
+                height: 36px;
+                border-radius: 11px;
+                background: #e8f4f5;
+                color: #12898e;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+            }
+
+            .perfil-dato-etiqueta {
+                font-size: 0.66rem;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: #7a9a9c;
+            }
+
+            .perfil-dato-valor {
+                font-size: 0.88rem;
+                font-weight: 600;
+                color: #093437;
+                overflow-wrap: anywhere;
+            }
+
+            .perfil-activa {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                color: #1e9e5a;
+            }
+
+                .perfil-activa::before {
+                    content: "";
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #2ecc71;
+                    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+                }
+
+            .perfil-acciones {
+                margin-top: 0.9rem;
+                display: grid;
+                gap: 0.5rem;
+            }
+
+            .perfil-accion {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.7rem 0.85rem;
+                border-radius: 14px;
+                border: 1px solid #e3ecee;
+                background: #ffffff;
+                color: #093437;
+                font-size: 0.88rem;
+                font-weight: 600;
+                text-align: left;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+
+                .perfil-accion i:first-child {
+                    font-size: 1.05rem;
+                    color: #12898e;
+                }
+
+                .perfil-accion .bi-chevron-right {
+                    margin-left: auto;
+                    color: #a9bfc1;
+                    font-size: 0.8rem;
+                    transition: transform 0.2s ease;
+                }
+
+                .perfil-accion:hover {
+                    border-color: #12898e;
+                    background: #f2fafa;
+                    color: #093437;
+                }
+
+                    .perfil-accion:hover .bi-chevron-right {
+                        transform: translateX(3px);
+                        color: #12898e;
+                    }
+
+                .perfil-accion.peligro i:first-child {
+                    color: #dc3545;
+                }
+
+                .perfil-accion.peligro:hover {
+                    border-color: #dc3545;
+                    background: #fff5f5;
+                    color: #a71d2a;
+                }
+
+            .perfil-pie {
+                padding: 0.7rem 1.2rem;
+                border-top: 1px solid #eef2f4;
+                background: #f8fbfb;
+                text-align: center;
+                font-size: 0.7rem;
+                color: #7a9a9c;
+                letter-spacing: 0.03em;
+            }
+
+                .perfil-pie i {
+                    color: #12898e;
+                }
+
+            @@media (max-width: 600px) {
+                .perfil-tarjeta {
+                    left: 12px;
+                    right: 12px;
+                    width: auto;
+                    bottom: 12px;
+                    transform-origin: bottom center;
+                }
+            }
+
+            @@media (prefers-reduced-motion: reduce) {
+                .perfil-tarjeta, .perfil-fondo {
+                    transition: none;
+                }
+            }
     </style>
 </head>
 <body>
@@ -472,26 +792,93 @@
             }
 
             @* Usuario que inició sesión *@
-            <div class="sidebar-user">
-                <div class="d-flex align-items-start gap-2">
+            <div class="sidebar-user" id="perfilCaja">
+                <button type="button" class="perfil-disparador" id="perfilDisparador"
+                        aria-haspopup="dialog" aria-expanded="false" aria-controls="perfilTarjeta" title="Ver mi perfil">
                     <div class="user-avatar">@iniciales</div>
                     <div class="flex-grow-1" style="min-width: 0;">
                         <div class="sidebar-user-nombre">@(nombreEsCorreo ? correoPartido(nombreUsuario) : nombreUsuario)</div>
-                        @if (!nombreEsCorreo && !string.IsNullOrEmpty(correoUsuario))
-                        {
-                            <div class="sidebar-user-correo">@correoPartido(correoUsuario)</div>
-                        }
                         <span class="sidebar-user-rol"><i class="bi bi-shield-check"></i> @rolUsuario</span>
                     </div>
-                </div>
-                <a asp-controller="Perfil" asp-action="CambiarContrasena" class="sidebar-user-enlace">
-                    <i class="bi bi-key"></i> Cambiar contraseña
-                </a>
-                <button type="button" class="btn-cerrar-sesion" data-bs-toggle="modal" data-bs-target="#modalCerrarSesion">
-                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                    <i class="bi bi-chevron-up perfil-chevron"></i>
                 </button>
             </div>
         </aside>
+
+        @* Tarjeta flotante del perfil *@
+        <div class="perfil-fondo" id="perfilFondo" hidden></div>
+        <section class="perfil-tarjeta" id="perfilTarjeta" role="dialog" aria-modal="false" aria-labelledby="perfilNombre" hidden>
+            <div class="perfil-cabecera">
+                <button type="button" class="perfil-cerrar" id="perfilCerrar" aria-label="Cerrar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <div class="perfil-avatar">
+                    @iniciales
+                    <span class="perfil-en-linea" title="En línea"></span>
+                </div>
+                <div class="perfil-nombre" id="perfilNombre">@(nombreEsCorreo ? correoPartido(nombreUsuario) : nombreUsuario)</div>
+                @if (!nombreEsCorreo && !string.IsNullOrEmpty(correoUsuario))
+                {
+                    <div class="perfil-correo">@correoPartido(correoUsuario)</div>
+                }
+                else
+                {
+                    <div class="perfil-correo">Correo de acceso</div>
+                }
+                <span class="perfil-insignia"><i class="bi bi-shield-check"></i> @rolUsuario</span>
+            </div>
+
+            <div class="perfil-cuerpo">
+                @if (!string.IsNullOrEmpty(cargoPerfil))
+                {
+                    <div class="perfil-dato">
+                        <div class="perfil-dato-icono"><i class="bi bi-briefcase-fill"></i></div>
+                        <div style="min-width: 0;">
+                            <div class="perfil-dato-etiqueta">Cargo</div>
+                            <div class="perfil-dato-valor">@cargoPerfil</div>
+                        </div>
+                    </div>
+                }
+                @if (!nombreEsCorreo)
+                {
+                    <div class="perfil-dato">
+                        <div class="perfil-dato-icono"><i class="bi bi-envelope-fill"></i></div>
+                        <div style="min-width: 0;">
+                            <div class="perfil-dato-etiqueta">Correo de acceso</div>
+                            <div class="perfil-dato-valor">@correoPartido(correoUsuario)</div>
+                        </div>
+                    </div>
+                }
+                @if (esFamiliar || cargoPerfil != null)
+                {
+                    <div class="perfil-dato">
+                        <div class="perfil-dato-icono"><i class="bi @(esFamiliar ? "bi-house-heart-fill" : "bi-people-fill")"></i></div>
+                        <div style="min-width: 0;">
+                            <div class="perfil-dato-etiqueta">@etiquetaResidentes</div>
+                            <div class="perfil-dato-valor">@residentesPerfil</div>
+                        </div>
+                    </div>
+                }
+                <div class="perfil-dato">
+                    <div class="perfil-dato-icono"><i class="bi bi-patch-check-fill"></i></div>
+                    <div style="min-width: 0;">
+                        <div class="perfil-dato-etiqueta">Estado de la cuenta</div>
+                        <div class="perfil-dato-valor"><span class="perfil-activa">Activa</span></div>
+                    </div>
+                </div>
+
+                <div class="perfil-acciones">
+                    <a asp-controller="Perfil" asp-action="CambiarContrasena" class="perfil-accion">
+                        <i class="bi bi-key-fill"></i> Cambiar contraseña <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <button type="button" class="perfil-accion peligro" id="perfilSalir" data-bs-toggle="modal" data-bs-target="#modalCerrarSesion">
+                        <i class="bi bi-box-arrow-right"></i> Cerrar sesión <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="perfil-pie"><i class="bi bi-heart-pulse-fill me-1"></i> VITALIA · Atención integral</div>
+        </section>
 
         <!-- Contenido principal con animación global -->
         <main class="vitalia-content animate-fade-up">
@@ -546,6 +933,41 @@
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Tarjeta del perfil: se abre al tocar el usuario del menú y se cierra con la X, Esc o tocando fuera
+        (function () {
+            const caja = document.getElementById("perfilCaja");
+            const disparador = document.getElementById("perfilDisparador");
+            const tarjeta = document.getElementById("perfilTarjeta");
+            const fondo = document.getElementById("perfilFondo");
+            if (!caja || !disparador || !tarjeta || !fondo) return;
+
+            function abrir() {
+                tarjeta.hidden = false;
+                fondo.hidden = false;
+                requestAnimationFrame(() => { tarjeta.classList.add("visible"); fondo.classList.add("visible"); });
+                caja.classList.add("abierto");
+                disparador.setAttribute("aria-expanded", "true");
+                document.getElementById("perfilCerrar").focus({ preventScroll: true });
+            }
+
+            function cerrar(devolverFoco) {
+                if (tarjeta.hidden) return;
+                tarjeta.classList.remove("visible");
+                fondo.classList.remove("visible");
+                caja.classList.remove("abierto");
+                disparador.setAttribute("aria-expanded", "false");
+                setTimeout(() => { tarjeta.hidden = true; fondo.hidden = true; }, 230);
+                if (devolverFoco) disparador.focus({ preventScroll: true });
+            }
+
+            caja.addEventListener("click", () => tarjeta.hidden ? abrir() : cerrar(true));
+            fondo.addEventListener("click", () => cerrar(true));
+            document.getElementById("perfilCerrar").addEventListener("click", () => cerrar(true));
+            document.getElementById("perfilSalir").addEventListener("click", () => cerrar(false));
+            document.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(true); });
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
