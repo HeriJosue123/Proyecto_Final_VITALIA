@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -71,8 +73,18 @@ public class AlertaFormViewModel
     public string? ResidenteTexto { get; set; }
     public string Estado { get; set; } = AlertaEstados.Pendiente;
 
+    // Campos para Prescripción Médica (Exclusivos del rol Médico)
+    [Display(Name = "Medicamento")]
+    public int? IdMedicamento { get; set; }
+
+    [Display(Name = "Dosis y Frecuencia")]
+    public string? Dosis { get; set; }
+
+    public bool EsMedico { get; set; }
+
     [ValidateNever] public List<SelectListItem> Residentes { get; set; } = new();
     [ValidateNever] public List<SelectListItem> Empleados { get; set; } = new();
+    [ValidateNever] public List<SelectListItem> Medicamentos { get; set; } = new();
 }
 
 /// <summary>Una fila del historial de estados de una alerta.</summary>

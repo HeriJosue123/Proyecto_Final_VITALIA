@@ -216,14 +216,38 @@
                     <div class="d-flex flex-column gap-3">
                         @foreach (var asig in asignaciones)
                         {
+                            // Lógica de prefijos basada en el cargo
+                            var nombreEmpleado = asig.IdEmpleadoNavigation?.Nombre ?? "Sin nombre";
+                            var cargoEmpleado = asig.IdEmpleadoNavigation?.Cargo ?? "Sin cargo";
+                            var cargoLower = cargoEmpleado.ToLower();
+
+                            string prefijo = "";
+
+                            if (cargoLower.Contains("medico") || cargoLower.Contains("médico") || cargoLower.Contains("doctor"))
+                            {
+                                prefijo = "Dr(a).";
+                            }
+                            else if (cargoLower.Contains("enfermer"))
+                            {
+                                prefijo = "Enf.";
+                            }
+                            else if (cargoLower.Contains("licenciad") || cargoLower.Contains("psicolog") || cargoLower.Contains("fisioterapeut"))
+                            {
+                                prefijo = "Lic.";
+                            }
+
                             <div class="p-3 rounded-3 bg-white border border-light-subtle hover-elevate asig-card">
                                 <div class="d-flex align-items-center gap-3 mb-3">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 vitalia-bg-subtle vitalia-text-main fw-bold" style="width: 42px; height: 42px;">
                                         <i class="bi bi-person-fill"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-dark fs-6 lh-sm mb-1">
-                                            @asig.IdEmpleadoNavigation?.Nombre
+                                        <div class="fw-bold text-dark fs-6 lh-sm mb-0">
+                                            @prefijo @nombreEmpleado
+                                        </div>
+                                        <!-- Cargo del empleado en formato pequeño -->
+                                        <div class="text-muted mb-1" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                            @cargoEmpleado
                                         </div>
                                         <div class="text-muted small" style="font-size: 0.82rem;">
                                             Cuida a: <strong class="text-dark bg-light px-2 py-1 rounded-pill border">@asig.IdResidenteNavigation?.Nombre</strong>
