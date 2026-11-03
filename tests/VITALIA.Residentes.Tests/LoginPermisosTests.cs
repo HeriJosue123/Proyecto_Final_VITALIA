@@ -251,6 +251,33 @@ public class LoginPermisosTests : IClassFixture<FabricaLogin>
     }
 
     [Fact]
+    public async Task EmpleadoDadoDeBajaPorElAdministrador_YaNoPuedeEntrar()
+    {
+        string correo = NuevoEmpleado(RolesSistema.Enfermero, empleadoActivo: true, out _);
+        Assert.Equal(HttpStatusCode.Redirect, (await EntrarAsync(NuevoCliente(), correo)).StatusCode); // antes sí entra
+
+        int idEmpleado;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<VitaliaDbContext>();
+            idEmpleado = db.Empleados.Single(e => e.IdUsuarioNavigation!.Correo == correo).IdEmpleado;
+        }
+
+        // El administrador lo da de baja desde Personal
+        var admin = NuevoCliente();
+        await EntrarAsync(admin, "administrador@prueba.com");
+        var html = await admin.GetStringAsync("/Personal/Delete/" + idEmpleado);
+        var token = Regex.Match(html, "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value;
+        var baja = await admin.PostAsync("/Personal/Delete/" + idEmpleado,
+            new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token }));
+        Assert.Equal(HttpStatusCode.Redirect, baja.StatusCode);
+
+        var resp = await EntrarAsync(NuevoCliente(), correo);
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        Assert.Contains("Este usuario está desactivado.", await Texto(resp));
+    }
+
+    [Fact]
     public async Task AccesoDenegado_SeMuestraAlPersonal()
     {
         var cliente = NuevoCliente();

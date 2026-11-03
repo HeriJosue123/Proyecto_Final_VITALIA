@@ -321,4 +321,173 @@ public class PersonalTests : IClassFixture<FabricaResidentes>
         Assert.Contains("Nombre" + activo, html);
         Assert.DoesNotContain("Nombre" + inactivo, html);
     }
+
+    // ------------------------------------------------------------ arreglos #8 y #9
+
+    private int NuevoResidente() => Con(db =>
+    {
+        var r = new Residente
+        {
+            CodigoUnico = "B-" + Sufijo(), Nombre = "Julia", Apellido = "Ficticia", FechaNacimiento = new DateOnly(1941, 7, 7),
+            NumHabitacion = "105", ContactoEmergencia = "Contacto · 7000-0000", Estado = true
+        };
+        db.Add(r);
+        db.SaveChanges();
+        return r.IdResidente;
+    });
+
+    private int NuevaAsignacion(int idEmpleado, int idResidente, bool activa, DateTime? fin = null) => Con(db =>
+    {
+        var a = new AsignacionCuidado { IdEmpleado = idEmpleado, IdResidente = idResidente, FechaInicio = DateTime.Now.AddDays(-30), FechaFin = fin, Estado = activa };
+        db.Add(a);
+        db.SaveChanges();
+        return a.IdAsignacion;
+    });
+
+    private Task<HttpResponseMessage> DarDeBajaAsync(int id) =>
+        EnviarAsync("/Personal/Delete/" + id, "/Personal/Delete/" + id, new());
+
+    [Fact]
+    public async Task Baja_FinalizaSusAsignacionesActivas()
+    {
+        int id = NuevoEmpleado(Sufijo());
+        int r1 = NuevoResidente(), r2 = NuevoResidente();
+        int a1 = NuevaAsignacion(id, r1, activa: true);
+        int a2 = NuevaAsignacion(id, r2, activa: true);
+
+        var antes = DateTime.Now;
+        await DarDeBajaAsync(id);
+
+        foreach (var a in new[] { a1, a2 })
+        {
+            var asignacion = Con(db => db.AsignacionCuidados.Find(a)!);
+            Assert.False(asignacion.Estado);
+            Assert.NotNull(asignacion.FechaFin);
+            Assert.True(asignacion.FechaFin >= antes.AddSeconds(-1));
+        }
+    }
+
+    [Fact]
+    public async Task Baja_NoCambiaLasAsignacionesQueYaEstabanFinalizadas()
+    {
+        int id = NuevoEmpleado(Sufijo());
+        var finVieja = new DateTime(2025, 1, 15, 8, 0, 0);
+        int vieja = NuevaAsignacion(id, NuevoResidente(), activa: false, fin: finVieja);
+
+        await DarDeBajaAsync(id);
+
+        Assert.Equal(finVieja, Con(db => db.AsignacionCuidados.Find(vieja)!.FechaFin));
+    }
+
+    [Fact]
+    public async Task Baja_DesactivaSuCuenta()
+    {
+        int id = NuevoEmpleado(Sufijo());
+        int idUsuario = Con(db => db.Empleados.Find(id)!.IdUsuario);
+
+        var resp = await DarDeBajaAsync(id);
+
+        Assert.Equal(HttpStatusCode.Redirect, resp.StatusCode);
+        Assert.False(Con(db => db.Usuarios.Find(idUsuario)!.Estado));
+        Assert.False(Con(db => db.Empleados.Find(id)!.Estado));
+    }
+
+    [Fact]
+    public async Task Baja_ElResidenteYaPuedeRecibirOtroCuidador()
+    {
+        int saliente = NuevoEmpleado(Sufijo());
+        int nuevo = NuevoEmpleado(Sufijo());
+        int residente = NuevoResidente();
+        NuevaAsignacion(saliente, residente, activa: true);
+
+        await DarDeBajaAsync(saliente);
+        var resp = await EnviarAsync("/Personal/Asignar", "/Personal/Asignar", new()
+        {
+            ["IdEmpleado"] = nuevo.ToString(),
+            ["IdResidente"] = residente.ToString()
+        });
+
+        Assert.Equal(HttpStatusCode.Redirect, resp.StatusCode);
+        var activas = Con(db => db.AsignacionCuidados.Where(a => a.IdResidente == residente && a.Estado).Select(a => a.IdEmpleado).ToList());
+        Assert.Equal(new[] { nuevo }, activas);
+    }
+
+    [Fact]
+    public async Task Baja_MuestraElResumenEnLaLista()
+    {
+        string s = Sufijo();
+        int id = NuevoEmpleado(s);
+        NuevaAsignacion(id, NuevoResidente(), activa: true);
+
+        await DarDeBajaAsync(id);
+        var html = await Texto(await _client.GetAsync("/Personal"));
+
+        Assert.Contains("Nombre" + s + " Prueba fue dado de baja. Se finalizaron 1 asignación(es) y su cuenta quedó desactivada.", html);
+    }
+
+    [Fact]
+    public async Task Baja_DeSiMismo_NoSeHace()
+    {
+        // La sesión de prueba es la del usuario 1
+        int id = Con(db =>
+        {
+            var propio = db.Empleados.FirstOrDefault(e => e.IdUsuario == 1);
+            if (propio == null)
+            {
+                propio = new Empleado { IdUsuario = 1, Nombre = "Administrador", Apellido = "De Pruebas", Cargo = "Dirección", Estado = true };
+                db.Add(propio);
+            }
+            propio.Estado = true;
+            db.SaveChanges();
+            return propio.IdEmpleado;
+        });
+        bool cuentaAntes = Con(db => db.Usuarios.Find(1)!.Estado);
+
+        await DarDeBajaAsync(id);
+
+        Assert.True(Con(db => db.Empleados.Find(id)!.Estado));
+        Assert.Equal(cuentaAntes, Con(db => db.Usuarios.Find(1)!.Estado));
+        Assert.Contains("No puede darse de baja a sí mismo.", await Texto(await _client.GetAsync("/Personal")));
+    }
+
+    [Fact]
+    public async Task Edit_DeUnInactivo_NoLoReactiva()
+    {
+        string s = Sufijo();
+        int id = NuevoEmpleado(s, activo: false);
+        int idUsuario = Con(db => db.Empleados.Find(id)!.IdUsuario);
+
+        var resp = await EnviarAsync("/Personal/Edit/" + id, "/Personal/Edit/" + id, new()
+        {
+            ["IdEmpleado"] = id.ToString(),
+            ["IdUsuario"] = idUsuario.ToString(),
+            ["Nombre"] = "Corregido" + s,
+            ["Apellido"] = "Prueba",
+            ["Cargo"] = "Cuidador"
+        });
+
+        Assert.Equal(HttpStatusCode.Redirect, resp.StatusCode);
+        var empleado = Con(db => db.Empleados.Find(id)!);
+        Assert.Equal("Corregido" + s, empleado.Nombre); // el cambio sí se guarda
+        Assert.False(empleado.Estado);                   // pero sigue inactivo
+    }
+
+    [Fact]
+    public async Task Edit_DeUnActivo_SigueActivo()
+    {
+        string s = Sufijo();
+        int id = NuevoEmpleado(s);
+        int idUsuario = Con(db => db.Empleados.Find(id)!.IdUsuario);
+
+        await EnviarAsync("/Personal/Edit/" + id, "/Personal/Edit/" + id, new()
+        {
+            ["IdEmpleado"] = id.ToString(),
+            ["IdUsuario"] = idUsuario.ToString(),
+            ["Nombre"] = "Nombre" + s,
+            ["Apellido"] = "Prueba",
+            ["Cargo"] = "Enfermero"
+        });
+
+        Assert.True(Con(db => db.Empleados.Find(id)!.Estado));
+    }
 }

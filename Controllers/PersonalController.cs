@@ -179,7 +179,17 @@ namespace VITALIA.Controllers
             {
                 try
                 {
-                    empleado.Estado = true; // Mantenerlo activo
+                    // El estado no viene del formulario: se conserva el que tenía (editar no reactiva a un inactivo)
+                    bool? estadoActual = await _context.Empleados
+                        .Where(e => e.IdEmpleado == empleado.IdEmpleado)
+                        .Select(e => (bool?)e.Estado)
+                        .FirstOrDefaultAsync();
+                    if (estadoActual == null)
+                    {
+                        return NotFound();
+                    }
+
+                    empleado.Estado = estadoActual.Value;
                     _context.Update(empleado);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -231,13 +241,46 @@ namespace VITALIA.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var empleado = await _context.Empleados.FindAsync(id);
-            if (empleado != null)
+            var empleado = await _context.Empleados
+                .Include(e => e.IdUsuarioNavigation)
+                .Include(e => e.AsignacionCuidados)
+                .FirstOrDefaultAsync(e => e.IdEmpleado == id);
+            if (empleado == null)
             {
-                empleado.Estado = false; // Baja lógica
-                _context.Update(empleado);
-                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
+
+            // El administrador no puede darse de baja a sí mismo: se quedaría sin acceso al sistema
+            string? idUsuarioActual = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (idUsuarioActual == empleado.IdUsuario.ToString())
+            {
+                TempData["Error"] = "No puede darse de baja a sí mismo. Pídale a otro administrador que lo haga.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Baja lógica: el empleado, sus asignaciones y su historial se conservan
+            DateTime ahora = DateTime.Now;
+            empleado.Estado = false;
+
+            // Deja de atender a sus residentes (así se pueden asignar a otra persona)
+            var activas = empleado.AsignacionCuidados.Where(a => a.Estado).ToList();
+            foreach (var asignacion in activas)
+            {
+                asignacion.Estado = false;
+                asignacion.FechaFin = ahora;
+            }
+
+            // Y ya no puede entrar al sistema
+            if (empleado.IdUsuarioNavigation != null)
+            {
+                empleado.IdUsuarioNavigation.Estado = false;
+            }
+
+            await _context.SaveChangesAsync(); // todo junto: o se guarda todo o nada
+
+            TempData["Mensaje"] = $"{empleado.Nombre} {empleado.Apellido} fue dado de baja. " +
+                (activas.Count > 0 ? $"Se finalizaron {activas.Count} asignación(es) y " : "") +
+                "su cuenta quedó desactivada.";
             return RedirectToAction(nameof(Index));
         }
 
