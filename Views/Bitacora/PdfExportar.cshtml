@@ -3,77 +3,188 @@
 @{
     Layout = null;
 }
-
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Bitácora de Atenciones</title>
+    <title>Reporte de Bitácora de Atenciones</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            color: #333333;
-            margin: 20px;
-        }
-        h2 {
-            color: #14828a;
-            margin-bottom: 2px;
-        }
-        .subtitle {
-            color: #64748b;
-            font-size: 10px;
-            margin-bottom: 15px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid #cbd5e1;
-            padding: 6px 8px;
-            text-align: left;
-            vertical-align: middle;
-        }
-        th {
-            background-color: #f1f5f9;
-            color: #1e293b;
-            font-weight: bold;
-            font-size: 10px;
-            text-transform: uppercase;
-        }
-        td {
-            font-size: 10px;
-        }
-        .badge-tipo {
-            background-color: #e2e8f0;
-            color: #0f172a;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 9px;
-            display: inline-block;
-        }
-        .text-center {
-            text-align: center;
-        }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                color: #1e293b;
+                margin: 30px;
+                font-size: 13px;
+                line-height: 1.6;
+                background-color: #ffffff;
+            }
+
+            /* Encabezado limpio sin fondo (estilo abierto con barra lateral) */
+            .header-clean {
+                border-left: 6px solid #0a6c74;
+                padding-left: 15px;
+                margin-bottom: 30px;
+            }
+
+            .header-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: none !important;
+            }
+
+                .header-table td {
+                    border: none !important;
+                    padding: 0;
+                    vertical-align: middle;
+                }
+
+            .brand-title {
+                color: #0a6c74;
+                font-size: 32px;
+                font-weight: 700;
+                margin: 0;
+                letter-spacing: 0.8px;
+                line-height: 1;
+            }
+
+            .report-title {
+                font-size: 15px;
+                font-weight: 600;
+                color: #475569;
+                margin-top: 5px;
+                margin-bottom: 0;
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
+            }
+
+            .report-meta {
+                text-align: right;
+                font-size: 11px;
+                color: #64748b;
+                line-height: 1.5;
+            }
+
+                .report-meta span {
+                    color: #0f172a;
+                    font-weight: 600;
+                    font-size: 12px;
+                }
+
+            /* Estilos de la Tabla Principal */
+            table.data-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+                border: 1px solid #0a6c74;
+            }
+
+                table.data-table th {
+                    background-color: #0a6c74;
+                    color: #ffffff;
+                    text-align: left;
+                    padding: 11px 14px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    border: 1px solid #0a6c74;
+                    letter-spacing: 0.5px;
+                }
+
+                table.data-table td {
+                    padding: 12px 14px;
+                    border-bottom: 1px solid #cbd5e1;
+                    border-right: 1px solid #e2e8f0;
+                    vertical-align: middle;
+                    font-size: 13.5px;
+                    color: #1e293b;
+                }
+
+                    table.data-table td:last-child {
+                        border-right: none;
+                    }
+
+                /* Efecto cebra elegante */
+                table.data-table tr:nth-child(even) {
+                    background-color: #f8fafc;
+                }
+
+            /* Insignia estilizada para el tipo de atención */
+            .badge-tipo {
+                background-color: #e0f2fe;
+                color: #0369a1;
+                padding: 5px 10px;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 12px;
+                display: inline-block;
+                border: 1px solid #bae6fd;
+            }
+
+            /* Badges de estado profesionales */
+            .badge-estado-ok {
+                background-color: #dcfce7;
+                color: #166534;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-weight: bold;
+                font-size: 11px;
+                display: inline-block;
+                border: 1px solid #bbf7d0;
+            }
+
+            .badge-estado-no {
+                background-color: #fee2e2;
+                color: #991b1b;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-weight: bold;
+                font-size: 11px;
+                display: inline-block;
+                border: 1px solid #fecaca;
+            }
+
+            .text-center {
+                text-align: center;
+            }
+
+            /* Pie de página institucional */
+            .footer-note {
+                font-size: 11px;
+                color: #64748b;
+                border-top: 1px solid #94a3b8;
+                padding-top: 10px;
+                margin-top: 35px;
+                text-align: left;
+            }
     </style>
 </head>
 <body>
 
-    <h2>Reporte de Bitácora de Atenciones</h2>
-    <div class="subtitle">Generado el @DateTime.Now.ToString("dd/MM/yyyy HH:mm") hrs</div>
+    <!-- Encabezado limpio sin cuadrado de fondo -->
+    <div class="header-clean">
+        <table class="header-table">
+            <tr>
+                <td>
+                    <div class="brand-title">VITALIA</div>
+                    <div class="report-title">Reporte de Bitácora de Atenciones</div>
+                </td>
+                <td class="report-meta">
+                    <strong>Fecha de emisión:</strong><br />
+                    <span>@DateTime.Now.ToString("dd/MM/yyyy HH:mm") hrs</span>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-    <table>
+    <!-- Tabla de Datos Principal -->
+    <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 13%;">Fecha y Hora</th>
-                <th style="width: 18%;">Residente</th>
-                <th style="width: 15%;">Tipo de Atención</th>
-                <th style="width: 32%;">Observaciones</th>
+                <th style="width: 14%;">Fecha y Hora</th>
+                <th style="width: 19%;">Residente</th>
+                <th style="width: 16%;">Tipo de Atención</th>
+                <th style="width: 31%;">Observaciones</th>
                 <th style="width: 15%;">Empleado</th>
-                <th style="width: 7%;">Estado</th>
+                <th style="width: 5%;" class="text-center">Estado</th>
             </tr>
         </thead>
         <tbody>
@@ -81,6 +192,9 @@
             {
                 foreach (var item in Model)
                 {
+                    string estadoStr = string.IsNullOrEmpty(item.EstadoCumplimiento) ? "Completado" : item.EstadoCumplimiento;
+                    bool esCompletado = estadoStr.Equals("Completado", StringComparison.OrdinalIgnoreCase);
+
                     <tr>
                         <td>@item.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>@(item.IdResidenteNavigation != null ? $"{item.IdResidenteNavigation.Nombre} {item.IdResidenteNavigation.Apellido}" : "N/D")</td>
@@ -91,20 +205,34 @@
                         </td>
                         <td>@item.Observaciones</td>
                         <td>@(item.IdEmpleadoNavigation != null ? $"{item.IdEmpleadoNavigation.Nombre} {item.IdEmpleadoNavigation.Apellido}" : "N/D")</td>
-                        <td>@(string.IsNullOrEmpty(item.EstadoCumplimiento) ? "Completado" : item.EstadoCumplimiento)</td>
+                        <td class="text-center">
+                            @if (esCompletado)
+                            {
+                                <span class="badge-estado-ok">OK</span>
+                            }
+                            else
+                            {
+                                <span class="badge-estado-no">PND</span>
+                            }
+                        </td>
                     </tr>
                 }
             }
             else
             {
                 <tr>
-                    <td colspan="6" class="text-center" style="color: #64748b; padding: 20px;">
+                    <td colspan="6" class="text-center" style="color: #64748b; padding: 30px;">
                         No se encontraron registros con los filtros seleccionados.
                     </td>
                 </tr>
             }
         </tbody>
     </table>
+
+    <!-- Pie de página -->
+    <div class="footer-note">
+        Documento generado automáticamente desde VITALIA. Las atenciones anuladas no se incluyen.
+    </div>
 
 </body>
 </html>
