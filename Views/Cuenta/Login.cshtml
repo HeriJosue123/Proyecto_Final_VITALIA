@@ -318,7 +318,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* BOTÓN DE ENTRAR AL SISTEMA (Rediseñado con Animaciones Avanzadas) */
+        /* BOTÓN DE ENTRAR AL SISTEMA */
         .login-boton {
             position: relative;
             display: flex;
@@ -339,7 +339,6 @@
             overflow: hidden;
         }
 
-        /* Animación de destello metálico Shimmer al pasar el mouse */
         .login-boton::before {
             content: '';
             position: absolute;
@@ -516,9 +515,9 @@
                 <div class="login-grupo">
                     <label asp-for="Contrasena">Contraseña</label>
                     <div class="login-campo">
-                        <input asp-for="Contrasena" class="con-ojo" placeholder="Su contraseña" autocomplete="current-password" />
+                        <input asp-for="Contrasena" type="password" class="con-ojo" placeholder="Su contraseña" autocomplete="current-password" />
                         <button type="button" class="login-ojo" id="verContrasena" aria-label="Mostrar contraseña">
-                            <i class="bi bi-eye"></i>
+                            <i class="bi bi-eye-slash"></i>
                         </button>
                     </div>
                     <span asp-validation-for="Contrasena" class="login-error-campo"></span>
@@ -555,9 +554,14 @@
     <script>
         document.getElementById('verContrasena').addEventListener('click', function () {
             var campo = document.getElementById('Contrasena');
-            var mostrar = campo.type === 'password';
-            campo.type = mostrar ? 'text' : 'password';
-            this.querySelector('i').className = mostrar ? 'bi bi-eye-slash' : 'bi bi-eye';
+            var esPassword = campo.type === 'password';
+            
+            // Si estaba oculto (password), lo pasamos a texto; si no, lo volvemos password
+            campo.type = esPassword ? 'text' : 'password';
+            
+            // Cambiar el icono: 'bi-eye' cuando es texto (visible), 'bi-eye-slash' cuando es password (oculto)
+            var icono = this.querySelector('i');
+            icono.className = esPassword ? 'bi bi-eye' : 'bi bi-eye-slash';
         });
 
         document.getElementById('olvideContrasena').addEventListener('click', function () {
