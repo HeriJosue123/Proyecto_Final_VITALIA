@@ -9,277 +9,550 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Iniciar sesión - VITALIA</title>
     <partial name="_CuentaEstilos" />
-    @* Diseño basado en el formulario de Uiverse.io (Yaya12085), con los colores de VITALIA *@
+
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Congela la pantalla en 100vh sin scrollbar vertical ni horizontal */
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden !important;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #041114 0%, #082227 45%, #0c3339 75%, #051417 100%);
+            background-size: 300% 300%;
+            animation: gradientMove 16s ease infinite;
+            position: relative;
+        }
+
+        @@keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Luces ambientales sutiles */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.16;
+            pointer-events: none;
+            animation: orbFloat 10s infinite ease-in-out alternate;
+        }
+
+        .orb-teal {
+            width: 480px;
+            height: 480px;
+            background: #0d9488;
+            top: -120px;
+            left: -120px;
+        }
+
+        .orb-cyan {
+            width: 420px;
+            height: 420px;
+            background: #06b6d4;
+            bottom: -120px;
+            right: -120px;
+            animation-delay: -5s;
+        }
+
+        @@keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(35px, -30px) scale(1.08); }
+        }
+
+        /* Tarjeta Contenedora Principal (Ajustada al centro) */
+        .login-wrapper {
+            width: 90%;
+            max-width: 920px;
+            max-height: 90vh;
+            display: flex;
+            border-radius: 1.5rem;
+            background: rgba(10, 30, 36, 0.82);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 10;
+        }
+
+        @@keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* PANEL IZQUIERDO */
+        .login-arte {
+            flex: 1.1;
+            background: linear-gradient(160deg, rgba(13, 148, 136, 0.15) 0%, rgba(6, 19, 24, 0.75) 100%);
+            padding: 2.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+        }
+
+        .badge-plat {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.22);
+            color: #2dd4bf;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.35rem 0.85rem;
+            border-radius: 2rem;
+            margin-bottom: 1.25rem;
+            letter-spacing: 0.5px;
+        }
+
+        .svg-ancianito {
+            width: 200px;
+            height: 200px;
+            margin-bottom: 1.25rem;
+            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.4));
+            animation: floatAncianito 4s infinite ease-in-out;
+        }
+
+        @@keyframes floatAncianito {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-7px); }
+        }
+
+        .arte-titulo {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.3px;
+        }
+
+        .arte-descripcion {
+            font-size: 0.83rem;
+            color: #94a3b8;
+            line-height: 1.55;
+            max-width: 290px;
+        }
+
+        /* PANEL DERECHO: FORMULARIO */
         .login-tarjeta {
-            width: 100%;
-            max-width: 380px;
-            border-radius: 0.9rem;
-            background-color: #082b2e;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            padding: 2.25rem 2rem 1.75rem;
-            color: #f3f4f6;
+            flex: 1;
+            padding: 2.5rem 2.25rem;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .login-marca {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: .6rem;
-            font-size: 1.6rem;
-            font-weight: 700;
+            gap: 0.75rem;
+            font-size: 1.75rem;
+            font-weight: 800;
             color: #ffffff;
+            letter-spacing: 1.5px;
+        }
+
+        .cuenta-icono {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            background: rgba(20, 184, 166, 0.12);
+            border: 1px solid rgba(45, 212, 191, 0.25);
+            border-radius: 0.75rem;
         }
 
         .login-subtitulo {
             text-align: center;
-            font-size: .85rem;
-            color: #8fb3b5;
-            margin: .35rem 0 1.5rem;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin: 0.35rem 0 1.5rem;
         }
 
+        /* Estilo mejorado de Inputs */
         .login-grupo {
-            margin-bottom: 1rem;
-            font-size: .875rem;
+            margin-bottom: 1.1rem;
+            font-size: 0.875rem;
         }
 
-            .login-grupo label {
-                display: block;
-                color: #a3c2c4;
-                margin-bottom: 6px;
-                font-weight: 500;
-            }
+        .login-grupo label {
+            display: block;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.82rem;
+        }
 
         .login-campo {
             position: relative;
         }
 
-            .login-campo input {
-                width: 100%;
-                border-radius: .5rem;
-                border: 1px solid #1f4d50;
-                outline: 0;
-                background-color: #072326;
-                padding: .75rem 1rem;
-                color: #f3f4f6;
-                font-size: .9rem;
-                transition: border-color .2s ease, box-shadow .2s ease;
-            }
+        .login-campo input {
+            width: 100%;
+            border-radius: 0.7rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            outline: 0;
+            background-color: rgba(6, 20, 26, 0.65);
+            padding: 0.8rem 1rem;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-                .login-campo input::placeholder {
-                    color: #5c8b8e;
-                }
+        .login-campo input::placeholder {
+            color: #64748b;
+        }
 
-                .login-campo input:focus {
-                    border-color: #17a2a8;
-                    box-shadow: 0 0 0 3px rgba(23, 162, 168, .25);
-                }
+        .login-campo input:focus {
+            border-color: #2dd4bf;
+            background-color: rgba(6, 20, 26, 0.95);
+            box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.15);
+        }
 
-                .login-campo input.con-ojo {
-                    padding-right: 2.75rem;
-                }
+        .login-campo input.con-ojo {
+            padding-right: 2.8rem;
+        }
 
         .login-ojo {
             position: absolute;
             top: 50%;
-            right: .5rem;
+            right: 0.6rem;
             transform: translateY(-50%);
             border: none;
             background: transparent;
-            color: #8fb3b5;
-            padding: .25rem .4rem;
+            color: #94a3b8;
+            padding: 0.35rem 0.45rem;
+            cursor: pointer;
+            border-radius: 0.4rem;
+            transition: color 0.2s ease;
         }
 
-            .login-ojo:hover {
-                color: #ffffff;
-            }
+        .login-ojo:hover {
+            color: #2dd4bf;
+        }
 
         .login-error-campo {
             display: block;
-            color: #ff8a8a;
-            font-size: .78rem;
-            margin-top: 4px;
+            color: #f87171;
+            font-size: 0.78rem;
+            margin-top: 5px;
         }
 
         .login-opciones {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: .5rem;
-            font-size: .78rem;
-            color: #a3c2c4;
-            margin: .25rem 0 1.25rem;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            margin: 0.25rem 0 1.35rem;
         }
 
-            .login-opciones .form-check-input {
-                background-color: #072326;
-                border-color: #1f4d50;
-            }
+        .login-opciones .form-check-input {
+            background-color: rgba(6, 20, 26, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
 
-                .login-opciones .form-check-input:checked {
-                    background-color: #17a2a8;
-                    border-color: #17a2a8;
-                }
+        .login-opciones .form-check-input:checked {
+            background-color: #0d9488;
+            border-color: #2dd4bf;
+        }
 
         .login-enlace {
-            color: #f3f4f6;
+            color: #94a3b8;
             text-decoration: none;
             background: none;
             border: none;
             padding: 0;
-            font-size: .8rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
         }
 
-            .login-enlace:hover {
-                text-decoration: underline #17a2a8;
-                color: #ffffff;
-            }
+        .login-enlace:hover {
+            color: #2dd4bf;
+            text-decoration: underline;
+        }
 
         .login-ayuda {
             display: none;
-            font-size: .78rem;
-            color: #c9eef0;
-            background-color: rgba(23, 162, 168, .15);
-            border-radius: .5rem;
-            padding: .5rem .75rem;
-            margin: -.5rem 0 1rem;
+            font-size: 0.78rem;
+            color: #e0f2fe;
+            background-color: rgba(13, 148, 136, 0.18);
+            border-left: 3px solid #0d9488;
+            border-radius: 0.4rem;
+            padding: 0.65rem 0.85rem;
+            margin: -0.5rem 0 1.25rem;
+            animation: fadeIn 0.3s ease;
         }
 
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* BOTÓN DE ENTRAR AL SISTEMA (Rediseñado con Animaciones Avanzadas) */
         .login-boton {
-            display: block;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.65rem;
             width: 100%;
-            background-color: #17a2a8;
-            padding: .75rem;
-            text-align: center;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            border: 1px solid rgba(45, 212, 191, 0.35);
+            border-radius: 0.75rem;
             color: #ffffff;
-            border: none;
-            border-radius: .5rem;
-            font-weight: 600;
-            transition: background-color .2s ease, transform .2s ease;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(13, 148, 136, 0.28);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
         }
 
-            .login-boton:hover {
-                background-color: #12898e;
-                transform: translateY(-1px);
-            }
+        /* Animación de destello metálico Shimmer al pasar el mouse */
+        .login-boton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .login-boton:hover::before {
+            left: 100%;
+        }
+
+        .login-boton:hover {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            border-color: #2dd4bf;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(20, 184, 166, 0.45);
+        }
+
+        .login-boton:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+        }
+
+        .login-boton i {
+            font-size: 1.15rem;
+            transition: transform 0.3s ease;
+        }
+
+        .login-boton:hover i {
+            transform: translateX(4px);
+        }
 
         .login-error {
             display: flex;
             align-items: flex-start;
-            gap: .5rem;
-            background-color: rgba(220, 53, 69, .15);
-            border: 1px solid rgba(220, 53, 69, .45);
-            color: #ffb3b3;
-            border-radius: .5rem;
-            padding: .6rem .8rem;
-            font-size: .82rem;
-            margin-bottom: 1rem;
+            gap: 0.5rem;
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            border-radius: 0.6rem;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.82rem;
+            margin-bottom: 1.2rem;
         }
 
         .login-separador {
             display: flex;
             align-items: center;
-            padding-top: 1.25rem;
+            padding-top: 1.5rem;
         }
 
-            .login-separador .linea {
-                height: 1px;
-                flex: 1 1 0%;
-                background-color: #1f4d50;
-            }
+        .login-separador .linea {
+            height: 1px;
+            flex: 1 1 0%;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
 
-            .login-separador .mensaje {
-                padding: 0 .75rem;
-                font-size: .8rem;
-                color: #8fb3b5;
-                margin: 0;
-            }
-
-        .login-iconos {
-            display: flex;
-            justify-content: center;
-            gap: 1.25rem;
-            padding: .85rem 0 .5rem;
-            color: #5fc9cd;
-            font-size: 1.2rem;
+        .login-separador .mensaje {
+            padding: 0 0.85rem;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
         }
 
         .login-pie {
             text-align: center;
-            font-size: .75rem;
-            color: #8fb3b5;
-            margin: 0;
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 1rem;
+        }
+
+        @@media (max-width: 768px) {
+            .login-arte {
+                display: none;
+            }
+            .login-wrapper {
+                max-width: 420px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="login-tarjeta">
-        <div class="login-marca">
-            <div class="cuenta-icono"><i class="bi bi-suit-heart-fill"></i></div>
-            <span>VITALIA</span>
+    <!-- Luces de Fondo -->
+    <div class="glow-orb orb-teal"></div>
+    <div class="glow-orb orb-cyan"></div>
+
+    <div class="login-wrapper">
+        <!-- PANEL IZQUIERDO -->
+        <div class="login-arte">
+            <span class="badge-plat">
+                <i class="bi bi-shield-check"></i> Plataforma Vitalia
+            </span>
+
+            <svg class="svg-ancianito" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="100" r="90" fill="url(#haloGradient)" fill-opacity="0.2"/>
+                <circle cx="100" cy="100" r="88" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="6 6" stroke-opacity="0.5"/>
+
+                <circle cx="100" cy="85" r="24" fill="#f8fafc"/>
+                <path d="M76 82 C76 64, 124 64, 124 82 C120 70, 80 70, 76 82 Z" fill="#e2e8f0"/>
+                <path d="M80 72 C88 64, 112 64, 120 72 C114 67, 86 67, 80 72 Z" fill="#ffffff"/>
+
+                <circle cx="90" cy="86" r="6" stroke="#0f172a" stroke-width="2" fill="none"/>
+                <circle cx="110" cy="86" r="6" stroke="#0f172a" stroke-width="2" fill="none"/>
+                <line x1="96" y1="86" x2="104" y2="86" stroke="#0f172a" stroke-width="2"/>
+
+                <path d="M94 97 Q100 102 106 97" stroke="#0f172a" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <path d="M66 150 C66 120, 80 112, 100 112 C120 112, 134 120, 134 150" fill="#0d9488"/>
+                <path d="M90 112 L100 128 L110 112" fill="#ffffff"/>
+                <path d="M98 128 L100 148 L102 128 Z" fill="#0f766e"/>
+
+                <g transform="translate(132, 122)">
+                    <path d="M18 0 C28 0, 36 6, 36 16 C36 28, 18 38, 18 38 C18 38, 0 28, 0 16 C0 6, 8 0, 18 0 Z" fill="#0f172a" stroke="#0d9488" stroke-width="2"/>
+                    <path d="M18 10 C15 6, 10 6, 10 11 C10 16, 18 22, 18 22 C18 22, 26 16, 26 11 C26 6, 21 6, 18 10 Z" fill="#2dd4bf"/>
+                </g>
+
+                <circle cx="45" cy="55" r="3" fill="#0d9488"/>
+                <circle cx="160" cy="65" r="2" fill="#0d9488"/>
+                <circle cx="35" cy="135" r="2" fill="#0d9488"/>
+
+                <defs>
+                    <radialGradient id="haloGradient" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 100) rotate(90) scale(90)">
+                        <stop stop-color="#0d9488"/>
+                        <stop offset="1" stop-color="#061318" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+            </svg>
+
+            <h3 class="arte-titulo">Residencia VITALIA</h3>
+            <p class="arte-descripcion">Cuidado compasivo, seguimiento médico continuo y administración dedicada para nuestros adultos mayores.</p>
         </div>
-        <p class="login-subtitulo">Inicie sesión para continuar</p>
 
-        @* Errores generales (correo o contraseña incorrectos, usuario desactivado) *@
-        @foreach (var error in ViewData.ModelState[string.Empty]?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
-        {
-            <div class="login-error" role="alert">
-                <i class="bi bi-exclamation-triangle-fill"></i> <span>@error.ErrorMessage</span>
-            </div>
-        }
-
-        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
-            <div class="login-grupo">
-                <label asp-for="Correo">Correo electrónico</label>
-                <div class="login-campo">
-                    <input asp-for="Correo" placeholder="nombre@vitalia.com" autocomplete="username" autofocus />
+        <!-- PANEL DERECHO -->
+        <div class="login-tarjeta">
+            <div class="login-marca">
+                <div class="cuenta-icono">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#heartMatteGrad)"/>
+                        <path d="M6.5 12h3l1.5-3 2 6 1.5-3H17.5" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="heartMatteGrad" x1="2" y1="3" x2="22" y2="21" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#14b8a6"/>
+                                <stop offset="1" stop-color="#0f766e"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
                 </div>
-                <span asp-validation-for="Correo" class="login-error-campo"></span>
+                <span>VITALIA</span>
             </div>
+            <p class="login-subtitulo">Inicie sesión para continuar</p>
 
-            <div class="login-grupo">
-                <label asp-for="Contrasena">Contraseña</label>
-                <div class="login-campo">
-                    <input asp-for="Contrasena" class="con-ojo" placeholder="Su contraseña" autocomplete="current-password" />
-                    <button type="button" class="login-ojo" id="verContrasena" aria-label="Mostrar contraseña">
-                        <i class="bi bi-eye"></i>
-                    </button>
+            @foreach (var error in ViewData.ModelState[string.Empty]?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
+            {
+                <div class="login-error" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> <span>@error.ErrorMessage</span>
                 </div>
-                <span asp-validation-for="Contrasena" class="login-error-campo"></span>
-            </div>
+            }
 
-            <div class="login-opciones">
-                <div class="form-check m-0">
-                    <input asp-for="Recordarme" class="form-check-input" />
-                    <label asp-for="Recordarme" class="form-check-label">Mantener la sesión</label>
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
+                <div class="login-grupo">
+                    <label asp-for="Correo">Correo electrónico</label>
+                    <div class="login-campo">
+                        <input asp-for="Correo" placeholder="nombre@vitalia.com" autocomplete="username" autofocus />
+                    </div>
+                    <span asp-validation-for="Correo" class="login-error-campo"></span>
                 </div>
-                <button type="button" class="login-enlace" id="olvideContrasena">¿Olvidó su contraseña?</button>
-            </div>
-            <div class="login-ayuda" id="ayudaContrasena">
-                <i class="bi bi-info-circle me-1"></i> Pida al administrador del sistema que le asigne una nueva contraseña.
+
+                <div class="login-grupo">
+                    <label asp-for="Contrasena">Contraseña</label>
+                    <div class="login-campo">
+                        <input asp-for="Contrasena" class="con-ojo" placeholder="Su contraseña" autocomplete="current-password" />
+                        <button type="button" class="login-ojo" id="verContrasena" aria-label="Mostrar contraseña">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Contrasena" class="login-error-campo"></span>
+                </div>
+
+                <div class="login-opciones">
+                    <div class="form-check m-0">
+                        <input asp-for="Recordarme" class="form-check-input" />
+                        <label asp-for="Recordarme" class="form-check-label">Mantener la sesión</label>
+                    </div>
+                    <button type="button" class="login-enlace" id="olvideContrasena">¿Olvidó su contraseña?</button>
+                </div>
+
+                <div class="login-ayuda" id="ayudaContrasena">
+                    <i class="bi bi-info-circle me-1"></i> Pida al administrador del sistema que le asigne una nueva contraseña.
+                </div>
+
+                <button type="submit" class="login-boton">
+                    <span>Entrar al Sistema</span>
+                    <i class="bi bi-box-arrow-in-right"></i>
+                </button>
+            </form>
+
+            <div class="login-separador">
+                <div class="linea"></div>
+                <p class="mensaje">Atención Integral</p>
+                <div class="linea"></div>
             </div>
 
-            <button type="submit" class="login-boton">
-                <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
-            </button>
-        </form>
-
-        <div class="login-separador">
-            <div class="linea"></div>
-            <p class="mensaje">Cuidado de adultos mayores</p>
-            <div class="linea"></div>
+            <p class="login-pie">¿No tiene cuenta? Solicítela al administrador.</p>
         </div>
-        <div class="login-iconos" aria-hidden="true">
-            <i class="bi bi-people-fill" title="Residentes"></i>
-            <i class="bi bi-journal-medical" title="Bitácora"></i>
-            <i class="bi bi-bell-fill" title="Alertas"></i>
-        </div>
-        <p class="login-pie">¿No tiene cuenta? Solicítela al administrador.</p>
     </div>
 
     <script>
-        // Botón del ojo: muestra u oculta la contraseña
         document.getElementById('verContrasena').addEventListener('click', function () {
             var campo = document.getElementById('Contrasena');
             var mostrar = campo.type === 'password';
@@ -287,7 +560,6 @@
             this.querySelector('i').className = mostrar ? 'bi bi-eye-slash' : 'bi bi-eye';
         });
 
-        // "¿Olvidó su contraseña?": muestra u oculta el aviso
         document.getElementById('olvideContrasena').addEventListener('click', function () {
             var ayuda = document.getElementById('ayudaContrasena');
             ayuda.style.display = ayuda.style.display === 'block' ? 'none' : 'block';
