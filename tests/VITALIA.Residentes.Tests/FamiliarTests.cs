@@ -137,6 +137,34 @@ public class FamiliarTests : IClassFixture<FabricaLogin>
     }
 
     [Fact]
+    public async Task ExportarPdf_DeSuResidente_DescargaUnPdf()
+    {
+        var d = CrearDatos();
+        var cliente = await EntrarAsync(d.CorreoFamiliar);
+
+        var resp = await cliente.GetAsync("/Familiar/ExportarPdf/" + d.Propio);
+
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        Assert.Equal("application/pdf", resp.Content.Headers.ContentType?.MediaType);
+        var bytes = await resp.Content.ReadAsByteArrayAsync();
+        Assert.True(bytes.Length > 1000);
+        Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(bytes, 0, 4));
+        Assert.StartsWith("Historial_F-M", resp.Content.Headers.ContentDisposition?.FileNameStar ?? resp.Content.Headers.ContentDisposition?.FileName?.Trim('"'));
+    }
+
+    [Fact]
+    public async Task ExportarPdf_DeOtroResidente_DaAccesoDenegado()
+    {
+        var d = CrearDatos();
+        var cliente = await EntrarAsync(d.CorreoFamiliar);
+
+        var resp = await cliente.GetAsync("/Familiar/ExportarPdf/" + d.Ajeno);
+
+        Assert.Equal(HttpStatusCode.Redirect, resp.StatusCode);
+        Assert.StartsWith("/Cuenta/AccesoDenegado", resp.Headers.Location!.PathAndQuery);
+    }
+
+    [Fact]
     public async Task FamiliarSinResidente_VeAviso()
     {
         var d = CrearDatos();

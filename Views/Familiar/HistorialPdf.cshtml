@@ -1,0 +1,147 @@
+@model VITALIA.Models.ViewModels.FamiliarFichaViewModel
+@{
+    Layout = null;
+    var r = Model.Residente;
+    var diasBitacora = Model.Atenciones.GroupBy(a => a.FechaHora.Date);
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Historial de @r.Nombre @r.Apellido</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 11px; color: #333333; margin: 18px; }
+        .cabecera { border-bottom: 3px solid #14828a; padding-bottom: 8px; margin-bottom: 14px; }
+        .marca { color: #14828a; font-size: 18px; font-weight: bold; }
+        h1 { font-size: 20px; margin: 4px 0 2px 0; color: #093437; }
+        .sub { color: #64748b; font-size: 10px; }
+        h2 { font-size: 13px; color: #14828a; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin: 16px 0 8px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #14828a; color: #ffffff; text-align: left; padding: 6px; font-size: 10px; }
+        td { padding: 5px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        tr:nth-child(even) td { background-color: #f8fafc; }
+        .datos td { border: none; padding: 3px 6px; background: none !important; }
+        .etiqueta { color: #64748b; font-size: 9px; text-transform: uppercase; width: 22%; }
+        .dia { background-color: #e8f4f5; color: #093437; font-weight: bold; padding: 4px 6px; margin-top: 8px; }
+        .muted { color: #94a3b8; }
+        .corregido { color: #b45309; font-size: 10px; }
+        .pie { margin-top: 18px; font-size: 9px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 6px; }
+    </style>
+</head>
+<body>
+    <div class="cabecera">
+        <div class="marca">VITALIA</div>
+        <h1>Historial de @r.Nombre @r.Apellido</h1>
+        <div class="sub">
+            @r.CodigoUnico · @Model.Edad años · Habitación @r.NumHabitacion ·
+            Generado el @DateTime.Now.ToString("dd/MM/yyyy HH:mm") por @ViewData["GeneradoPor"] (@Model.Parentesco.ToLower())
+        </div>
+    </div>
+
+    <h2>Datos generales y salud</h2>
+    <table class="datos">
+        <tr>
+            <td class="etiqueta">Nacimiento</td><td>@r.FechaNacimiento.ToString("dd/MM/yyyy")</td>
+            <td class="etiqueta">Tipo de sangre</td><td>@(r.TipoSangre ?? "No registrado")</td>
+        </tr>
+        <tr>
+            <td class="etiqueta">Alergias</td><td>@(string.IsNullOrWhiteSpace(r.Alergias) ? "Ninguna registrada" : r.Alergias)</td>
+            <td class="etiqueta">Contacto de emergencia</td><td>@r.ContactoEmergencia</td>
+        </tr>
+        <tr>
+            <td class="etiqueta">Antecedentes</td>
+            <td colspan="3">@(string.IsNullOrWhiteSpace(r.Observaciones) ? "Sin observaciones" : r.Observaciones)</td>
+        </tr>
+    </table>
+
+    <h2>Personal que lo atiende</h2>
+    @if (Model.Equipo.Any())
+    {
+        <table>
+            <tr><th>Nombre</th><th>Cargo</th><th>Tipo</th><th>Desde</th></tr>
+            @foreach (var e in Model.Equipo)
+            {
+                <tr><td>@e.Nombre</td><td>@e.Cargo</td><td>@e.Tipo</td><td>@e.Desde.ToString("dd/MM/yyyy")</td></tr>
+            }
+        </table>
+    }
+    else
+    {
+        <p class="muted">Todavía no tiene personal asignado.</p>
+    }
+
+    <h2>Alertas y tareas</h2>
+    @if (Model.AlertasActivas.Any() || Model.AlertasAtendidas.Any())
+    {
+        <table>
+            <tr><th>Fecha</th><th>Alerta</th><th>Prioridad</th><th>Estado</th><th>Responsable</th></tr>
+            @foreach (var a in Model.AlertasActivas.Concat(Model.AlertasAtendidas))
+            {
+                <tr>
+                    <td>@a.FechaProgramada.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td><strong>@a.Titulo</strong><br /><span class="muted">@a.Descripcion</span></td>
+                    <td>@a.Prioridad</td>
+                    <td>@a.Estado</td>
+                    <td>@(a.Responsable ?? "-")</td>
+                </tr>
+            }
+        </table>
+    }
+    else
+    {
+        <p class="muted">No tiene alertas registradas.</p>
+    }
+
+    @if (Model.MedicamentosDisponibles && Model.Medicamentos.Any())
+    {
+        <h2>Medicamentos que recibe</h2>
+        <table>
+            <tr><th>Fecha</th><th>Medicamento</th><th>Cantidad</th><th>Entregado por</th></tr>
+            @foreach (var m in Model.Medicamentos)
+            {
+                <tr>
+                    <td>@m.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@m.Medicamento @(string.IsNullOrWhiteSpace(m.Presentacion) ? "" : $"({m.Presentacion})")</td>
+                    <td>@m.Cantidad</td>
+                    <td>@m.EntregadoPor</td>
+                </tr>
+            }
+        </table>
+    }
+
+    <h2>Bitácora de atenciones</h2>
+    @if (Model.Atenciones.Any())
+    {
+        foreach (var dia in diasBitacora)
+        {
+            <div class="dia">@dia.Key.ToString("dddd dd 'de' MMMM yyyy")</div>
+            <table>
+                @foreach (var a in dia)
+                {
+                    <tr>
+                        <td style="width: 9%;">@a.FechaHora.ToString("HH:mm")</td>
+                        <td style="width: 18%;"><strong>@a.Tipo</strong></td>
+                        <td>
+                            @a.Observaciones
+                            @if (a.MotivoCorreccion != null)
+                            {
+                                <br /><span class="corregido">Registro corregido: @a.MotivoCorreccion</span>
+                            }
+                        </td>
+                        <td style="width: 20%;" class="muted">@a.AtendidoPor</td>
+                    </tr>
+                }
+            </table>
+        }
+    }
+    else
+    {
+        <p class="muted">Todavía no hay atenciones registradas.</p>
+    }
+
+    <div class="pie">
+        Documento de solo lectura generado desde VITALIA para el familiar vinculado al residente.
+        Las atenciones anuladas no se incluyen.
+    </div>
+</body>
+</html>

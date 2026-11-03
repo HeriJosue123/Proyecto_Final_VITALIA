@@ -28,7 +28,13 @@
             <p class="text-muted mb-0">@r.CodigoUnico · @Model.Edad años · Hab. @r.NumHabitacion · Usted es su @Model.Parentesco.ToLower()</p>
         </div>
     </div>
-    <a asp-action="Index" class="btn text-nowrap">← Volver</a>
+    <div class="d-flex gap-2">
+        @* UC-11: exportar el historial del residente a PDF *@
+        <a asp-action="ExportarPdf" asp-route-id="@r.IdResidente" class="btn text-nowrap">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Descargar historial en PDF
+        </a>
+        <a asp-action="Index" class="btn text-nowrap">← Volver</a>
+    </div>
 </div>
 
 <div class="alert alert-light border small rounded-3 mb-4">

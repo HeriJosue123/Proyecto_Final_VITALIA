@@ -70,6 +70,33 @@ namespace VITALIA.Controllers
         // GET: Familiar/Residente/5
         public async Task<IActionResult> Residente(int id)
         {
+            var modelo = await ArmarFichaAsync(id);
+            if (modelo == null) return Forbid();
+            return View(modelo);
+        }
+
+        // GET: Familiar/ExportarPdf/5  (UC-11: Exportar historial a PDF)
+        public async Task<IActionResult> ExportarPdf(int id)
+        {
+            var modelo = await ArmarFichaAsync(id);
+            if (modelo == null) return Forbid();
+
+            ViewData["GeneradoPor"] = User.Identity?.Name;
+            return new Rotativa.AspNetCore.ViewAsPdf("HistorialPdf", modelo)
+            {
+                FileName = $"Historial_{modelo.Residente.CodigoUnico}_{DateTime.Now:yyyyMMdd_HHmm}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                CustomSwitches = "--footer-center \"[page] / [topage]\" --footer-font-size 8"
+            };
+        }
+
+        /// <summary>
+        /// Datos de la ficha del residente para la página y para el PDF.
+        /// Devuelve null si el residente no está vinculado al familiar que inició sesión.
+        /// </summary>
+        private async Task<FamiliarFichaViewModel?> ArmarFichaAsync(int id)
+        {
             // Solo puede ver a los residentes que tiene vinculados
             var vinculo = await _context.FamiliarResidentes
                 .Include(f => f.IdResidenteNavigation)
@@ -77,7 +104,7 @@ namespace VITALIA.Controllers
 
             if (vinculo == null)
             {
-                return Forbid();
+                return null;
             }
 
             var equipo = await _context.AsignacionCuidados
@@ -171,7 +198,7 @@ namespace VITALIA.Controllers
                 MedicamentosDisponibles = medicamentosDisponibles
             };
 
-            return View(modelo);
+            return modelo;
         }
     }
 }
