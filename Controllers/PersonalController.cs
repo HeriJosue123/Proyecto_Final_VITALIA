@@ -24,9 +24,9 @@ namespace VITALIA.Controllers
         // GET: Personal
         public async Task<IActionResult> Index()
         {
+            // Van también los inactivos: la vista muestra solo los activos hasta que se elija "Inactivos" en el filtro
             var empleados = await _context.Empleados
                 .Include(e => e.IdUsuarioNavigation)
-                .Where(e => e.Estado == true)
                 .OrderBy(e => e.Apellido)
                 .ToListAsync();
 

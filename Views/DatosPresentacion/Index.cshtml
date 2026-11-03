@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Datos de presentación";
+}
+
+<div class="vitalia-banner mb-4 animate-fade-up">
+    <h2 class="mb-1 fw-bold text-white">Datos de presentación</h2>
+    <p class="mb-0 text-white-50">Llena todo el sistema con la misma información para todo el grupo. Se hace una sola vez.</p>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4">
+        <i class="bi bi-x-octagon-fill me-2"></i> @TempData["Error"]
+    </div>
+}
+
+<div class="vitalia-card-pro p-4">
+    <h5 class="fw-bold mb-3" style="color: #14828a;"><i class="bi bi-box-seam me-2"></i>Qué se carga</h5>
+    <ul class="list-unstyled mb-4">
+        <li class="mb-2"><i class="bi bi-people-fill me-2" style="color: #14828a;"></i><strong>16 residentes</strong> con sus datos de salud, antecedentes, alergias y contacto de emergencia (uno de ellos ya dado de baja).</li>
+        <li class="mb-2"><i class="bi bi-person-badge-fill me-2" style="color: #14828a;"></i><strong>11 personas del personal</strong>: médicos, enfermería, cuidadores y dirección, con su cuenta (una ya no trabaja en el hogar).</li>
+        <li class="mb-2"><i class="bi bi-diagram-3-fill me-2" style="color: #14828a;"></i><strong>Asignaciones</strong>: cada residente con su médico y su cuidador, y algunos cambios de cuidador anteriores.</li>
+        <li class="mb-2"><i class="bi bi-house-heart-fill me-2" style="color: #14828a;"></i><strong>10 familiares</strong> vinculados a sus residentes.</li>
+        <li class="mb-2"><i class="bi bi-journal-text me-2" style="color: #14828a;"></i><strong>Bitácora de dos semanas</strong>: alimentación, medicación, signos vitales, higiene y más, con algunas correcciones y anulaciones.</li>
+        <li class="mb-2"><i class="bi bi-bell-fill me-2" style="color: #14828a;"></i><strong>Alertas</strong> urgentes, programadas y de rutina, en sus tres estados y con su historial.</li>
+        <li class="mb-2"><i class="bi bi-capsule me-2" style="color: #14828a;"></i><strong>16 medicamentos</strong> con lotes (vencido, por vencer, poco stock, agotado y uno descontinuado) y las entregas de la última semana.</li>
+    </ul>
+    <p class="small text-muted mb-4">
+        No se toca nada de lo que ya existe en la base. Las fechas se arman a partir del momento en que se cargan,
+        para que todo se vea reciente. Todas las cuentas usan la contraseña por defecto de VITALIA (la que se comparte en el grupo).
+        <strong>Al terminar, esta opción desaparece del menú.</strong>
+    </p>
+
+    <form asp-action="Cargar" method="post" class="m-0"
+          onsubmit="this.querySelector('button').disabled = true; this.querySelector('button').innerHTML = 'Cargando, espere unos segundos...';">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn text-white px-4 rounded-pill fw-semibold" style="background-color: #14828a;">
+            <i class="bi bi-cloud-download-fill me-2"></i>Cargar datos de presentación
+        </button>
+    </form>
+</div>

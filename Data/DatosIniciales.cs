@@ -12,7 +12,7 @@ public static class DatosIniciales
 {
     // Contraseña de los usuarios por defecto, ya encriptada con BCrypt.
     // La contraseña real no se guarda en el código: la comparte el administrador del grupo.
-    private const string ContrasenaPorDefectoHash = "$2a$11$FGhrMII8HZBBuCwT3EiJledvKKam0SCQbqYG97U47SIKBbfHBJDVy";
+    internal const string ContrasenaPorDefectoHash = "$2a$11$FGhrMII8HZBBuCwT3EiJledvKKam0SCQbqYG97U47SIKBbfHBJDVy";
 
     private static readonly (string Nombre, string Descripcion)[] Roles =
     {
