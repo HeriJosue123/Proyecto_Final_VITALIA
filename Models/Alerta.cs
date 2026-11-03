@@ -27,6 +27,13 @@ public partial class Alerta
     [Column("id_empleado_responsable")]
     public int? IdEmpleadoResponsable { get; set; }
 
+    // [NotMapped] evita el error SqlException al consultar columnas que no existen en la BD
+    [NotMapped]
+    public int? IdMedicamento { get; set; }
+
+    [NotMapped]
+    public string? Dosis { get; set; }
+
     public virtual ICollection<HistorialEstadoAlerta> HistorialEstadoAlerta { get; set; } = new List<HistorialEstadoAlerta>();
 
     // Única propiedad de navegación para el responsable

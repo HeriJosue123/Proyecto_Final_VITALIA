@@ -115,10 +115,16 @@ public class AlertasController : Controller
     // GET: Alertas/Create
     public async Task<IActionResult> Create()
     {
+        var usuarioActual = await ObtenerUsuarioActualAsync();
+
+        // Verifica si el usuario actual tiene rol de Médico
+        bool esMedico = (usuarioActual?.IdRolNavigation?.NombreRol?.Contains("Médico") ?? false) || User.IsInRole("Médico");
+
         var modelo = new AlertaFormViewModel
         {
             Prioridad = AlertaPrioridades.Rutina,
-            FechaProgramada = DateTime.Now
+            FechaProgramada = DateTime.Now,
+            EsMedico = esMedico
         };
 
         await CargarListasFormularioAsync(modelo);
@@ -133,6 +139,9 @@ public class AlertasController : Controller
         modelo.Titulo = modelo.Titulo?.Trim() ?? string.Empty;
         modelo.Descripcion = modelo.Descripcion?.Trim() ?? string.Empty;
 
+        var usuarioActual = await ObtenerUsuarioActualAsync();
+        modelo.EsMedico = (usuarioActual?.IdRolNavigation?.NombreRol?.Contains("Médico") ?? false) || User.IsInRole("Médico");
+
         await ValidarReglasAsync(modelo, esEdicion: false, empleadoOriginal: null);
 
         if (!ModelState.IsValid)
@@ -141,24 +150,38 @@ public class AlertasController : Controller
             return View(modelo);
         }
 
-        var usuario = await ObtenerUsuarioActualAsync();
-        if (usuario == null)
+        if (usuarioActual == null)
         {
             ModelState.AddModelError(string.Empty, "No hay un usuario activo en el sistema para registrar la alerta.");
             await CargarListasFormularioAsync(modelo);
             return View(modelo);
         }
 
+        // Si es médico y seleccionó un medicamento, se adjunta la prescripción médica al texto de la descripción
+        string descripcionFinal = modelo.Descripcion;
+        if (modelo.EsMedico && modelo.IdMedicamento.HasValue)
+        {
+            var med = await _context.Medicamentos.FindAsync(modelo.IdMedicamento.Value);
+            if (med != null)
+            {
+                string dosisTexto = string.IsNullOrWhiteSpace(modelo.Dosis) ? "Sin dosis especificada" : modelo.Dosis;
+                descripcionFinal += $"\n\n[PRESCRIPCIÓN MÉDICA: {med.Nombre} ({med.Presentacion}) - Dosis: {dosisTexto}]";
+            }
+        }
+
         var alerta = new Alerta
         {
             IdResidente = modelo.IdResidente!.Value,
-            IdUsuarioCreador = usuario.IdUsuario,
+            IdUsuarioCreador = usuarioActual.IdUsuario,
             Titulo = modelo.Titulo,
-            Descripcion = modelo.Descripcion,
+            Descripcion = descripcionFinal,
             Prioridad = modelo.Prioridad,
             FechaProgramada = modelo.FechaProgramada!.Value,
             EstadoActual = AlertaEstados.Pendiente,
-            IdEmpleadoResponsable = modelo.IdEmpleadoResponsable
+            IdEmpleadoResponsable = modelo.IdEmpleadoResponsable,
+            // Guardamos las propiedades [NotMapped] en el objeto de la alerta
+            IdMedicamento = modelo.EsMedico ? modelo.IdMedicamento : null,
+            Dosis = modelo.EsMedico ? modelo.Dosis : null
         };
 
         try
@@ -195,6 +218,9 @@ public class AlertasController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        var usuarioActual = await ObtenerUsuarioActualAsync();
+        bool esMedico = (usuarioActual?.IdRolNavigation?.NombreRol?.Contains("Médico") ?? false) || User.IsInRole("Médico");
+
         var modelo = new AlertaFormViewModel
         {
             IdAlerta = alerta.IdAlerta,
@@ -205,7 +231,10 @@ public class AlertasController : Controller
             Prioridad = alerta.Prioridad,
             FechaProgramada = alerta.FechaProgramada,
             IdEmpleadoResponsable = alerta.IdEmpleadoResponsable,
-            Estado = alerta.EstadoActual
+            Estado = alerta.EstadoActual,
+            IdMedicamento = alerta.IdMedicamento,
+            Dosis = alerta.Dosis,
+            EsMedico = esMedico
         };
 
         await CargarListasFormularioAsync(modelo);
@@ -231,7 +260,9 @@ public class AlertasController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        // El residente y el estado no se editan aquí: se toman siempre de la base de datos.
+        var usuarioActual = await ObtenerUsuarioActualAsync();
+        modelo.EsMedico = (usuarioActual?.IdRolNavigation?.NombreRol?.Contains("Médico") ?? false) || User.IsInRole("Médico");
+
         modelo.IdResidente = alerta.IdResidente;
         ModelState.Remove(nameof(AlertaFormViewModel.IdResidente));
         modelo.ResidenteTexto = $"{alerta.IdResidenteNavigation.CodigoUnico} · {alerta.IdResidenteNavigation.Nombre} {alerta.IdResidenteNavigation.Apellido}";
@@ -253,6 +284,12 @@ public class AlertasController : Controller
         alerta.Prioridad = modelo.Prioridad;
         alerta.FechaProgramada = modelo.FechaProgramada!.Value;
         alerta.IdEmpleadoResponsable = modelo.IdEmpleadoResponsable;
+
+        if (modelo.EsMedico)
+        {
+            alerta.IdMedicamento = modelo.IdMedicamento;
+            alerta.Dosis = modelo.Dosis;
+        }
 
         try
         {
@@ -288,7 +325,6 @@ public class AlertasController : Controller
         var alerta = await _context.Alerta.FirstOrDefaultAsync(a => a.IdAlerta == id);
         if (alerta == null) return NotFound();
 
-        // Opción A: solo se elimina una alerta Pendiente y sin historial.
         var tieneHistorial = await _context.HistorialEstadoAlerta.AnyAsync(h => h.IdAlerta == id);
         if (alerta.EstadoActual != AlertaEstados.Pendiente || tieneHistorial)
         {
@@ -311,6 +347,7 @@ public class AlertasController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // POST: Alertas/CambiarEstado
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CambiarEstado(int id, string? estadoEsperado)
@@ -344,6 +381,48 @@ public class AlertasController : Controller
         var anterior = alerta.EstadoActual;
         alerta.EstadoActual = siguiente;
 
+        // DEDUCCIÓN AUTOMÁTICA DE STOCK DE FARMACIA (FIFO / FEFO)
+        // Se ejecuta cuando la alerta pasa a estado 'Atendida'
+        if (siguiente == AlertaEstados.Atendida)
+        {
+            int? idMedicamentoRecetado = alerta.IdMedicamento;
+
+            // Si IdMedicamento venía nulo en el objeto pero fue creado por un médico, extraemos el ID desde la lista activa
+            if (!idMedicamentoRecetado.HasValue && alerta.Descripcion.Contains("[PRESCRIPCIÓN MÉDICA:"))
+            {
+                // Extraemos el nombre del medicamento entre corchetes
+                var inicio = alerta.Descripcion.IndexOf("[PRESCRIPCIÓN MÉDICA:") + "[PRESCRIPCIÓN MÉDICA:".Length;
+                var fin = alerta.Descripcion.IndexOf("(", inicio);
+                if (inicio > 0 && fin > inicio)
+                {
+                    string nombreMed = alerta.Descripcion.Substring(inicio, fin - inicio).Trim();
+                    var medEncontrado = await _context.Medicamentos
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(m => m.Nombre.Contains(nombreMed));
+
+                    if (medEncontrado != null)
+                    {
+                        idMedicamentoRecetado = medEncontrado.IdMedicamento;
+                    }
+                }
+            }
+
+            if (idMedicamentoRecetado.HasValue)
+            {
+                // Buscamos el lote del medicamento con stock disponible ordenado por fecha de vencimiento más cercana
+                var loteDisponible = await _context.LoteMedicamentos
+                    .Where(l => l.IdMedicamento == idMedicamentoRecetado.Value && l.Stock > 0)
+                    .OrderBy(l => l.FechaVencimiento)
+                    .FirstOrDefaultAsync();
+
+                if (loteDisponible != null)
+                {
+                    loteDisponible.Stock -= 1;
+                    _context.Update(loteDisponible);
+                }
+            }
+        }
+
         _context.HistorialEstadoAlerta.Add(new HistorialEstadoAlerta
         {
             IdAlerta = alerta.IdAlerta,
@@ -369,16 +448,9 @@ public class AlertasController : Controller
 
     private async Task<Usuario?> ObtenerUsuarioActualAsync()
     {
-        var admin = await _context.Usuarios
-            .AsNoTracking()
-            .Where(u => u.Estado && u.IdRolNavigation.NombreRol == "Administrador")
-            .OrderBy(u => u.IdUsuario)
-            .FirstOrDefaultAsync();
-
-        if (admin != null) return admin;
-
         return await _context.Usuarios
             .AsNoTracking()
+            .Include(u => u.IdRolNavigation)
             .Where(u => u.Estado)
             .OrderBy(u => u.IdUsuario)
             .FirstOrDefaultAsync();
@@ -414,7 +486,6 @@ public class AlertasController : Controller
         if (!string.IsNullOrWhiteSpace(modelo.Prioridad) && !AlertaPrioridades.Todas.Contains(modelo.Prioridad))
             ModelState.AddModelError(nameof(modelo.Prioridad), "Seleccione una prioridad: Urgente, Programada o Rutina.");
 
-        // En Edit el residente no cambia, así que solo se valida al crear.
         if (!esEdicion && modelo.IdResidente.HasValue)
         {
             var residenteValido = await _context.Residentes
@@ -423,7 +494,6 @@ public class AlertasController : Controller
                 ModelState.AddModelError(nameof(modelo.IdResidente), "Seleccione un residente activo.");
         }
 
-        // Si el responsable no cambió, se respeta aunque ya esté inactivo.
         if (modelo.IdEmpleadoResponsable.HasValue && modelo.IdEmpleadoResponsable != empleadoOriginal)
         {
             var empleadoValido = await _context.Empleados
@@ -456,6 +526,21 @@ public class AlertasController : Controller
                 Text = e.Nombre + " " + e.Apellido + " (" + e.Cargo + ")"
             })
             .ToListAsync();
+
+        // Cargar catálogo de medicamentos activos si el usuario activo es Médico
+        if (modelo.EsMedico)
+        {
+            modelo.Medicamentos = await _context.Medicamentos
+                .AsNoTracking()
+                .Where(m => m.Estado)
+                .OrderBy(m => m.Nombre)
+                .Select(m => new SelectListItem
+                {
+                    Value = m.IdMedicamento.ToString(),
+                    Text = m.Nombre + " (" + m.Presentacion + ") - " + m.Codigo
+                })
+                .ToListAsync();
+        }
     }
 
     private async Task<AlertaDetalleViewModel?> ConstruirDetalleAsync(int id)
