@@ -422,6 +422,7 @@
                 max-width: calc(100vw - 24px);
                 max-height: calc(100vh - 36px);
                 overflow-y: auto;
+                overscroll-behavior: contain;
                 background: #ffffff;
                 border-radius: 22px;
                 box-shadow: 0 24px 60px rgba(9, 52, 55, 0.28), 0 4px 14px rgba(9, 52, 55, 0.12);
@@ -942,7 +943,16 @@
             const fondo = document.getElementById("perfilFondo");
             if (!caja || !disparador || !tarjeta || !fondo) return;
 
+            // Mientras la tarjeta está abierta la página de atrás no se mueve
+            // (se reserva el ancho de la barra de desplazamiento para que nada brinque)
+            function bloquearPagina(bloquear) {
+                const barra = window.innerWidth - document.documentElement.clientWidth;
+                document.body.style.overflow = bloquear ? "hidden" : "";
+                document.body.style.paddingRight = bloquear && barra > 0 ? barra + "px" : "";
+            }
+
             function abrir() {
+                bloquearPagina(true);
                 tarjeta.hidden = false;
                 fondo.hidden = false;
                 requestAnimationFrame(() => { tarjeta.classList.add("visible"); fondo.classList.add("visible"); });
@@ -957,6 +967,7 @@
                 fondo.classList.remove("visible");
                 caja.classList.remove("abierto");
                 disparador.setAttribute("aria-expanded", "false");
+                bloquearPagina(false);
                 setTimeout(() => { tarjeta.hidden = true; fondo.hidden = true; }, 230);
                 if (devolverFoco) disparador.focus({ preventScroll: true });
             }
@@ -964,7 +975,9 @@
             caja.addEventListener("click", () => tarjeta.hidden ? abrir() : cerrar(true));
             fondo.addEventListener("click", () => cerrar(true));
             document.getElementById("perfilCerrar").addEventListener("click", () => cerrar(true));
-            document.getElementById("perfilSalir").addEventListener("click", () => cerrar(false));
+            // Antes de abrir la confirmación de cerrar sesión se suelta la página,
+            // así el modal guarda el estado normal y lo devuelve al cancelar
+            document.getElementById("modalCerrarSesion")?.addEventListener("show.bs.modal", () => cerrar(false));
             document.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(true); });
         })();
     </script>
