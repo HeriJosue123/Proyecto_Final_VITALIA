@@ -1,0 +1,79 @@
+﻿@model VITALIA.Models.Rrhh.Nomina
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Recibo de Pago - VITALIA</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 13px; color: #333; margin: 30px; }
+        .header { text-align: center; border-bottom: 2px solid #12898e; padding-bottom: 10px; margin-bottom: 20px; }
+        .header h1 { color: #093437; margin: 0; font-size: 22px; }
+        .header p { margin: 2px 0; color: #666; font-size: 12px; }
+        .box { border: 1px solid #ddd; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .table th, .table td { padding: 8px; border: 1px solid #eee; text-align: left; }
+        .table th { background-color: #f2f5f7; color: #093437; }
+        .total-row td { font-weight: bold; font-size: 14px; background-color: #e8f4f5; }
+        .footer { margin-top: 50px; text-align: center; font-size: 11px; color: #777; }
+        .signatures { margin-top: 60px; display: table; width: 100%; }
+        .signature-col { display: table-cell; width: 50%; text-align: center; }
+        .signature-line { width: 70%; border-top: 1px solid #000; margin: 0 auto 5px auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>VITALIA - ATENCIÓN INTEGRAL</h1>
+        <p>Comprobante Oficial de Pago de Salario</p>
+        <p>Período: <strong>@Model.Mes / @Model.Anio</strong> | Fecha de Emisión: @Model.FechaPago.ToString("dd/MM/yyyy")</p>
+    </div>
+
+    <div class="box">
+        <p><strong>Empleado:</strong> @Model.IdEmpleadoNavigation?.Nombre @Model.IdEmpleadoNavigation?.Apellido</p>
+        <p><strong>Cargo:</strong> @Model.IdEmpleadoNavigation?.Cargo</p>
+        <p><strong>Estado del Pago:</strong> <strong style="color: #(Model.Estado == "Pagado" ? "2ecc71" : "e74c3c");">@Model.Estado.ToUpper()</strong></p>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th style="text-align: right;">Monto</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Salario Base / Bruto</td>
+                <td style="text-align: right;">$@Model.SalarioBruto.ToString("N2")</td>
+            </tr>
+            <tr>
+                <td>Deducciones y Retenciones</td>
+                <td style="text-align: right; color: red;">-$@Model.Deducciones.ToString("N2")</td>
+            </tr>
+            <tr class="total-row">
+                <td>NETO A RECIBIR</td>
+                <td style="text-align: right; color: #093437;">$@Model.SalarioNeto.ToString("N2")</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="signatures">
+        <div class="signature-col">
+            <div class="signature-line"></div>
+            Firma Administración
+        </div>
+        <div class="signature-col">
+            <div class="signature-line"></div>
+            Firma Empleado (Recibido Conforme)
+        </div>
+    </div>
+
+    <div class="footer">
+        Este documento es un comprobante de control interno generado por el sistema VITALIA.
+    </div>
+</body>
+</html>
