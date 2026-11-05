@@ -3,7 +3,7 @@
     // Datos del usuario que inició sesión
     bool esAdministrador = User.IsInRole(RolesSistema.Administrador);
     bool esFamiliar = User.IsInRole(RolesSistema.Familiar);
-    bool puedeAccederFarmacia = User.IsInRole("Administrador") || User.IsInRole("Medico") || User.IsInRole("Médico") || User.IsInRole("Enfermero");
+    bool puedeAccederFarmacia = User.IsInRole("Administrador") || User.IsInRole("Medico") || User.IsInRole("Médico") || User.IsInRole("Enfermero") || User.IsInRole("Farmacéutico") || User.IsInRole("Farmaceutico");
     string nombreUsuario = User.Identity?.Name ?? "";
     string rolUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     string correoUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";

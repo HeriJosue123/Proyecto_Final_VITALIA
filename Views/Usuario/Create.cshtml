@@ -4,6 +4,35 @@
     ViewData["Title"] = "Registrar Usuario";
 }
 
+<style>
+    /* Oculta los iconos nativos del navegador que se montan en el campo de contraseña */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear {
+        display: none !important;
+    }
+
+    input[type="password"]::-webkit-credentials-auto-fill-button {
+        visibility: hidden !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        right: 0 !important;
+    }
+
+    /* Estilo fijo y estable para el botón del ojo para evitar que desaparezca al pasar el mouse */
+    #togglePasswordBtn {
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+        border-color: #cbd5e1 !important;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+        #togglePasswordBtn:hover {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            border-color: #94a3b8 !important;
+        }
+</style>
+
 <div class="animate-fade-up py-4 d-flex justify-content-center">
     <div style="width: 100%; max-width: 680px;" class="px-3">
 
@@ -47,8 +76,8 @@
                             <i class="bi bi-key me-1" style="color: #14828a;"></i> CONTRASEÑA
                         </label>
                         <div class="input-group">
-                            <input type="password" name="Contrasena" id="passwordInput" class="form-control shadow-none" placeholder="••••••••" style="border-color: #cbd5e1; border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; padding: 0.6rem 0.8rem; font-size: 0.95rem;" />
-                            <button class="btn btn-outline-secondary px-3 shadow-none" type="button" id="togglePasswordBtn" style="border-color: #cbd5e1; border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                            <input type="password" name="Contrasena" id="passwordInput" class="form-control shadow-none" placeholder="••••••••" autocomplete="new-password" data-lpignore="true" style="border-color: #cbd5e1; border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; padding: 0.6rem 0.8rem; font-size: 0.95rem;" />
+                            <button class="btn px-3 shadow-none d-flex align-items-center justify-content-center" type="button" id="togglePasswordBtn" style="border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                                 <i class="bi bi-eye" id="toggleIcon"></i>
                             </button>
                         </div>
@@ -149,7 +178,6 @@
                 const val = passwordInput.value;
                 let faltantes = [];
 
-                // REGLA: MÍNIMO 8 CARACTERES
                 if (val.length < 8) {
                     faltantes.push("mínimo 8 caracteres");
                 }

@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VITALIA.Data;
 using VITALIA.Models;
+using Rotativa.AspNetCore; // Para el PDF
 
 namespace VITALIA.Controllers
 {
-    // Restringe el acceso global a Administrador, Médico (con/sin tilde) y Enfermero. Bloquea a Familiar.
-    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
+    // Permiso general para entrar a la sección
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero, Farmacéutico, Farmaceutico")]
     public class FarmaciaController : Controller
     {
         private readonly VitaliaDbContext _context;
@@ -17,7 +18,7 @@ namespace VITALIA.Controllers
             _context = context;
         }
 
-        // GET: Farmacia (Ver catálogo: Admin, Médico, Enfermero)
+        // GET: Farmacia (Ver catálogo)
         public async Task<IActionResult> Index()
         {
             var medicamentos = await _context.Medicamentos
@@ -26,7 +27,7 @@ namespace VITALIA.Controllers
             return View(medicamentos);
         }
 
-        // GET: Farmacia/Details/5 (Ver detalle: Admin, Médico, Enfermero)
+        // GET: Farmacia/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -40,40 +41,31 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // GET: Farmacia/Create (Agregar: Solo Admin y Médico)
-        [Authorize(Roles = "Administrador, Medico, Médico")]
+        // GET: Farmacia/Create (¡AQUÍ FALTABA EL FARMACÉUTICO!)
+        [Authorize(Roles = "Administrador, Medico, Médico, Farmacéutico, Farmaceutico")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Farmacia/Create (Agregar: Solo Admin y Médico)
-        [Authorize(Roles = "Administrador, Medico, Médico")]
+        // POST: Farmacia/Create (¡AQUÍ FALTABA EL FARMACÉUTICO!)
+        [Authorize(Roles = "Administrador, Medico, Médico, Farmacéutico, Farmaceutico")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Medicamento medicamento, string numeroLote, int? stockInicial, DateTime? fechaVencimiento)
         {
-            // Validaciones obligatorias del Lote Inicial
             if (string.IsNullOrWhiteSpace(numeroLote))
-            {
                 ModelState.AddModelError("numeroLote", "El N° de Lote es obligatorio.");
-            }
             if (!stockInicial.HasValue || stockInicial.Value <= 0)
-            {
                 ModelState.AddModelError("stockInicial", "Ingrese un stock inicial mayor a 0.");
-            }
             if (!fechaVencimiento.HasValue)
-            {
                 ModelState.AddModelError("fechaVencimiento", "La fecha de vencimiento es obligatoria.");
-            }
 
             if (ModelState.IsValid)
             {
-                // 1. Guardar Medicamento
                 _context.Add(medicamento);
                 await _context.SaveChangesAsync();
 
-                // 2. Guardar Lote Inicial
                 var lote = new LoteMedicamento
                 {
                     IdMedicamento = medicamento.IdMedicamento,
@@ -96,8 +88,8 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // GET: Farmacia/Edit/5 (Editar: Solo Admin y Médico)
-        [Authorize(Roles = "Administrador, Medico, Médico")]
+        // GET: Farmacia/Edit/5 (¡AQUÍ FALTABA EL FARMACÉUTICO!)
+        [Authorize(Roles = "Administrador, Medico, Médico, Farmacéutico, Farmaceutico")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -111,36 +103,27 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // POST: Farmacia/Edit/5 (Editar: Solo Admin y Médico)
-        [Authorize(Roles = "Administrador, Medico, Médico")]
+        // POST: Farmacia/Edit/5 (¡AQUÍ FALTABA EL FARMACÉUTICO!)
+        [Authorize(Roles = "Administrador, Medico, Médico, Farmacéutico, Farmaceutico")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Medicamento medicamento, string numeroLote, int? stockInicial, DateTime? fechaVencimiento)
         {
             if (id != medicamento.IdMedicamento) return NotFound();
 
-            // Validaciones obligatorias del Lote
             if (string.IsNullOrWhiteSpace(numeroLote))
-            {
                 ModelState.AddModelError("numeroLote", "El N° de Lote es obligatorio.");
-            }
             if (!stockInicial.HasValue || stockInicial.Value < 0)
-            {
                 ModelState.AddModelError("stockInicial", "Ingrese un stock válido (0 o mayor).");
-            }
             if (!fechaVencimiento.HasValue)
-            {
                 ModelState.AddModelError("fechaVencimiento", "La fecha de vencimiento es obligatoria.");
-            }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // 1. Actualizar Medicamento
                     _context.Update(medicamento);
 
-                    // 2. Actualizar o crear Lote
                     var loteExistente = await _context.LoteMedicamentos
                         .FirstOrDefaultAsync(l => l.IdMedicamento == id);
 
@@ -178,7 +161,23 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // GET: Farmacia/Delete/5 (Eliminar: Solo Administrador)
+        // ACCIÓN DEL PDF QUE TE FALTABA INCLUIR
+        [Authorize(Roles = "Administrador, Farmacéutico, Farmaceutico")]
+        public async Task<IActionResult> RespaldoMedicamentosPdf()
+        {
+            var medicamentos = await _context.Medicamentos
+                .Include(m => m.LoteMedicamentos)
+                .ToListAsync();
+
+            return new ViewAsPdf("RespaldoMedicamentosPdf", medicamentos)
+            {
+                FileName = $"Respaldo_Farmacia_{DateTime.Now:yyyyMMdd_HHmm}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait
+            };
+        }
+
+        // GET: Farmacia/Delete/5 (Solo administrador, está bien así)
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -190,14 +189,13 @@ namespace VITALIA.Controllers
 
             if (medicamento == null) return NotFound();
 
-            // Para avisar en la pantalla qué se borra junto con el medicamento
             ViewBag.Lotes = medicamento.LoteMedicamentos.Count;
             ViewBag.Entregas = medicamento.LoteMedicamentos.Sum(l => l.EntregaMedicamentos.Count);
 
             return View(medicamento);
         }
 
-        // POST: Farmacia/Delete/5 (Eliminar: Solo Administrador)
+        // POST: Farmacia/Delete/5 (Solo administrador, está bien así)
         [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -209,7 +207,6 @@ namespace VITALIA.Controllers
 
             if (medicamento != null)
             {
-                // Si ya se entregó a residentes, borrarlo haría perder ese historial
                 int entregas = medicamento.LoteMedicamentos.Sum(l => l.EntregaMedicamentos.Count);
                 if (entregas > 0)
                 {
@@ -217,7 +214,6 @@ namespace VITALIA.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Sin entregas: se borran también sus lotes (la base no deja borrar el medicamento si tiene lotes)
                 int lotes = medicamento.LoteMedicamentos.Count;
                 _context.LoteMedicamentos.RemoveRange(medicamento.LoteMedicamentos);
                 _context.Medicamentos.Remove(medicamento);

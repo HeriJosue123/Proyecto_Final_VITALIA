@@ -1,0 +1,198 @@
+﻿@model IEnumerable<VITALIA.Models.Medicamento>
+
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Respaldo de Medicamentos - Farmacia</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1e293b;
+            margin: 30px;
+            font-size: 13px;
+            line-height: 1.6;
+            background-color: #ffffff;
+        }
+
+        /* Encabezado limpio con barra lateral institucional */
+        .header-clean {
+            border-left: 6px solid #0a6c74;
+            padding-left: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none !important;
+        }
+
+        .header-table td {
+            border: none !important;
+            padding: 0;
+            vertical-align: middle;
+        }
+
+        .brand-title {
+            color: #0a6c74;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 0.8px;
+            line-height: 1;
+        }
+
+        .report-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #475569;
+            margin-top: 5px;
+            margin-bottom: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .report-meta {
+            text-align: right;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .report-meta span {
+            color: #0f172a;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        /* Estilos de la Tabla Principal */
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            border: 1px solid #0a6c74;
+        }
+
+        table.data-table th {
+            background-color: #0a6c74;
+            color: #ffffff;
+            text-align: left;
+            padding: 11px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid #0a6c74;
+            letter-spacing: 0.5px;
+        }
+
+        table.data-table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid #cbd5e1;
+            border-right: 1px solid #e2e8f0;
+            vertical-align: middle;
+            font-size: 13.5px;
+            color: #1e293b;
+        }
+
+        table.data-table td:last-child {
+            border-right: none;
+        }
+
+        /* Efecto cebra elegante */
+        table.data-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Pie de página institucional */
+        .footer-note {
+            font-size: 11px;
+            color: #64748b;
+            border-top: 1px solid #94a3b8;
+            padding-top: 10px;
+            margin-top: 35px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Encabezado institucional -->
+    <div class="header-clean">
+        <table class="header-table">
+            <tr>
+                <td>
+                    <div class="brand-title">VITALIA</div>
+                    <div class="report-title">Respaldo de Inventario y Medicamentos</div>
+                </td>
+                <td class="report-meta">
+                    <strong>Fecha de respaldo:</strong><br />
+                    <span>@DateTime.Now.ToString("dd/MM/yyyy HH:mm") hrs</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Tabla de Medicamentos -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 15%;">Código</th>
+                <th style="width: 35%;">Medicamento / Descripción</th>
+                <th style="width: 25%;">Presentación</th>
+                <th style="width: 15%;" class="text-center">Stock Total</th>
+                <th style="width: 10%;" class="text-center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    int stockTotal = item.LoteMedicamentos != null ? item.LoteMedicamentos.Sum(l => l.Stock) : 0;
+                    bool activo = item.Estado == true;
+
+                    <tr>
+                        <td>
+                            <strong>@(string.IsNullOrEmpty(item.Codigo) ? "S/C" : item.Codigo)</strong>
+                        </td>
+                        <td>
+                            <div><strong>@item.Nombre</strong></div>
+                            @if (!string.IsNullOrEmpty(item.Descripcion))
+                            {
+                                <div style="font-size: 11px; color: #64748b;">@item.Descripcion</div>
+                            }
+                        </td>
+                        <td>@(string.IsNullOrEmpty(item.Presentacion) ? "Sin especificar" : item.Presentacion)</td>
+                        <td class="text-center">@stockTotal ud.</td>
+                        <td class="text-center">
+                            @(activo ? "Activo" : "Inactivo")
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center" style="color: #64748b; padding: 30px;">
+                        No se encontraron medicamentos registrados en el sistema.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Pie de página -->
+    <div class="footer-note">
+        Documento de respaldo generado automáticamente desde el módulo de Farmacia de VITALIA.
+    </div>
+
+</body>
+</html>
