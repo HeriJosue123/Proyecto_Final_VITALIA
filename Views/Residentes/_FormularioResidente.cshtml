@@ -99,12 +99,12 @@
 
 <h6 class="fw-bold text-dark mb-3">Salud y contacto</h6>
 <div class="row g-3 mb-4">
-    <div class="col-md-5">
+    <div class="col-md-4">
         <label asp-for="ContactoNombre" class="form-label fw-semibold small">Contacto de emergencia <span class="text-danger">*</span></label>
         <input asp-for="ContactoNombre" class="form-control" placeholder="Ej. Carlos Gómez" maxlength="120" />
         <span asp-validation-for="ContactoNombre" class="text-danger small"></span>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <label asp-for="ContactoTelefono" class="form-label fw-semibold small">Teléfono del contacto <span class="text-danger">*</span></label>
         <input asp-for="ContactoTelefono" type="tel" inputmode="numeric" class="form-control" placeholder="Ej. 7000-1111" maxlength="9" />
         <span asp-validation-for="ContactoTelefono" class="text-danger small"></span>

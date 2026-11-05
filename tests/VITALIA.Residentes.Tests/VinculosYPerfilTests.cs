@@ -107,6 +107,19 @@ public class VinculosYPerfilTests : IClassFixture<FabricaLogin>
     }
 
     [Fact]
+    public async Task TelefonoQueNoEmpiezaCon267_NoVincula()
+    {
+        var d = CrearDatos();
+        var admin = await EntrarAsync("administrador@prueba.com");
+
+        var resp = await EnviarAsync(admin, "/VinculosFamiliares/Create?idResidente=" + d.residente, "/VinculosFamiliares/Create",
+            new() { ["IdResidente"] = d.residente.ToString(), ["IdUsuario"] = d.familiar.ToString(), ["Parentesco"] = "Hijo", ["Telefono"] = "1234-5678" });
+
+        Assert.Contains("empezar con 2, 6 o 7", WebUtility.HtmlDecode(await resp.Content.ReadAsStringAsync()));
+        Assert.Null(Vinculo(d.residente, d.familiar));
+    }
+
+    [Fact]
     public async Task TelefonoInvalido_NoVincula()
     {
         var d = CrearDatos();
