@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
 using VITALIA.Data;
-using Rotativa.AspNetCore; // <-- 1. Agrega este using arriba
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,10 +27,9 @@ builder.Services.AddDbContext<VitaliaDbContext>(options =>
 var builderApp = builder.Build();
 
 // ==========================================
-// 3. CONFIGURACIÓN DE ROTATIVA (AÑADE ESTO)
+// 3. CONFIGURACIÓN DE ROTATIVA
 // ==========================================
 RotativaConfiguration.Setup(builderApp.Environment.WebRootPath, "Rotativa");
-
 
 // Roles y usuarios por defecto (solo se crean si no existen)
 using (var scope = builderApp.Services.CreateScope())
@@ -60,6 +59,12 @@ builderApp.UseAuthentication();
 builderApp.UseAuthorization();
 
 builderApp.MapStaticAssets();
+
+// Mapeo de rutas para el Área de RRHH
+builderApp.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
 builderApp.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")

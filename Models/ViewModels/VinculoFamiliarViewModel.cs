@@ -18,6 +18,6 @@ public class VinculoFamiliarViewModel
     public string Parentesco { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "El teléfono del familiar es obligatorio.")]
-    [RegularExpression(ResidenteMetadata.PatronTelefono, ErrorMessage = "El teléfono debe tener 8 dígitos (ej. 7000-1111).")]
+    [RegularExpression(ResidenteMetadata.PatronTelefono, ErrorMessage = "El teléfono debe tener 8 dígitos y empezar con 2, 6 o 7 (ej. 7000-1111).")]
     public string Telefono { get; set; } = string.Empty;
 }

@@ -316,9 +316,6 @@ namespace VITALIA.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id_residente");
 
-                    b.Property<int?>("MedicamentoIdMedicamento")
-                        .HasColumnType("int");
-
                     b.Property<string>("Observaciones")
                         .HasMaxLength(255)
                         .IsUnicode(false)
@@ -332,8 +329,6 @@ namespace VITALIA.Migrations
                     b.HasIndex("IdLote");
 
                     b.HasIndex("IdResidente");
-
-                    b.HasIndex("MedicamentoIdMedicamento");
 
                     b.ToTable("ENTREGA_MEDICAMENTO", (string)null);
                 });
@@ -618,6 +613,145 @@ namespace VITALIA.Migrations
                     b.ToTable("ROL", (string)null);
                 });
 
+            modelBuilder.Entity("VITALIA.Models.Rrhh.ContratoEmpleado", b =>
+                {
+                    b.Property<int>("IdContrato")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_contrato");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdContrato"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("FechaFin")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_fin");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_inicio");
+
+                    b.Property<int>("IdEmpleado")
+                        .HasColumnType("int")
+                        .HasColumnName("id_empleado");
+
+                    b.Property<decimal>("SalarioBase")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("salario_base");
+
+                    b.Property<string>("TipoContrato")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("tipo_contrato");
+
+                    b.HasKey("IdContrato");
+
+                    b.HasIndex("IdEmpleado");
+
+                    b.ToTable("RRHH_CONTRATO", (string)null);
+                });
+
+            modelBuilder.Entity("VITALIA.Models.Rrhh.NominaPago", b =>
+                {
+                    b.Property<int>("IdNomina")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_nomina");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdNomina"));
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("int")
+                        .HasColumnName("anio");
+
+                    b.Property<decimal>("Deducciones")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("deducciones");
+
+                    b.Property<DateTime>("FechaPago")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_pago");
+
+                    b.Property<int>("IdEmpleado")
+                        .HasColumnType("int")
+                        .HasColumnName("id_empleado");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("int")
+                        .HasColumnName("mes");
+
+                    b.Property<decimal>("SalarioBruto")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("salario_bruto");
+
+                    b.Property<decimal>("SalarioNeto")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("salario_neto");
+
+                    b.HasKey("IdNomina");
+
+                    b.HasIndex("IdEmpleado");
+
+                    b.ToTable("RRHH_NOMINA", (string)null);
+                });
+
+            modelBuilder.Entity("VITALIA.Models.Rrhh.SolicitudPermiso", b =>
+                {
+                    b.Property<int>("IdPermiso")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_permiso");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPermiso"));
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("Pendiente")
+                        .HasColumnName("estado");
+
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_fin");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_inicio");
+
+                    b.Property<int>("IdEmpleado")
+                        .HasColumnType("int")
+                        .HasColumnName("id_empleado");
+
+                    b.Property<string>("Observacion")
+                        .IsRequired()
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(max)")
+                        .HasColumnName("observacion");
+
+                    b.Property<string>("TipoMotivo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("tipo_motivo");
+
+                    b.HasKey("IdPermiso");
+
+                    b.HasIndex("IdEmpleado");
+
+                    b.ToTable("RRHH_PERMISO", (string)null);
+                });
+
             modelBuilder.Entity("VITALIA.Models.TipoAtencion", b =>
                 {
                     b.Property<int>("IdTipoAtencion")
@@ -813,10 +947,6 @@ namespace VITALIA.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_ENTREGA_RESIDENTE");
 
-                    b.HasOne("VITALIA.Models.Medicamento", null)
-                        .WithMany("EntregaMedicamentos")
-                        .HasForeignKey("MedicamentoIdMedicamento");
-
                     b.Navigation("IdEmpleadoNavigation");
 
                     b.Navigation("IdLoteNavigation");
@@ -873,6 +1003,39 @@ namespace VITALIA.Migrations
                     b.Navigation("IdMedicamentoNavigation");
                 });
 
+            modelBuilder.Entity("VITALIA.Models.Rrhh.ContratoEmpleado", b =>
+                {
+                    b.HasOne("VITALIA.Models.Empleado", "IdEmpleadoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEmpleado")
+                        .IsRequired()
+                        .HasConstraintName("FK_RRHH_CONTRATO_EMPLEADO");
+
+                    b.Navigation("IdEmpleadoNavigation");
+                });
+
+            modelBuilder.Entity("VITALIA.Models.Rrhh.NominaPago", b =>
+                {
+                    b.HasOne("VITALIA.Models.Empleado", "IdEmpleadoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEmpleado")
+                        .IsRequired()
+                        .HasConstraintName("FK_RRHH_NOMINA_EMPLEADO");
+
+                    b.Navigation("IdEmpleadoNavigation");
+                });
+
+            modelBuilder.Entity("VITALIA.Models.Rrhh.SolicitudPermiso", b =>
+                {
+                    b.HasOne("VITALIA.Models.Empleado", "IdEmpleadoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEmpleado")
+                        .IsRequired()
+                        .HasConstraintName("FK_RRHH_PERMISO_EMPLEADO");
+
+                    b.Navigation("IdEmpleadoNavigation");
+                });
+
             modelBuilder.Entity("VITALIA.Models.Usuario", b =>
                 {
                     b.HasOne("VITALIA.Models.Rol", "IdRolNavigation")
@@ -910,8 +1073,6 @@ namespace VITALIA.Migrations
 
             modelBuilder.Entity("VITALIA.Models.Medicamento", b =>
                 {
-                    b.Navigation("EntregaMedicamentos");
-
                     b.Navigation("LoteMedicamentos");
                 });
 

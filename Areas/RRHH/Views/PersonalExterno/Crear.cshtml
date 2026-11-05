@@ -1,0 +1,110 @@
+﻿@model VITALIA.Models.Rrhh.PersonalExterno
+
+@{
+    ViewData["Title"] = "Registrar Personal Externo";
+}
+
+<div class="vitalia-banner mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Personal Externo</h2>
+        <p class="text-muted mb-0">Ingrese los datos del contratista o proveedor de servicios generales.</p>
+    </div>
+    <a asp-area="RRHH" asp-controller="PersonalExterno" asp-action="Index" class="btn btn-light btn-sm">Cancelar</a>
+</div>
+
+<div class="vitalia-card-pro p-4" style="max-width: 800px; margin: 0 auto;">
+    <form asp-area="RRHH" asp-controller="PersonalExterno" asp-action="Crear" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert"></div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Nombre</label>
+                <input asp-for="Nombre" class="form-control" maxlength="50" required placeholder="Ej. Carlos" />
+                <span asp-validation-for="Nombre" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Apellido</label>
+                <input asp-for="Apellido" class="form-control" maxlength="50" required placeholder="Ej. Gómez" />
+                <span asp-validation-for="Apellido" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Documento de Identidad (DUI)</label>
+                <input asp-for="DocumentoIdentidad" id="DocumentoIdentidad" class="form-control" maxlength="10" required placeholder="00000000-0" autocomplete="off" />
+                <span asp-validation-for="DocumentoIdentidad" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Teléfono de Contacto</label>
+                <input asp-for="Telefono" id="Telefono" class="form-control" maxlength="9" placeholder="7000-0000" autocomplete="off" />
+                <span asp-validation-for="Telefono" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Área de Servicio</label>
+                <select asp-for="AreaServicio" class="form-select" required>
+                    <option value="">-- Seleccione --</option>
+                    <option value="Cocina General">Cocina General</option>
+                    <option value="Mantenimiento">Mantenimiento e Infraestructura</option>
+                    <option value="Seguridad">Seguridad Privada</option>
+                    <option value="Limpieza">Limpieza y Desinfección</option>
+                    <option value="Jardinería y Exteriores">Jardinería y Exteriores</option>
+                </select>
+                <span asp-validation-for="AreaServicio" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Empresa / Proveedor</label>
+                <input asp-for="EmpresaProveedora" class="form-control" maxlength="100" placeholder="Ej. Particular o Catering S.A." />
+                <span asp-validation-for="EmpresaProveedora" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Horario / Días de Atención</label>
+                <input asp-for="HorarioTurno" class="form-control" maxlength="100" placeholder="Ej. Lunes a Viernes 06:00 - 14:00" />
+                <span asp-validation-for="HorarioTurno" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Monto Acordado ($)</label>
+                <input asp-for="MontoServicio" type="number" step="0.01" min="0.01" class="form-control" placeholder="0.00" />
+                <span asp-validation-for="MontoServicio" class="text-danger small"></span>
+            </div>
+            <div class="col-12 text-end mt-4">
+                <a asp-area="RRHH" asp-controller="PersonalExterno" asp-action="Index" class="btn btn-outline-secondary me-2">Cancelar</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Guardar Registro</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const duiInput = document.getElementById("DocumentoIdentidad");
+            const telInput = document.getElementById("Telefono");
+
+            if (duiInput) {
+                duiInput.addEventListener("input", function (e) {
+                    let digits = e.target.value.replace(/\D/g, "");
+                    if (digits.length > 9) digits = digits.slice(0, 9);
+
+                    if (digits.length > 8) {
+                        e.target.value = digits.slice(0, 8) + "-" + digits.slice(8);
+                    } else {
+                        e.target.value = digits;
+                    }
+                });
+            }
+
+            if (telInput) {
+                telInput.addEventListener("input", function (e) {
+                    let digits = e.target.value.replace(/\D/g, "");
+                    if (digits.length > 8) digits = digits.slice(0, 8);
+
+                    if (digits.length > 4) {
+                        e.target.value = digits.slice(0, 4) + "-" + digits.slice(4);
+                    } else {
+                        e.target.value = digits;
+                    }
+                });
+            }
+        });
+    </script>
+}

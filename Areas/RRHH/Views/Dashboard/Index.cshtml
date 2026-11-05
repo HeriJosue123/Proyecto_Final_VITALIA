@@ -1,0 +1,134 @@
+﻿@{
+    ViewData["Title"] = "Panel de Recursos Humanos";
+    var contratosPorVencer = ViewBag.ContratosPorVencer as IEnumerable<VITALIA.Models.Rrhh.ContratoEmpleado> ?? new List<VITALIA.Models.Rrhh.ContratoEmpleado>();
+}
+
+<div class="vitalia-banner mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-briefcase-fill me-2"></i>Recursos Humanos</h2>
+        <p class="text-muted mb-0">Control ejecutivo de plantilla, salarios, contratistas y alertas contractuales.</p>
+    </div>
+</div>
+
+<!-- Tarjetas de KPIs Operativos y Financieros -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="vitalia-card-pro p-3 border-start border-4 border-info">
+            <span class="text-muted small fw-bold text-uppercase">Plantilla Activa</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">@ViewBag.TotalEmpleados <small class="fs-6 text-muted fw-normal">empleados</small></h3>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="vitalia-card-pro p-3 border-start border-4 border-warning">
+            <span class="text-muted small fw-bold text-uppercase">Permisos Pendientes</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">@ViewBag.PermisosPendientes <small class="fs-6 text-muted fw-normal">solicitudes</small></h3>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="vitalia-card-pro p-3 border-start border-4 border-danger">
+            <span class="text-muted small fw-bold text-uppercase">Nómina por Liquidar</span>
+            <h3 class="fw-bold text-danger mt-1 mb-0">$@ViewBag.MontoNominaPendiente.ToString("N2")</h3>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="vitalia-card-pro p-3 border-start border-4 border-success">
+            <span class="text-muted small fw-bold text-uppercase">Servicios por Pagar</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">$@ViewBag.MontoServiciosPendientes.ToString("N2")</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas de Vencimiento de Contratos -->
+<div class="vitalia-card-pro p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Contratos Próximos a Vencer (Próximos 30 días)
+        </h5>
+        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+            @contratosPorVencer.Count() Alertas
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Empleado</th>
+                    <th>Tipo de Contrato</th>
+                    <th>Fecha de Vencimiento</th>
+                    <th>Días Restantes</th>
+                    <th>Salario Base</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!contratosPorVencer.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">
+                            <i class="bi bi-shield-check text-success me-1"></i> No hay contratos por vencer en los próximos 30 días.
+                        </td>
+                    </tr>
+                }
+                @foreach (var c in contratosPorVencer)
+                {
+                    var dias = (c.FechaFin!.Value - DateTime.Today).Days;
+                    <tr>
+                        <td class="fw-bold">@c.IdEmpleadoNavigation?.Nombre @c.IdEmpleadoNavigation?.Apellido</td>
+                        <td><span class="badge bg-light text-dark border">@c.TipoContrato</span></td>
+                        <td>@c.FechaFin.Value.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="badge @(dias <= 7 ? "bg-danger" : "bg-warning text-dark")">
+                                @dias día(s) restante(s)
+                            </span>
+                        </td>
+                        <td class="fw-bold">$@c.SalarioBase.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Accesos Directos del Módulo -->
+<div class="row g-3">
+    <div class="col-md-6 col-lg-3">
+        <div class="vitalia-card-pro p-4 text-center h-100 d-flex flex-column justify-content-between">
+            <div>
+                <i class="bi bi-cash-coin text-primary display-5 mb-2"></i>
+                <h5 class="fw-bold">Nóminas Internas</h5>
+                <p class="text-muted small">Liquidación kardex de salarios y emisión de recibos PDF.</p>
+            </div>
+            <a asp-area="RRHH" asp-controller="Nomina" asp-action="Index" class="btn btn-outline-primary w-100 mt-3">Gestionar Nóminas</a>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="vitalia-card-pro p-4 text-center h-100 d-flex flex-column justify-content-between">
+            <div>
+                <i class="bi bi-calendar2-check-fill text-primary display-5 mb-2"></i>
+                <h5 class="fw-bold">Permisos y Licencias</h5>
+                <p class="text-muted small">Aprobación de vacaciones, licencias e incidencias del personal.</p>
+            </div>
+            <a asp-area="RRHH" asp-controller="Permisos" asp-action="Index" class="btn btn-outline-primary w-100 mt-3">Gestionar Permisos</a>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="vitalia-card-pro p-4 text-center h-100 d-flex flex-column justify-content-between">
+            <div>
+                <i class="bi bi-tools text-primary display-5 mb-2"></i>
+                <h5 class="fw-bold">Personal Externo</h5>
+                <p class="text-muted small">Contratistas de cocina general, mantenimiento y servicios.</p>
+            </div>
+            <a asp-area="RRHH" asp-controller="PersonalExterno" asp-action="Index" class="btn btn-outline-primary w-100 mt-3">Administrar Servicios</a>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="vitalia-card-pro p-4 text-center h-100 d-flex flex-column justify-content-between">
+            <div>
+                <i class="bi bi-person-workspace text-primary display-5 mb-2"></i>
+                <h5 class="fw-bold">Personal Base</h5>
+                <p class="text-muted small">Registro general de usuarios y empleados institucionales.</p>
+            </div>
+            <a asp-area="" asp-controller="Personal" asp-action="Index" class="btn btn-outline-secondary w-100 mt-3">Ir a Personal Base</a>
+        </div>
+    </div>
+</div>

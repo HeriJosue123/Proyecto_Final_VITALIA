@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using VITALIA.Models;
+using VITALIA.Models.Rrhh;
 
 namespace VITALIA.Data;
 
@@ -31,6 +32,12 @@ public partial class VitaliaDbContext : DbContext
     public virtual DbSet<LoteMedicamento> LoteMedicamentos { get; set; } = null!;
     public virtual DbSet<EntregaMedicamento> EntregaMedicamentos { get; set; } = null!;
 
+    // === TABLAS DEL MÓDULO INDEPENDIENTE DE RRHH ===
+    public virtual DbSet<ContratoEmpleado> ContratosEmpleado { get; set; } = null!;
+    public virtual DbSet<SolicitudPermiso> SolicitudesPermiso { get; set; } = null!;
+    public DbSet<PersonalExterno> PersonalExterno { get; set; } = null!;
+    public DbSet<Nomina> Nominas { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Alerta>(entity =>
@@ -46,12 +53,10 @@ public partial class VitaliaDbContext : DbContext
             entity.Property(e => e.IdResidente).HasColumnName("id_residente");
             entity.Property(e => e.IdUsuarioCreador).HasColumnName("id_usuario_creador");
 
-            // MAPEO DEL CAMPO ID DEL EMPLEADO RESPONSABLE EN SQL
             entity.Property(e => e.IdEmpleadoResponsable).HasColumnName("id_empleado_responsable");
             entity.Property(e => e.Prioridad).HasMaxLength(20).IsUnicode(false).HasDefaultValue("Rutina", "DF_ALERTA_prioridad").HasColumnName("prioridad");
             entity.Property(e => e.Titulo).HasMaxLength(150).IsUnicode(false).HasColumnName("titulo");
 
-            // RELACIONES
             entity.HasOne(d => d.IdResidenteNavigation)
                 .WithMany(p => p.Alerta)
                 .HasForeignKey(d => d.IdResidente)
@@ -64,7 +69,6 @@ public partial class VitaliaDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ALERTA_USUARIO");
 
-            // CLAVE: Vincular explícitamente la propiedad de navegación con la colección p.Alerta de Empleado
             entity.HasOne(d => d.IdEmpleadoResponsableNavigation)
                 .WithMany(p => p.Alerta)
                 .HasForeignKey(d => d.IdEmpleadoResponsable)
@@ -218,8 +222,6 @@ public partial class VitaliaDbContext : DbContext
             entity.Property(e => e.Descripcion).HasMaxLength(255).IsUnicode(false).HasColumnName("descripcion");
             entity.Property(e => e.Presentacion).HasMaxLength(50).IsUnicode(false).HasColumnName("presentacion");
             entity.Property(e => e.Estado).HasDefaultValue(true, "DF_MEDICAMENTO_estado").HasColumnName("estado");
-            // Las entregas se relacionan con el lote, no con el medicamento: sin esto EF busca una columna
-            // "MedicamentoIdMedicamento" que no existe en ENTREGA_MEDICAMENTO
             entity.Ignore(e => e.EntregaMedicamentos);
         });
 
@@ -269,6 +271,72 @@ public partial class VitaliaDbContext : DbContext
                 .HasForeignKey(d => d.IdEmpleado)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ENTREGA_EMPLEADO");
+        });
+
+        // =======================================================
+        // CONFIGURACIÓN DE TABLAS DE RECURSOS HUMANOS (RRHH)
+        // =======================================================
+
+        modelBuilder.Entity<ContratoEmpleado>(entity =>
+        {
+            entity.HasKey(e => e.IdContrato);
+            entity.ToTable("RRHH_CONTRATO");
+
+            entity.Property(e => e.IdContrato).HasColumnName("id_contrato");
+            entity.Property(e => e.IdEmpleado).HasColumnName("id_empleado");
+            entity.Property(e => e.TipoContrato).HasMaxLength(50).IsUnicode(false).HasColumnName("tipo_contrato");
+            entity.Property(e => e.FechaInicio).HasColumnType("date").HasColumnName("fecha_inicio");
+            entity.Property(e => e.FechaFin).HasColumnType("date").HasColumnName("fecha_fin");
+            entity.Property(e => e.SalarioBase).HasColumnType("decimal(18,2)").HasColumnName("salario_base");
+            entity.Property(e => e.Activo).HasDefaultValue(true).HasColumnName("activo");
+
+            entity.HasOne(d => d.IdEmpleadoNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdEmpleado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RRHH_CONTRATO_EMPLEADO");
+        });
+
+        modelBuilder.Entity<SolicitudPermiso>(entity =>
+        {
+            entity.HasKey(e => e.IdPermiso);
+            entity.ToTable("RRHH_PERMISO");
+
+            entity.Property(e => e.IdPermiso).HasColumnName("id_permiso");
+            entity.Property(e => e.IdEmpleado).HasColumnName("id_empleado");
+            entity.Property(e => e.TipoMotivo).HasMaxLength(50).IsUnicode(false).HasColumnName("tipo_motivo");
+            entity.Property(e => e.FechaInicio).HasColumnType("date").HasColumnName("fecha_inicio");
+            entity.Property(e => e.FechaFin).HasColumnType("date").HasColumnName("fecha_fin");
+            entity.Property(e => e.Observacion).IsUnicode(false).HasColumnName("observacion");
+            entity.Property(e => e.Estado).HasMaxLength(20).IsUnicode(false).HasDefaultValue("Pendiente").HasColumnName("estado");
+
+            entity.HasOne(d => d.IdEmpleadoNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdEmpleado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RRHH_PERMISO_EMPLEADO");
+        });
+
+        modelBuilder.Entity<Nomina>(entity =>
+        {
+            entity.HasKey(e => e.IdNomina);
+            entity.ToTable("RRHH_NOMINA");
+
+            entity.Property(e => e.IdNomina).HasColumnName("id_nomina");
+            entity.Property(e => e.IdEmpleado).HasColumnName("id_empleado");
+            entity.Property(e => e.Mes).HasColumnName("mes");
+            entity.Property(e => e.Anio).HasColumnName("anio");
+            entity.Property(e => e.SalarioBruto).HasColumnType("decimal(18,2)").HasColumnName("salario_bruto");
+            entity.Property(e => e.Deducciones).HasColumnType("decimal(18,2)").HasColumnName("deducciones");
+            entity.Property(e => e.SalarioNeto).HasColumnType("decimal(18,2)").HasColumnName("salario_neto");
+            entity.Property(e => e.FechaPago).HasColumnType("date").HasColumnName("fecha_pago");
+            entity.Property(e => e.Estado).HasMaxLength(20).IsUnicode(false).HasDefaultValue("Pendiente").HasColumnName("estado");
+
+            entity.HasOne(d => d.IdEmpleadoNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdEmpleado)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RRHH_NOMINA_EMPLEADO");
         });
 
         OnModelCreatingPartial(modelBuilder);
