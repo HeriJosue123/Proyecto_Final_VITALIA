@@ -1,0 +1,89 @@
+@* Botón discreto en Inicio para quitar los datos de presentación si algo salió mal.
+   Solo lo ve el Administrador y solo cuando los datos ya están cargados. *@
+@inject VITALIA.Data.VitaliaDbContext BaseDatos
+@{
+    bool mostrarRevertir = false;
+    if (User.IsInRole(RolesSistema.Administrador))
+    {
+        try { mostrarRevertir = await VITALIA.Data.DatosPresentacion.CargadosAsync(BaseDatos); }
+        catch { mostrarRevertir = false; }
+    }
+}
+@if (mostrarRevertir)
+{
+    <style>
+        .revertir-presentacion {
+            border: 0;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+
+            .revertir-presentacion:hover, .revertir-presentacion:focus-visible {
+                color: #dc3545;
+                background-color: #fff5f5;
+            }
+    </style>
+
+    <div class="text-center mt-4 mb-2">
+        <button type="button" class="revertir-presentacion" data-bs-toggle="modal" data-bs-target="#modalRevertirPresentacion">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Quitar datos de presentación
+        </button>
+    </div>
+
+    <div class="modal fade" id="modalRevertirPresentacion" tabindex="-1" aria-labelledby="tituloRevertirPresentacion" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+            <div class="modal-content border-0 rounded-4 shadow overflow-hidden">
+                <div class="py-3 px-4 text-center text-white" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white text-danger shadow-sm mb-2" style="width: 44px; height: 44px;">
+                        <i class="bi bi-arrow-counterclockwise fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" id="tituloRevertirPresentacion">Quitar datos de presentación</h5>
+                    <p class="text-white small mb-0 fw-medium" style="font-size: 0.85rem;">La base vuelve a como estaba antes de cargarlos.</p>
+                </div>
+
+                <div class="p-3">
+                    <div class="p-3 rounded-3 mb-3 d-flex align-items-start gap-2" style="background-color: #fff5f5; border-left: 4px solid #dc3545;">
+                        <i class="bi bi-exclamation-octagon-fill text-danger fs-6 flex-shrink-0"></i>
+                        <div class="small text-danger-emphasis fw-medium" style="font-size: 0.8rem;">
+                            Se borran los residentes, el personal, los familiares, los medicamentos, la bitácora, las alertas y lo de RRHH
+                            <strong>que se cargaron con la presentación</strong>, junto con lo que se haya hecho con esas cuentas.
+                        </div>
+                    </div>
+                    <div class="bg-light p-3 rounded-3 mb-3 border border-light-subtle small" style="font-size: 0.8rem;">
+                        <i class="bi bi-shield-check me-1" style="color: #14828a;"></i>
+                        Sus propios datos no se tocan. Después puede volver a cargarlos desde <strong>Sistema → Datos de presentación</strong>.
+                    </div>
+
+                    <form asp-controller="DatosPresentacion" asp-action="Quitar" method="post" class="m-0"
+                          onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-secondary rounded-3 py-2 fw-semibold w-100 border-2" style="font-size: 0.85rem;" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-danger rounded-3 py-2 fw-bold shadow-sm w-100" style="font-size: 0.85rem;">
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i>Sí, quitar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // El contenido de la página tiene una animación que encierra al modal; se pasa al <body> para que salga centrado
+        (function () {
+            const modal = document.getElementById("modalRevertirPresentacion");
+            if (modal && modal.parentElement !== document.body) document.body.appendChild(modal);
+        })();
+    </script>
+}

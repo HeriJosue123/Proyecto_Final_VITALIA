@@ -2,6 +2,14 @@
 @{
     // Datos del usuario que inició sesión
     bool esAdministrador = User.IsInRole(RolesSistema.Administrador);
+
+    // "Datos de presentación" solo se ve mientras no se hayan cargado
+    bool mostrarDatosPresentacion = false;
+    if (esAdministrador)
+    {
+        try { mostrarDatosPresentacion = !await VITALIA.Data.DatosPresentacion.CargadosAsync(BaseDatos); }
+        catch { mostrarDatosPresentacion = false; }
+    }
     bool esFamiliar = User.IsInRole(RolesSistema.Familiar);
     bool puedeAccederFarmacia = User.IsInRole("Administrador") || User.IsInRole("Medico") || User.IsInRole("Médico") || User.IsInRole("Enfermero");
     string nombreUsuario = User.Identity?.Name ?? "";
@@ -799,6 +807,15 @@
                             <i class="bi bi-hdd-fill"></i> Respaldos
                         </a>
                     </li>
+                    @if (mostrarDatosPresentacion)
+                    {
+                        <li>
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "DatosPresentacion" ? "active" : "")"
+                               asp-controller="DatosPresentacion" asp-action="Index">
+                                <i class="bi bi-database-fill-add"></i> Datos de presentación
+                            </a>
+                        </li>
+                    }
                 </ul>
             }
 
