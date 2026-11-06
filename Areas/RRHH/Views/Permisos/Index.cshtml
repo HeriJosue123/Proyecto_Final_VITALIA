@@ -9,9 +9,9 @@
         <h2 class="fw-bold mb-1"><i class="bi bi-calendar2-check me-2"></i>Permisos y Licencias</h2>
         <p class="text-muted mb-0">Administración de vacaciones, ausencias médicas e incidencias del personal.</p>
     </div>
-    <div>
-        <a asp-area="RRHH" asp-controller="Dashboard" asp-action="Index" class="btn btn-light btn-sm me-2">Volver al Panel</a>
-        <a asp-area="RRHH" asp-controller="Permisos" asp-action="Crear" class="btn btn-vitalia btn-sm"><i class="bi bi-plus-lg me-1"></i>Nueva Solicitud</a>
+    <div class="d-flex gap-2 align-items-stretch">
+        <a asp-area="RRHH" asp-controller="Dashboard" asp-action="Index" class="btn btn-light btn-sm d-flex align-items-center">Volver al Panel</a>
+        <a asp-area="RRHH" asp-controller="Permisos" asp-action="Crear" class="btn btn-vitalia btn-sm d-flex align-items-center"><i class="bi bi-plus-lg me-1"></i>Nueva Solicitud</a>
     </div>
 </div>
 
@@ -65,15 +65,17 @@
                         <td class="text-end">
                             @if (item.Estado == "Pendiente")
                             {
-                                <form asp-area="RRHH" asp-controller="Permisos" asp-action="CambiarEstado" method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="@item.IdPermiso" />
-                                    <button type="button" value="Aprobado" class="btn btn-sm btn-outline-success me-1 btn-estado-permiso" title="Aprobar Permiso">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                    <button type="button" value="Rechazado" class="btn btn-sm btn-outline-danger btn-estado-permiso" title="Rechazar Permiso">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                </form>
+                                <div class="d-flex flex-column gap-1 align-items-end justify-content-end">
+                                    <form asp-area="RRHH" asp-controller="Permisos" asp-action="CambiarEstado" method="post" class="m-0">
+                                        <input type="hidden" name="id" value="@item.IdPermiso" />
+                                        <button type="button" value="Aprobado" class="btn btn-sm btn-outline-success px-2 py-0 btn-estado-permiso" title="Aprobar Permiso">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                        <button type="button" value="Rechazado" class="btn btn-sm btn-outline-danger px-2 py-0 btn-estado-permiso" title="Rechazar Permiso">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             }
                         </td>
                     </tr>

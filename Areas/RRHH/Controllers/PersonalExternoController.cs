@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
 using VITALIA.Data;
 using VITALIA.Models.Rrhh;
 
@@ -75,6 +79,32 @@ namespace VITALIA.Areas.RRHH.Controllers
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
+        }
+
+        // --- MÉTODO PARA GENERAR EL COMPROBANTE PDF CON ROTATIVA ---
+        [HttpGet]
+        public async Task<IActionResult> DescargarComprobantePdf(int id)
+        {
+            var persona = await _context.PersonalExterno.FirstOrDefaultAsync(p => p.IdPersonalExterno == id && p.Activo);
+
+            if (persona == null) return NotFound();
+
+            return new ViewAsPdf("ComprobantePdf", persona)
+            {
+                FileName = $"Comprobante_{ParaNombreDeArchivo(persona.Apellido)}_{ParaNombreDeArchivo(persona.Nombre)}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.Letter,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait
+            };
+        }
+
+        private static string ParaNombreDeArchivo(string? texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto)) return "Externo";
+            var sinTildes = new string(texto.Normalize(NormalizationForm.FormD)
+                .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                .ToArray());
+            var limpio = Regex.Replace(sinTildes, "[^A-Za-z0-9]+", "_").Trim('_');
+            return limpio.Length > 0 ? limpio : "Externo";
         }
     }
 }

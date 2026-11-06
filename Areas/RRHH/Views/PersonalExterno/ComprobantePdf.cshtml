@@ -1,0 +1,91 @@
+﻿@model VITALIA.Models.Rrhh.PersonalExterno
+@{
+    // Es vital dejar el Layout en null para que Rotativa no imprima el menú lateral ni la barra superior
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Comprobante de Pago - @Model.Nombre</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; margin: 40px; }
+        .header { text-align: center; border-bottom: 3px solid #148080; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: #148080; font-size: 32px; letter-spacing: 2px; }
+        .header p { margin: 5px 0 0 0; color: #666; font-size: 14px; }
+        .header h2 { margin-top: 15px; color: #2d3748; font-size: 18px; }
+        
+        .content-section { margin-bottom: 30px; }
+        .content-section h3 { background-color: #f0fdfa; padding: 10px 15px; border-left: 5px solid #148080; margin-bottom: 15px; color: #0f5c5c; font-size: 16px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table th { text-align: left; width: 40%; color: #4a5568; padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: normal; }
+        table td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #2d3748; }
+        
+        .monto-total { font-size: 24px; color: #148080; text-align: right; font-weight: bold; margin-top: 30px; padding: 15px; border: 2px dashed #148080; background-color: #f8fafc; border-radius: 8px; }
+        
+        .firma-box { margin-top: 100px; text-align: center; }
+        .firma-line { border-top: 1px solid #000; width: 300px; margin: 0 auto 10px auto; }
+        .firma-box p { margin: 0; color: #4a5568; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>VITALIA</h1>
+        <p>Casa de Retiro</p>
+        <h2>COMPROBANTE DE PAGO A PERSONAL EXTERNO</h2>
+        <p>Fecha de Emisión: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+
+    <div class="content-section">
+        <h3>1. Información del Contratista</h3>
+        <table>
+            <tr>
+                <th>Nombre Completo:</th>
+                <td>@Model.Nombre @Model.Apellido</td>
+            </tr>
+            <tr>
+                <th>Documento de Identidad:</th>
+                <td>@Model.DocumentoIdentidad</td>
+            </tr>
+            <tr>
+                <th>Teléfono de Contacto:</th>
+                <td>@(string.IsNullOrEmpty(Model.Telefono) ? "No especificado" : Model.Telefono)</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h3>2. Detalles del Servicio</h3>
+        <table>
+            <tr>
+                <th>Área / Especialidad:</th>
+                <td>@Model.AreaServicio</td>
+            </tr>
+            <tr>
+                <th>Empresa o Proveedor:</th>
+                <td>@(string.IsNullOrEmpty(Model.EmpresaProveedora) ? "Particular / Independiente" : Model.EmpresaProveedora)</td>
+            </tr>
+            <tr>
+                <th>Horarios / Turno asignado:</th>
+                <td>@(string.IsNullOrEmpty(Model.HorarioTurno) ? "No especificado" : Model.HorarioTurno)</td>
+            </tr>
+            <tr>
+                <th>Estado del Pago:</th>
+                <td style="color: @(Model.EstadoPago == "Pagado" ? "#198754" : "#ffc107");">@Model.EstadoPago</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="monto-total">
+        Monto Total Acordado: @(Model.MontoServicio.HasValue ? $"${Model.MontoServicio.Value.ToString("N2")}" : "$0.00")
+    </div>
+
+    <div class="firma-box">
+        <div class="firma-line"></div>
+        <p>Firma de Recibido</p>
+        <p style="font-weight: normal; margin-top: 5px; color: #718096;">@Model.Nombre @Model.Apellido</p>
+    </div>
+</body>
+</html>

@@ -7,17 +7,23 @@
 <div class="vitalia-banner mb-4 d-flex justify-content-between align-items-center">
     <div>
         <h2 class="fw-bold mb-1"><i class="bi bi-cash-coin me-2"></i>Control de Nóminas y Salarios</h2>
-        <p class="text-muted mb-0">Registro kardex de salarios y emisión de recibos oficiales en PDF.</p>
+        <p class="text-white opacity-75 mb-0">Registro kardex de salarios y emisión de recibos oficiales en PDF.</p>
     </div>
-    <div>
-        <a asp-area="RRHH" asp-controller="Dashboard" asp-action="Index" class="btn btn-light btn-sm me-2">Volver al Panel</a>
-        <a asp-area="RRHH" asp-controller="Nomina" asp-action="Crear" class="btn btn-vitalia btn-sm"><i class="bi bi-plus-lg me-1"></i>Registrar Pago</a>
+
+    <!-- Botones del banner superior corregidos con Flexbox -->
+    <div class="d-flex gap-2 align-items-stretch">
+        <a asp-area="RRHH" asp-controller="Dashboard" asp-action="Index" class="btn btn-light btn-sm d-flex align-items-center text-teal fw-semibold">
+            Volver al Panel
+        </a>
+        <a asp-area="RRHH" asp-controller="Nomina" asp-action="Crear" class="btn btn-vitalia btn-sm d-flex align-items-center fw-semibold">
+            <i class="bi bi-plus-lg me-1"></i>Registrar Pago
+        </a>
     </div>
 </div>
 
-<div class="vitalia-card-pro p-4">
+<div class="vitalia-card-pro p-4 shadow-sm border-0" style="border-radius: 12px;">
     <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th>Empleado</th>
@@ -26,7 +32,7 @@
                     <th>Deducciones</th>
                     <th>Salario Neto</th>
                     <th>Estado</th>
-                    <th class="text-end">Acciones</th>
+                    <th class="text-end pe-4">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -50,32 +56,35 @@
                         <td>
                             @if (item.Estado == "Pagado")
                             {
-                                <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle-fill me-1"></i>Pagado</span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i>Pagado</span>
                             }
                             else
                             {
-                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-clock-history me-1"></i>Pendiente</span>
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1"><i class="bi bi-clock-history me-1"></i>Pendiente</span>
                             }
                         </td>
-                        <td class="text-end">
-                            <form asp-area="RRHH" asp-controller="Nomina" asp-action="CambiarEstado" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@item.IdNomina" />
-                                @if (item.Estado == "Pendiente")
-                                {
-                                    <button type="submit" name="estado" value="Pagado" class="btn btn-sm btn-outline-success me-1" title="Marcar como Pagado">
-                                        <i class="bi bi-check-lg"></i> Pagado
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="submit" name="estado" value="Pendiente" class="btn btn-sm btn-outline-warning me-1" title="Marcar como Pendiente">
-                                        <i class="bi bi-arrow-counterclockwise"></i> Pendiente
-                                    </button>
-                                }
-                            </form>
-                            <a asp-area="RRHH" asp-controller="Nomina" asp-action="DescargarReciboPdf" asp-route-id="@item.IdNomina" target="_blank" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF
-                            </a>
+                        <td class="pe-4 text-end">
+                            <!-- Botones de la tabla alineados con Flexbox -->
+                            <div class="d-flex gap-2 justify-content-end align-items-center">
+                                <form asp-area="RRHH" asp-controller="Nomina" asp-action="CambiarEstado" method="post" class="m-0">
+                                    <input type="hidden" name="id" value="@item.IdNomina" />
+                                    @if (item.Estado == "Pendiente")
+                                    {
+                                        <button type="submit" name="estado" value="Pagado" class="btn btn-sm btn-outline-success" title="Marcar como Pagado">
+                                            <i class="bi bi-check-lg"></i> Pagado
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" name="estado" value="Pendiente" class="btn btn-sm btn-outline-warning" title="Marcar como Pendiente">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Pendiente
+                                        </button>
+                                    }
+                                </form>
+                                <a asp-area="RRHH" asp-controller="Nomina" asp-action="DescargarReciboPdf" asp-route-id="@item.IdNomina" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 }
