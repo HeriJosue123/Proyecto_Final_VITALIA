@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -95,10 +98,24 @@ namespace VITALIA.Areas.RRHH.Controllers
 
             return new ViewAsPdf("ReciboPdf", nomina)
             {
-                FileName = $"Recibo_Nomina_{nomina.IdEmpleadoNavigation?.Apellido}_{nomina.Mes}_{nomina.Anio}.pdf",
+                FileName = $"Recibo_Nomina_{ParaNombreDeArchivo(nomina.IdEmpleadoNavigation?.Apellido)}_{nomina.Mes}_{nomina.Anio}.pdf",
                 PageSize = Rotativa.AspNetCore.Options.Size.A4,
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait
             };
+        }
+
+        /// <summary>
+        /// El nombre del archivo viaja en un encabezado HTTP, que solo admite caracteres ASCII: una tilde o una ñ
+        /// (por ejemplo "Mejía") hace que el servidor falle con error 500. Se quitan las tildes y lo demás se cambia por guion bajo.
+        /// </summary>
+        private static string ParaNombreDeArchivo(string? texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto)) return "Empleado";
+            var sinTildes = new string(texto.Normalize(NormalizationForm.FormD)
+                .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                .ToArray());
+            var limpio = Regex.Replace(sinTildes, "[^A-Za-z0-9]+", "_").Trim('_');
+            return limpio.Length > 0 ? limpio : "Empleado";
         }
     }
 }
