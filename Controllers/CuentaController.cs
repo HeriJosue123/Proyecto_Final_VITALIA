@@ -26,9 +26,15 @@ namespace VITALIA.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                return User.IsInRole(RolesSistema.Familiar)
-                    ? RedirectToAction("Index", "Familiar")
-                    : RedirectToAction("Index", "Home");
+                if (User.IsInRole(RolesSistema.Familiar))
+                    return RedirectToAction("Index", "Familiar");
+
+                string rolActual = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+                if (rolActual.Equals("Farmaceutico", StringComparison.OrdinalIgnoreCase) ||
+                    rolActual.Equals("Farmacéutico", StringComparison.OrdinalIgnoreCase))
+                    return RedirectToAction("Index", "Farmaceutico");
+
+                return RedirectToAction("Index", "Home");
             }
 
             ViewData["ReturnUrl"] = returnUrl;
@@ -76,7 +82,8 @@ namespace VITALIA.Controllers
                 new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
                 new Claim(ClaimTypes.Name, nombre),
                 new Claim(ClaimTypes.Email, usuario.Correo),
-                new Claim(ClaimTypes.Role, usuario.IdRolNavigation.NombreRol)
+                // .Trim() aplicado para evitar problemas de espacios fantasma en la BD
+                new Claim(ClaimTypes.Role, usuario.IdRolNavigation.NombreRol.Trim())
             };
             var identidad = new ClaimsIdentity(datos, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -85,8 +92,10 @@ namespace VITALIA.Controllers
                 new ClaimsPrincipal(identidad),
                 new AuthenticationProperties { IsPersistent = modelo.Recordarme });
 
-            // El familiar siempre entra a su vista (solo vuelve a la página anterior si era de su sección)
-            if (usuario.IdRolNavigation.NombreRol == RolesSistema.Familiar)
+            string rolRol = usuario.IdRolNavigation.NombreRol.Trim();
+
+            // 1. El familiar siempre entra a su vista
+            if (rolRol == RolesSistema.Familiar)
             {
                 return !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)
                        && returnUrl.StartsWith("/Familiar", StringComparison.OrdinalIgnoreCase)
@@ -94,6 +103,14 @@ namespace VITALIA.Controllers
                     : RedirectToAction("Index", "Familiar");
             }
 
+            // 2. El farmacéutico entra directo a su panel en la carpeta Farmaceutico (¡Sin escalas ni validaciones de returnUrl cruzadas!)
+            if (rolRol.Equals("Farmaceutico", StringComparison.OrdinalIgnoreCase) ||
+                rolRol.Equals("Farmacéutico", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction("Index", "Farmaceutico");
+            }
+
+            // 3. Demás roles del sistema
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
@@ -113,11 +130,20 @@ namespace VITALIA.Controllers
         // GET: Cuenta/AccesoDenegado
         public IActionResult AccesoDenegado(string? returnUrl)
         {
-            // Si el familiar abre la dirección principal (localhost/), se le lleva a su vista
+            // Si el familiar abre la dirección principal, se le lleva a su vista
             if (User.IsInRole(RolesSistema.Familiar) && (string.IsNullOrEmpty(returnUrl) || returnUrl == "/"))
             {
                 return RedirectToAction("Index", "Familiar");
             }
+
+            string rolActual = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+            if ((rolActual.Equals("Farmaceutico", StringComparison.OrdinalIgnoreCase) ||
+                 rolActual.Equals("Farmacéutico", StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(returnUrl) || returnUrl == "/"))
+            {
+                return RedirectToAction("Index", "Farmaceutico");
+            }
+
             return View();
         }
 

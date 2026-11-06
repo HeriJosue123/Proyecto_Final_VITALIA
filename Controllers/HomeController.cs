@@ -9,7 +9,8 @@ using VITALIA.Models;
 
 namespace VITALIA.Controllers
 {
-    [Authorize(Roles = RolesSistema.PersonalClinico)]
+    // Permitimos acceso al Administrador, Médico, Enfermero y Farmacéutico para que no bloquee al entrar
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero, Farmacéutico, Farmaceutico")]
     public class HomeController : Controller
     {
         private readonly VitaliaDbContext _context;

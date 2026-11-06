@@ -6,16 +6,17 @@
     var empleados = ViewBag.Empleados as List<SelectListItem> ?? new List<SelectListItem>();
     var tiposAtencion = ViewBag.TiposAtencion as List<SelectListItem> ?? new List<SelectListItem>();
 
-    // Paleta cromática diversificada para los badges
+    bool esFarmaceutico = User.IsInRole("Farmacéutico") || User.IsInRole("Farmaceutico");
+
     string[] clasesColores = new string[]
     {
-        "bg-primary-subtle text-primary border-primary-subtle",          // Azul
-        "bg-success-subtle text-success border-success-subtle",          // Verde
-        "bg-danger-subtle text-danger border-danger-subtle",            // Rojo
-        "bg-warning-subtle text-warning-emphasis border-warning-subtle", // Amarillo / Naranja
-        "bg-info-subtle text-info-emphasis border-info-subtle",          // Cyan / Azul Claro
-        "bg-secondary-subtle text-secondary border-secondary-subtle",    // Gris
-        "bg-dark-subtle text-dark border-dark-subtle"                    // Oscuro
+        "bg-primary-subtle text-primary border-primary-subtle",
+        "bg-success-subtle text-success border-success-subtle",
+        "bg-danger-subtle text-danger border-danger-subtle",
+        "bg-warning-subtle text-warning-emphasis border-warning-subtle",
+        "bg-info-subtle text-info-emphasis border-info-subtle",
+        "bg-secondary-subtle text-secondary border-secondary-subtle",
+        "bg-dark-subtle text-dark border-dark-subtle"
     };
 }
 
@@ -34,6 +35,19 @@
     #panelFormulario {
         transition: all 0.3s ease-in-out;
     }
+
+    .modal-backdrop {
+        display: none !important;
+    }
+
+    #modalEliminarAtencion {
+        background-color: rgba(0, 0, 0, 0.45);
+        z-index: 99999 !important;
+    }
+
+    #modalEliminarAtencion .modal-dialog {
+        pointer-events: auto !important;
+    }
 </style>
 
 <!-- Encabezado del Módulo -->
@@ -43,7 +57,6 @@
         <p class="text-muted small mb-0">Historial cronológico inmutable</p>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <!-- Buscador Superior -->
         <form asp-controller="Bitacora" asp-action="Index" method="get" class="input-group search-box" style="width: 260px;">
             <span class="input-group-text bg-white border-end-0 rounded-start-3 text-muted">
                 <i class="bi bi-search"></i>
@@ -59,23 +72,44 @@
             }
         </form>
 
-        <!-- Botón a Módulo Independiente de Tipos de Atención -->
-        <a asp-controller="TipoAtencion" asp-action="Index" class="btn btn-outline-secondary text-nowrap" title="Gestionar tipos de atención">
-            <i class="bi bi-gear-fill me-1"></i> Tipos
-        </a>
+        <!-- Botón Tipos: Oculto para el rol Farmacéutico, visible en las demás vistas -->
+        @if (!esFarmaceutico)
+        {
+            <a asp-controller="TipoAtencion" asp-action="Index" class="btn btn-outline-secondary text-nowrap" title="Gestionar tipos de atención">
+                <i class="bi bi-gear-fill me-1"></i> Tipos
+            </a>
+        }
 
-        <!-- Botón + Nueva atención -->
-        <button type="button" class="btn btn-vitalia text-nowrap" onclick="prepararNuevoRegistro()" @(residentes.Any() && empleados.Any() ? "" : "disabled") title="@(!residentes.Any() ? "Registre un residente primero" : !empleados.Any() ? "Registre personal primero" : "")">
-            + Nueva atención
-        </button>
+        <!-- Botón + Nueva atención: Oculto para el rol Farmacéutico -->
+        @if (!esFarmaceutico)
+        {
+            <button type="button" class="btn btn-vitalia text-nowrap" onclick="prepararNuevoRegistro()" @(residentes.Any() && empleados.Any() ? "" : "disabled")>
+                + Nueva atención
+            </button>
+        }
     </div>
 </div>
+
+<!-- ALERTA DINÁMICA DE ÉXITO O ERROR CON ID PARA TEMPORIZADOR -->
+@if (TempData["MensajeExito"] != null)
+{
+    <div id="alertaSistema" class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["MensajeExito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+@if (TempData["MensajeError"] != null)
+{
+    <div id="alertaSistema" class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["MensajeError"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
 
 <div class="row g-4">
     <!-- Columna del Historial de Atenciones -->
     <div id="columnaHistorial" class="col-12">
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-            <!-- Barra de Filtros -->
             <form asp-controller="Bitacora" asp-action="Index" method="get" class="row g-2 mb-3 align-items-center">
                 <input type="hidden" name="busqueda" value="@ViewBag.BusquedaActual" />
 
@@ -91,39 +125,43 @@
 
                 <div class="col-md-4">
                     <div class="input-group input-group-sm border rounded-3 bg-white px-2 align-items-center">
-                        <span class="text-muted pe-1 style-pointer" onclick="document.getElementById('fechaInicioInput').showPicker()" style="cursor: pointer;">
-                            📅
-                        </span>
-                        <input type="date" id="fechaInicioInput" name="fechaInicio" class="form-control border-0 text-center p-0 bg-transparent" value="@ViewBag.FechaInicio" style="font-size: 0.8rem;" onclick="this.showPicker()" title="Fecha Inicio" />
-                        <span class="text-muted px-1" style="font-size: 0.8rem;">
-                            ➔
-                        </span>
-                        <input type="date" id="fechaFinInput" name="fechaFin" class="form-control border-0 text-center p-0 bg-transparent" value="@ViewBag.FechaFin" style="font-size: 0.8rem;" onclick="this.showPicker()" title="Fecha Fin" />
+                        <span class="text-muted pe-1 style-pointer" onclick="document.getElementById('fechaInicioInput').showPicker()" style="cursor: pointer;">📅</span>
+                        <input type="date" id="fechaInicioInput" name="fechaInicio" class="form-control border-0 text-center p-0 bg-transparent" value="@ViewBag.FechaInicio" style="font-size: 0.8rem;" />
+                        <span class="text-muted px-1" style="font-size: 0.8rem;">➔</span>
+                        <input type="date" id="fechaFinInput" name="fechaFin" class="form-control border-0 text-center p-0 bg-transparent" value="@ViewBag.FechaFin" style="font-size: 0.8rem;" />
                     </div>
                 </div>
 
                 <div class="col-md-3">
-                    <select name="idTipoAtencion" class="form-select form-select-sm rounded-3 border-light-subtle">
-                        <option value="">Tipo: Todos</option>
-                        @foreach (var tipo in tiposAtencion)
-                        {
-                            <option value="@tipo.Value" selected="@(ViewBag.IdTipoAtencionSeleccionado?.ToString() == tipo.Value)">@tipo.Text</option>
-                        }
-                    </select>
+                    @if (esFarmaceutico)
+                    {
+                        <div class="d-flex align-items-center bg-light border border-light-subtle rounded-3 px-3 py-1 text-secondary small" style="height: 31px;">
+                            <i class="bi bi-funnel text-muted me-1"></i> Tipo: <strong class="text-dark ms-1">Medicamentos</strong>
+                        </div>
+                    }
+                    else
+                    {
+                        <select name="idTipoAtencion" class="form-select form-select-sm rounded-3 border-light-subtle">
+                            <option value="">Tipo: Todos</option>
+                            @foreach (var tipo in tiposAtencion)
+                            {
+                                <option value="@tipo.Value" selected="@(ViewBag.IdTipoAtencionSeleccionado?.ToString() == tipo.Value)">@tipo.Text</option>
+                            }
+                        </select>
+                    }
                 </div>
 
                 <div class="col-md-2 d-flex gap-1">
                      <button type="submit" class="btn btn-vitalia btn-sm flex-fill">Filtrar</button>
                      <a asp-controller="Bitacora" asp-action="ExportarPdf" 
-                     asp-route-idResidente="@ViewBag.IdResidenteSeleccionado" 
-                     asp-route-fechaInicio="@ViewBag.FechaInicio" 
-                     asp-route-fechaFin="@ViewBag.FechaFin" 
-                     asp-route-idTipoAtencion="@ViewBag.IdTipoAtencionSeleccionado" 
-                     asp-route-busqueda="@ViewBag.BusquedaActual"
-                     class="btn btn-outline-vitalia btn-sm flex-fill d-flex align-items-center justify-content-center" 
-                     title="Exportar PDF">
-                    <i class="bi bi-file-earmark-pdf-fill"></i>
-                 </a>
+                        asp-route-idResidente="@ViewBag.IdResidenteSeleccionado" 
+                        asp-route-fechaInicio="@ViewBag.FechaInicio" 
+                        asp-route-fechaFin="@ViewBag.FechaFin" 
+                        asp-route-idTipoAtencion="@ViewBag.IdTipoAtencionSeleccionado" 
+                        asp-route-busqueda="@ViewBag.BusquedaActual"
+                        class="btn btn-outline-vitalia btn-sm flex-fill d-flex align-items-center justify-content-center" title="Exportar PDF">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                     </a>
                </div>
             </form>
 
@@ -131,7 +169,6 @@
                 Historial de solo anexo: no se puede editar ni eliminar (RF-011)
             </p>
 
-            <!-- Lista de Atenciones -->
             <div class="d-flex flex-column gap-3">
                 @if (Model != null && Model.Any())
                 {
@@ -140,7 +177,6 @@
                         var tipoMatch = tiposAtencion.FirstOrDefault(t => t.Value == item.IdTipoAtencion.ToString());
                         string tipoTexto = tipoMatch != null ? tipoMatch.Text : "Atención General";
 
-                        // Asignación de color consistente mediante el ID único del tipo de atención
                         int indiceColor = Math.Abs(item.IdTipoAtencion.GetHashCode()) % clasesColores.Length;
                         string badgeClass = clasesColores[indiceColor];
 
@@ -153,26 +189,24 @@
                                 <div>
                                     <span class="fw-bold text-dark me-2">@item.FechaHora.ToString("HH:mm")</span>
                                     <small class="text-muted me-2">@item.FechaHora.ToString("dd/MM/yyyy")</small>
-                                    <span class="badge border ms-1 @badgeClass">
-                                        @tipoTexto
-                                    </span>
+                                    <span class="badge border ms-1 @badgeClass">@tipoTexto</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <small class="text-muted" style="font-size: 0.72rem;">
-                                        <i class="bi bi-lock-fill"></i> sello del servidor
-                                    </small>
+                                    <small class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock-fill"></i> sello del servidor</small>
 
-                                    <!-- Botón Editar -->
-                                    <button type="button" class="btn btn-link text-primary p-0 border-0 ms-2" title="Editar registro"
-                                            onclick="prepararEdicion(@item.IdAtencion, @item.IdResidente, @item.IdEmpleado, @item.IdTipoAtencion, '@item.Observaciones.Replace("'", "\\'").Replace("\r\n", " ").Replace("\n", " ")')">
-                                        <i class="bi bi-pencil-square fs-6"></i>
-                                    </button>
+                                    <!-- BOTONES DE EDITAR Y ELIMINAR: Ocultos para el Farmacéutico -->
+                                    @if (!esFarmaceutico)
+                                    {
+                                        <button type="button" class="btn btn-link text-primary p-0 border-0 ms-2" title="Editar registro"
+                                                onclick="prepararEdicion(@item.IdAtencion, @item.IdResidente, @item.IdEmpleado, @item.IdTipoAtencion, '@item.Observaciones.Replace("'", "\\'").Replace("\r\n", " ").Replace("\n", " ")')">
+                                            <i class="bi bi-pencil-square fs-6"></i>
+                                        </button>
 
-                                    <!-- Botón Eliminar con Modal -->
-                                    <button type="button" class="btn btn-link text-danger p-0 border-0 ms-1" title="Eliminar registro"
-                                            onclick="prepararEliminacion(@item.IdAtencion)">
-                                        <i class="bi bi-trash-fill fs-6"></i>
-                                    </button>
+                                        <button type="button" class="btn btn-link text-danger p-0 border-0 ms-1" title="Eliminar registro"
+                                                onclick="prepararEliminacion(@item.IdAtencion)">
+                                            <i class="bi bi-trash-fill fs-6"></i>
+                                        </button>
+                                    }
                                 </div>
                             </div>
                             <p class="mb-1 text-dark small fw-semibold">@item.Observaciones</p>
@@ -193,96 +227,93 @@
         </div>
     </div>
 
-    <!-- Panel Lateral: Formulario Registrar / Editar Atención -->
-    <div id="panelFormulario" class="col-lg-4 d-none">
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 id="tituloPanel" class="fw-bold text-dark mb-0">Registrar atención</h6>
-                <button type="button" class="btn-close small" onclick="cerrarFormularioAtencion()" aria-label="Cerrar"></button>
-            </div>
-
-            <form id="formAtencion" asp-controller="Bitacora" asp-action="Registrar" method="post">
-                @Html.AntiForgeryToken()
-
-                <input type="hidden" id="inputAtencionId" name="id_atencion" value="0" />
-
-                <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">RESIDENTE *</label>
-                    @if (residentes.Any())
-                    {
-                        <select id="selectResidente" name="id_residente" class="form-select form-select-sm" required>
-                            @foreach (var res in residentes)
-                            {
-                                <option value="@res.Value">@res.Text</option>
-                            }
-                        </select>
-                    }
-                    else
-                    {
-                        <input type="text" class="form-control form-control-sm bg-light text-danger" value="Sin residentes registrados" readonly />
-                    }
+    <!-- Panel Lateral: Formulario Registrar / Editar Atención (Oculto para Farmacéutico) -->
+    @if (!esFarmaceutico)
+    {
+        <div id="panelFormulario" class="col-lg-4 d-none">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 id="tituloPanel" class="fw-bold text-dark mb-0">Registrar atención</h6>
+                    <button type="button" class="btn-close small" onclick="cerrarFormularioAtencion()" aria-label="Cerrar"></button>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold uppercase mb-1" style="font-size: 0.68rem;">TIPO DE ATENCIÓN *</label>
-                    @if (tiposAtencion.Any())
-                    {
-                        <select id="selectTipoAtencion" name="id_tipo_atencion" class="form-select form-select-sm" required>
-                            @foreach (var tipo in tiposAtencion)
-                            {
-                                <option value="@tipo.Value">@tipo.Text</option>
-                            }
-                        </select>
-                    }
-                    else
-                    {
-                        <select id="selectTipoAtencion" name="id_tipo_atencion" class="form-select form-select-sm border-danger text-danger" disabled>
-                            <option value="">-- No hay tipos de atención registrados --</option>
-                        </select>
-                    }
-                </div>
+                <form id="formAtencion" asp-controller="Bitacora" asp-action="Registrar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="inputAtencionId" name="id_atencion" value="0" />
 
-                <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">DESCRIPCIÓN / OBSERVACIÓN *</label>
-                    <textarea id="txtObservaciones" name="observaciones" class="form-control form-control-sm" rows="3" placeholder="Escribe lo realizado..." required></textarea>
-                </div>
-
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">FECHA Y HORA</label>
-                        <input type="text" class="form-control form-control-sm bg-light" value="Automática 🔒" readonly />
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">EMPLEADO *</label>
-                        @if (empleados.Any())
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">RESIDENTE *</label>
+                        @if (residentes.Any())
                         {
-                            <select id="selectEmpleado" name="id_empleado" class="form-select form-select-sm" required>
-                                @foreach (var emp in empleados)
+                            <select id="selectResidente" name="id_residente" class="form-select form-select-sm" required>
+                                @foreach (var res in residentes)
                                 {
-                                    <option value="@emp.Value">@emp.Text</option>
+                                    <option value="@res.Value">@res.Text</option>
                                 }
                             </select>
                         }
                         else
                         {
-                            <input type="text" class="form-control form-control-sm bg-light text-danger" value="Sin personal registrado" readonly />
+                            <input type="text" class="form-control form-control-sm bg-light text-danger" value="Sin residentes registrados" readonly />
                         }
                     </div>
-                </div>
 
-                <button type="submit" id="btnGuardarAtencion" class="btn btn-vitalia w-100 mb-2" @(residentes.Any() && empleados.Any() && tiposAtencion.Any() ? "" : "disabled")>Guardar atención</button>
-                <p class="text-center text-muted" style="font-size: 0.72rem;">Se registra en 4 clics o menos desde el panel del cuidador (RNF-004).</p>
-            </form>
-        </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold uppercase mb-1" style="font-size: 0.68rem;">TIPO DE ATENCIÓN *</label>
+                        @if (tiposAtencion.Any())
+                        {
+                            <select id="selectTipoAtencion" name="id_tipo_atencion" class="form-select form-select-sm" required>
+                                @foreach (var tipo in tiposAtencion)
+                                {
+                                    <option value="@tipo.Value">@tipo.Text</option>
+                                }
+                            </select>
+                        }
+                        else
+                        {
+                            <select id="selectTipoAtencion" name="id_tipo_atencion" class="form-select form-select-sm border-danger text-danger" disabled>
+                                <option value="">-- No hay tipos de atención registrados --</option>
+                            </select>
+                        }
+                    </div>
 
-        <div class="alert alert-danger border-danger-subtle rounded-4 p-3 mb-0 small" style="font-size: 0.75rem;">
-            <i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Al intentar editar o borrar:</strong> "No se permite sobrescribir o alterar registros históricos".
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">DESCRIPCIÓN / OBSERVACIÓN *</label>
+                        <textarea id="txtObservaciones" name="observaciones" class="form-control form-control-sm" rows="3" placeholder="Escribe lo realizado..." required></textarea>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">FECHA Y HORA</label>
+                            <input type="text" class="form-control form-control-sm bg-light" value="Automática 🔒" readonly />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold uppercase" style="font-size: 0.68rem;">EMPLEADO *</label>
+                            @if (empleados.Any())
+                            {
+                                <select id="selectEmpleado" name="id_empleado" class="form-select form-select-sm" required>
+                                    @foreach (var emp in empleados)
+                                    {
+                                        <option value="@emp.Value">@emp.Text</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input type="text" class="form-control form-control-sm bg-light text-danger" value="Sin personal registrado" readonly />
+                            }
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnGuardarAtencion" class="btn btn-vitalia w-100 mb-2" @(residentes.Any() && empleados.Any() && tiposAtencion.Any() ? "" : "disabled")>Guardar atención</button>
+                </form>
+            </div>
         </div>
-    </div>
+    }
 </div>
 
 <!-- Modal Confirmar Eliminación -->
-<div class="modal fade" id="modalEliminarAtencion" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEliminarAtencion" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-body text-center p-4">
@@ -310,6 +341,7 @@
     function abrirPanel() {
         const columnaHistorial = document.getElementById('columnaHistorial');
         const panelFormulario = document.getElementById('panelFormulario');
+        if (!panelFormulario) return;
 
         panelFormulario.classList.remove('d-none');
         columnaHistorial.classList.remove('col-12');
@@ -319,6 +351,7 @@
     function cerrarFormularioAtencion() {
         const columnaHistorial = document.getElementById('columnaHistorial');
         const panelFormulario = document.getElementById('panelFormulario');
+        if (!panelFormulario) return;
 
         panelFormulario.classList.add('d-none');
         columnaHistorial.classList.remove('col-lg-8');
@@ -385,7 +418,25 @@
 
     function prepararEliminacion(id) {
         document.getElementById('inputEliminarId').value = id;
-        var modal = new bootstrap.Modal(document.getElementById('modalEliminarAtencion'));
+        
+        var modalEl = document.getElementById('modalEliminarAtencion');
+        
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+
+        var modal = new bootstrap.Modal(modalEl, { backdrop: false, focus: true, keyboard: true });
         modal.show();
     }
+
+    // Ocultar la alerta automáticamente después de 5 segundos (5000 milisegundos)
+    document.addEventListener("DOMContentLoaded", function () {
+        const alerta = document.getElementById("alertaSistema");
+        if (alerta) {
+            setTimeout(function () {
+                let bsAlert = new bootstrap.Alert(alerta);
+                bsAlert.close();
+            }, 5000);
+        }
+    });
 </script>
