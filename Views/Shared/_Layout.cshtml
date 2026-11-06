@@ -3,7 +3,7 @@
     // Datos del usuario que inició sesión
     bool esAdministrador = User.IsInRole(RolesSistema.Administrador);
 
-    // "Datos de presentación" solo se ve mientras no se hayan cargado
+    // "Datos de presentación" solo se ve mientras no se hayan cargados
     bool mostrarDatosPresentacion = false;
     if (esAdministrador)
     {
@@ -11,7 +11,12 @@
         catch { mostrarDatosPresentacion = false; }
     }
     bool esFamiliar = User.IsInRole(RolesSistema.Familiar);
-    bool puedeAccederFarmacia = User.IsInRole("Administrador") || User.IsInRole("Medico") || User.IsInRole("Médico") || User.IsInRole("Enfermero") || User.IsInRole("Farmacéutico") || User.IsInRole("Farmaceutico");
+
+    // Nueva variable para aislar la lógica del farmacéutico
+    bool esFarmaceutico = User.IsInRole("Farmacéutico") || User.IsInRole("Farmaceutico");
+
+    bool puedeAccederFarmacia = User.IsInRole("Administrador") || User.IsInRole("Medico") || User.IsInRole("Médico") || User.IsInRole("Enfermero") || esFarmaceutico;
+
     string nombreUsuario = User.Identity?.Name ?? "";
     string rolUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     string correoUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
@@ -27,7 +32,7 @@
     Func<string, Microsoft.AspNetCore.Html.IHtmlContent> correoPartido = texto =>
         new Microsoft.AspNetCore.Html.HtmlString(string.Join("<wbr>@", texto.Split('@').Select(System.Net.WebUtility.HtmlEncode)));
 
-    // Datos para la tarjeta del perfil (cargo y a cuántos residentes atiende o tiene vinculados)
+    // Datos para la tarjeta del perfil
     string? cargoPerfil = null;
     int residentesPerfil = 0;
     if (int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var idUsuarioPerfil))
@@ -134,7 +139,6 @@
                 left: 0;
                 z-index: 1000;
                 padding: 1.5rem 1rem;
-                /* Si el menú no cabe en la pantalla, se desplaza solo él */
                 overflow-y: auto;
                 overscroll-behavior: contain;
                 scrollbar-width: thin;
@@ -270,7 +274,7 @@
                 font-size: 0.85rem;
             }
 
-            /* Animaciones globales (escapado para Razor con doble @@) */
+            /* Animaciones globales corregidas para Razor con @@ */
             @@keyframes fadeInUp {
                 from {
                     opacity: 0;
@@ -287,13 +291,11 @@
                 animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
 
-            /* Redefinición de Focus para Inputs de Vitalia */
             .form-control:focus, .form-select:focus {
                 border-color: #14828a !important;
                 box-shadow: 0 0 0 0.25rem rgba(20, 130, 138, 0.18) !important;
             }
 
-            /* Tarjeta de estilo Pro */
             .vitalia-card-pro {
                 background: #ffffff;
                 border-radius: 18px;
@@ -302,7 +304,6 @@
                 transition: transform 0.3s ease, box-shadow 0.3s ease;
             }
 
-            /* Estilo para grupo de inputs con icono */
             .input-group-text-vitalia {
                 background-color: #f8fafc;
                 border-right: none;
@@ -321,7 +322,6 @@
                     border-left: 1px solid #14828a !important;
                 }
 
-            /* Chips interactivos para sugerencias rápidas */
             .role-chip {
                 cursor: pointer;
                 transition: all 0.2s ease;
@@ -336,7 +336,6 @@
                     transform: translateY(-2px);
                 }
 
-            /* Tarjeta de encabezado de los módulos */
             .vitalia-banner {
                 background: linear-gradient(135deg, #0d3c3d 0%, #118a8b 100%);
                 color: #ffffff;
@@ -364,7 +363,6 @@
                         background-color: #e6f4f4 !important;
                     }
 
-            /* ===== Tarjeta del perfil (se abre al tocar el usuario del menú) ===== */
             .perfil-disparador {
                 width: 100%;
                 display: flex;
@@ -688,6 +686,7 @@
                     color: #12898e;
                 }
 
+            /* Media queries corregidas para Razor con @@ */
             @@media (max-width: 600px) {
                 .perfil-tarjeta {
                     left: 12px;
@@ -709,7 +708,8 @@
     <div class="vitalia-wrapper">
         <!-- Sidebar Oscuro -->
         <aside class="vitalia-sidebar">
-            <a class="sidebar-brand" asp-area="" asp-controller="@(esFamiliar ? "Familiar" : "Home")" asp-action="Index">
+            <!-- LOGOTIPO DINÁMICO -->
+            <a class="sidebar-brand" asp-area="" asp-controller="@(esFamiliar ? "Familiar" : (esFarmaceutico ? "Farmaceutico" : "Home"))" asp-action="Index">
                 <div class="brand-icon">
                     <i class="bi bi-suit-heart-fill"></i>
                 </div>
@@ -733,18 +733,35 @@
             {
                 <div class="sidebar-section-label">Módulos</div>
                 <ul class="sidebar-nav">
+
+                    <!-- BOTÓN DE INICIO DINÁMICO -->
                     <li>
-                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && string.IsNullOrEmpty(ViewContext.RouteData.Values["area"]?.ToString()) ? "active" : "")"
-                           asp-area="" asp-controller="Home" asp-action="Index">
-                            <i class="bi bi-house-door-fill"></i> Inicio
-                        </a>
+                        @if (esFarmaceutico)
+                        {
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Farmaceutico" ? "active" : "")"
+                               asp-area="" asp-controller="Farmaceutico" asp-action="Index">
+                                <i class="bi bi-house-door-fill"></i> Inicio
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && string.IsNullOrEmpty(ViewContext.RouteData.Values["area"]?.ToString()) ? "active" : "")"
+                               asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door-fill"></i> Inicio
+                            </a>
+                        }
                     </li>
-                    <li>
-                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Residentes" ? "active" : "")"
-                           asp-area="" asp-controller="Residentes" asp-action="Index">
-                            <i class="bi bi-people-fill"></i> Residentes
-                        </a>
-                    </li>
+
+                    @* Se oculta Residentes únicamente para el Farmacéutico *@
+                    @if (!esFarmaceutico)
+                    {
+                        <li>
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Residentes" ? "active" : "")"
+                               asp-area="" asp-controller="Residentes" asp-action="Index">
+                                <i class="bi bi-people-fill"></i> Residentes
+                            </a>
+                        </li>
+                    }
                     <li>
                         <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bitacora" ? "active" : "")"
                            asp-area="" asp-controller="Bitacora" asp-action="Index">
@@ -758,7 +775,7 @@
                         </a>
                     </li>
 
-                    @* Módulo visible únicamente para Administrador, Médico y Enfermero *@
+                    @* Módulo visible únicamente para Administrador, Médico, Enfermero y Farmacéutico *@
                     @if (puedeAccederFarmacia)
                     {
                         <li>
@@ -970,16 +987,7 @@
                 const fondo = document.getElementById("perfilFondo");
                 if (!caja || !disparador || !tarjeta || !fondo) return;
 
-                // Mientras la tarjeta está abierta la página de atrás no se mueve
-                // (se reserva el ancho de la barra de desplazamiento para que nada brinque)
-                function bloquearPagina(bloquear) {
-                    const barra = window.innerWidth - document.documentElement.clientWidth;
-                    document.body.style.overflow = bloquear ? "hidden" : "";
-                    document.body.style.paddingRight = bloquear && barra > 0 ? barra + "px" : "";
-                }
-
                 function abrir() {
-                    bloquearPagina(true);
                     tarjeta.hidden = false;
                     fondo.hidden = false;
                     requestAnimationFrame(() => { tarjeta.classList.add("visible"); fondo.classList.add("visible"); });
@@ -994,7 +1002,6 @@
                     fondo.classList.remove("visible");
                     caja.classList.remove("abierto");
                     disparador.setAttribute("aria-expanded", "false");
-                    bloquearPagina(false);
                     setTimeout(() => { tarjeta.hidden = true; fondo.hidden = true; }, 230);
                     if (devolverFoco) disparador.focus({ preventScroll: true });
                 }
@@ -1002,8 +1009,6 @@
                 caja.addEventListener("click", () => tarjeta.hidden ? abrir() : cerrar(true));
                 fondo.addEventListener("click", () => cerrar(true));
                 document.getElementById("perfilCerrar").addEventListener("click", () => cerrar(true));
-                // Antes de abrir la confirmación de cerrar sesión se suelta la página,
-                // así el modal guarda el estado normal y lo devuelve al cancelar
                 document.getElementById("modalCerrarSesion")?.addEventListener("show.bs.modal", () => cerrar(false));
                 document.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(true); });
             })();

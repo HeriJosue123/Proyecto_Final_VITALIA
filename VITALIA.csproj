@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="Views\Farmaceutico\Index.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Storage\Respaldos\VITALIA_Backup_20261101_125030.bak" />
   </ItemGroup>
 

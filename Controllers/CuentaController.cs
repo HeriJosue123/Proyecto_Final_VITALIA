@@ -32,7 +32,7 @@ namespace VITALIA.Controllers
                 string rolActual = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
                 if (rolActual.Equals("Farmaceutico", StringComparison.OrdinalIgnoreCase) ||
                     rolActual.Equals("Farmacéutico", StringComparison.OrdinalIgnoreCase))
-                    return RedirectToAction("Index", "Farmaceutico"); // Redirige a su panel exclusivo
+                    return RedirectToAction("Index", "Farmaceutico");
 
                 return RedirectToAction("Index", "Home");
             }
@@ -94,7 +94,7 @@ namespace VITALIA.Controllers
 
             string rolRol = usuario.IdRolNavigation.NombreRol.Trim();
 
-            // El familiar siempre entra a su vista
+            // 1. El familiar siempre entra a su vista
             if (rolRol == RolesSistema.Familiar)
             {
                 return !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)
@@ -103,16 +103,14 @@ namespace VITALIA.Controllers
                     : RedirectToAction("Index", "Familiar");
             }
 
-            // El farmacéutico entra directo a su panel exclusivo en la carpeta Farmaceutico
+            // 2. El farmacéutico entra directo a su panel en la carpeta Farmaceutico (¡Sin escalas ni validaciones de returnUrl cruzadas!)
             if (rolRol.Equals("Farmaceutico", StringComparison.OrdinalIgnoreCase) ||
                 rolRol.Equals("Farmacéutico", StringComparison.OrdinalIgnoreCase))
             {
-                return !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)
-                       && returnUrl.StartsWith("/Farmaceutico", StringComparison.OrdinalIgnoreCase)
-                    ? Redirect(returnUrl)
-                    : RedirectToAction("Index", "Farmaceutico");
+                return RedirectToAction("Index", "Farmaceutico");
             }
 
+            // 3. Demás roles del sistema
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);

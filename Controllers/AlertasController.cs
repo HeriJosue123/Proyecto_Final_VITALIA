@@ -8,7 +8,8 @@ using VITALIA.Models.ViewModels;
 
 namespace VITALIA.Controllers;
 
-[Authorize(Roles = RolesSistema.PersonalClinico)]
+// Se abre el acceso general a la clase para que el farmacéutico pueda entrar a la lista
+[Authorize(Roles = "Administrador, Medico, Médico, Enfermero, Farmacéutico, Farmaceutico")]
 public class AlertasController : Controller
 {
     private readonly VitaliaDbContext _context;
@@ -20,7 +21,7 @@ public class AlertasController : Controller
         _logger = logger;
     }
 
-    // GET: Alertas
+    // GET: Alertas (TODOS PUEDEN VER LA LISTA)
     public async Task<IActionResult> Index(int? idResidente, string? prioridad)
     {
         var query = _context.Alerta
@@ -101,7 +102,7 @@ public class AlertasController : Controller
         return View(modelo);
     }
 
-    // GET: Alertas/Details/5
+    // GET: Alertas/Details/5 (TODOS PUEDEN VER EL DETALLE)
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null) return NotFound();
@@ -112,12 +113,11 @@ public class AlertasController : Controller
         return View(detalle);
     }
 
-    // GET: Alertas/Create
+    // GET: Alertas/Create (BLOQUEADO PARA EL FARMACÉUTICO)
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
     public async Task<IActionResult> Create()
     {
         var usuarioActual = await ObtenerUsuarioActualAsync();
-
-        // Verifica si el usuario actual tiene rol de Médico
         bool esMedico = (usuarioActual?.IdRolNavigation?.NombreRol?.Contains("Médico") ?? false) || User.IsInRole("Médico");
 
         var modelo = new AlertaFormViewModel
@@ -131,9 +131,10 @@ public class AlertasController : Controller
         return View(modelo);
     }
 
-    // POST: Alertas/Create
+    // POST: Alertas/Create (BLOQUEADO PARA EL FARMACÉUTICO)
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
     public async Task<IActionResult> Create(AlertaFormViewModel modelo)
     {
         modelo.Titulo = modelo.Titulo?.Trim() ?? string.Empty;
@@ -157,7 +158,6 @@ public class AlertasController : Controller
             return View(modelo);
         }
 
-        // Si es médico y seleccionó un medicamento, se adjunta la prescripción médica al texto de la descripción
         string descripcionFinal = modelo.Descripcion;
         if (modelo.EsMedico && modelo.IdMedicamento.HasValue)
         {
@@ -179,7 +179,6 @@ public class AlertasController : Controller
             FechaProgramada = modelo.FechaProgramada!.Value,
             EstadoActual = AlertaEstados.Pendiente,
             IdEmpleadoResponsable = modelo.IdEmpleadoResponsable,
-            // Guardamos las propiedades [NotMapped] en el objeto de la alerta
             IdMedicamento = modelo.EsMedico ? modelo.IdMedicamento : null,
             Dosis = modelo.EsMedico ? modelo.Dosis : null
         };
@@ -200,7 +199,8 @@ public class AlertasController : Controller
         }
     }
 
-    // GET: Alertas/Edit/5
+    // GET: Alertas/Edit/5 (BLOQUEADO PARA EL FARMACÉUTICO)
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
@@ -241,9 +241,10 @@ public class AlertasController : Controller
         return View(modelo);
     }
 
-    // POST: Alertas/Edit/5
+    // POST: Alertas/Edit/5 (BLOQUEADO PARA EL FARMACÉUTICO)
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
     public async Task<IActionResult> Edit(int id, AlertaFormViewModel modelo)
     {
         if (id != modelo.IdAlerta) return NotFound();
@@ -306,7 +307,8 @@ public class AlertasController : Controller
         }
     }
 
-    // GET: Alertas/Delete/5
+    // GET: Alertas/Delete/5 (BLOQUEADO PARA EL FARMACÉUTICO)
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null) return NotFound();
@@ -317,9 +319,10 @@ public class AlertasController : Controller
         return View(detalle);
     }
 
-    // POST: Alertas/Delete/5
+    // POST: Alertas/Delete/5 (BLOQUEADO PARA EL FARMACÉUTICO)
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var alerta = await _context.Alerta.FirstOrDefaultAsync(a => a.IdAlerta == id);
@@ -347,16 +350,14 @@ public class AlertasController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // POST: Alertas/CambiarEstado
+    // POST: Alertas/CambiarEstado (BLOQUEADO PARA EL FARMACÉUTICO)
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
     public async Task<IActionResult> CambiarEstado(int id, string? estadoEsperado)
     {
         var alerta = await _context.Alerta.FirstOrDefaultAsync(a => a.IdAlerta == id);
-        if (alerta == null)
-        {
-            return NotFound();
-        }
+        if (alerta == null) return NotFound();
 
         if (!string.Equals(alerta.EstadoActual, estadoEsperado, StringComparison.Ordinal))
         {
@@ -381,16 +382,12 @@ public class AlertasController : Controller
         var anterior = alerta.EstadoActual;
         alerta.EstadoActual = siguiente;
 
-        // DEDUCCIÓN AUTOMÁTICA DE STOCK DE FARMACIA (FIFO / FEFO)
-        // Se ejecuta cuando la alerta pasa a estado 'Atendida'
         if (siguiente == AlertaEstados.Atendida)
         {
             int? idMedicamentoRecetado = alerta.IdMedicamento;
 
-            // Si IdMedicamento venía nulo en el objeto pero fue creado por un médico, extraemos el ID desde la lista activa
             if (!idMedicamentoRecetado.HasValue && alerta.Descripcion.Contains("[PRESCRIPCIÓN MÉDICA:"))
             {
-                // Extraemos el nombre del medicamento entre corchetes
                 var inicio = alerta.Descripcion.IndexOf("[PRESCRIPCIÓN MÉDICA:") + "[PRESCRIPCIÓN MÉDICA:".Length;
                 var fin = alerta.Descripcion.IndexOf("(", inicio);
                 if (inicio > 0 && fin > inicio)
@@ -409,7 +406,6 @@ public class AlertasController : Controller
 
             if (idMedicamentoRecetado.HasValue)
             {
-                // Buscamos el lote del medicamento con stock disponible ordenado por fecha de vencimiento más cercana
                 var loteDisponible = await _context.LoteMedicamentos
                     .Where(l => l.IdMedicamento == idMedicamentoRecetado.Value && l.Stock > 0)
                     .OrderBy(l => l.FechaVencimiento)
@@ -527,7 +523,6 @@ public class AlertasController : Controller
             })
             .ToListAsync();
 
-        // Cargar catálogo de medicamentos activos si el usuario activo es Médico
         if (modelo.EsMedico)
         {
             modelo.Medicamentos = await _context.Medicamentos

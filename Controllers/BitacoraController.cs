@@ -7,7 +7,8 @@ using VITALIA.Models;
 
 namespace VITALIA.Controllers
 {
-    [Authorize(Roles = RolesSistema.PersonalClinico)]
+    // 1. Permitimos la entrada general al Farmacéutico junto con el personal clínico
+    [Authorize(Roles = "Administrador, Medico, Médico, Enfermero, Farmacéutico, Farmaceutico")]
     public class BitacoraController : Controller
     {
         private readonly VitaliaDbContext _context;
@@ -23,7 +24,17 @@ namespace VITALIA.Controllers
             var query = _context.AtencionDiaria
                 .AsNoTracking()
                 .Include(a => a.IdEmpleadoNavigation)
+                .Include(a => a.IdTipoAtencionNavigation) // Incluido para poder filtrar por categoría
                 .AsQueryable();
+
+            // 2. REGLA PARA FARMACÉUTICO: Forzar filtro exclusivo de Medicamentos
+            bool esFarmaceutico = User.IsInRole("Farmacéutico") || User.IsInRole("Farmaceutico");
+            if (esFarmaceutico)
+            {
+                // Filtra únicamente las atenciones donde el nombre de la categoría sea "Medicamentos"
+                query = query.Where(a => a.IdTipoAtencionNavigation != null &&
+                                         a.IdTipoAtencionNavigation.NombreCategoria.ToLower().Contains("medicamento"));
+            }
 
             if (idResidente.HasValue && idResidente.Value > 0)
             {
@@ -166,8 +177,17 @@ namespace VITALIA.Controllers
         {
             if (id > 0)
             {
-                await _context.Database.ExecuteSqlRawAsync(
+                int filasAfectadas = await _context.Database.ExecuteSqlRawAsync(
                     "DELETE FROM dbo.ATENCION_DIARIA WHERE id_atencion = {0}", id);
+
+                if (filasAfectadas > 0)
+                {
+                    TempData["MensajeExito"] = "La atención se ha eliminado correctamente.";
+                }
+                else
+                {
+                    TempData["MensajeError"] = "No se pudo encontrar el registro que intentas eliminar.";
+                }
             }
 
             return RedirectToAction(nameof(Index));
@@ -180,8 +200,16 @@ namespace VITALIA.Controllers
                 .AsNoTracking()
                 .Include(a => a.IdResidenteNavigation)
                 .Include(a => a.IdEmpleadoNavigation)
-                .Include(a => a.IdTipoAtencionNavigation) // <-- Incluido para mostrar la categoría/tipo de atención en el PDF
+                .Include(a => a.IdTipoAtencionNavigation)
                 .AsQueryable();
+
+            // REGLA PARA FARMACÉUTICO EN EL PDF: Forzar también el filtro exclusivo
+            bool esFarmaceutico = User.IsInRole("Farmacéutico") || User.IsInRole("Farmaceutico");
+            if (esFarmaceutico)
+            {
+                query = query.Where(a => a.IdTipoAtencionNavigation != null &&
+                                         a.IdTipoAtencionNavigation.NombreCategoria.ToLower().Contains("medicamento"));
+            }
 
             if (idResidente.HasValue && idResidente.Value > 0)
             {
@@ -215,7 +243,6 @@ namespace VITALIA.Controllers
                   .OrderByDescending(a => a.FechaHora)
                   .ToListAsync();
 
-            // Retorna la vista PdfExportar convertida a archivo PDF mediante Rotativa
             return new Rotativa.AspNetCore.ViewAsPdf("PdfExportar", atenciones)
             {
                 FileName = $"Bitacora_Atenciones_{DateTime.Now:yyyyMMdd_HHmmss}.pdf",

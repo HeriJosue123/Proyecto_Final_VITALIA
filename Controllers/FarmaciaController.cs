@@ -41,14 +41,14 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // GET: Farmacia/Create (¡AQUÍ FALTABA EL FARMACÉUTICO!)
+        // GET: Farmacia/Create
         [Authorize(Roles = "Administrador, Medico, Médico, Farmacéutico, Farmaceutico")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Farmacia/Create (¡AQUÍ FALTABA EL FARMACÉUTICO!)
+        // POST: Farmacia/Create
         [Authorize(Roles = "Administrador, Medico, Médico, Farmacéutico, Farmaceutico")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -88,7 +88,7 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // GET: Farmacia/Edit/5 (¡AQUÍ FALTABA EL FARMACÉUTICO!)
+        // GET: Farmacia/Edit/5
         [Authorize(Roles = "Administrador, Medico, Médico, Farmacéutico, Farmaceutico")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -103,7 +103,7 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // POST: Farmacia/Edit/5 (¡AQUÍ FALTABA EL FARMACÉUTICO!)
+        // POST: Farmacia/Edit/5
         [Authorize(Roles = "Administrador, Medico, Médico, Farmacéutico, Farmaceutico")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -161,7 +161,7 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // ACCIÓN DEL PDF QUE TE FALTABA INCLUIR
+        // ACCIÓN DEL PDF
         [Authorize(Roles = "Administrador, Farmacéutico, Farmaceutico")]
         public async Task<IActionResult> RespaldoMedicamentosPdf()
         {
@@ -177,8 +177,8 @@ namespace VITALIA.Controllers
             };
         }
 
-        // GET: Farmacia/Delete/5 (Solo administrador, está bien así)
-        [Authorize(Roles = "Administrador")]
+        // GET: Farmacia/Delete/5 (AHORA EL FARMACÉUTICO TAMBIÉN PUEDE ENTRAR)
+        [Authorize(Roles = "Administrador, Farmacéutico, Farmaceutico")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -195,8 +195,8 @@ namespace VITALIA.Controllers
             return View(medicamento);
         }
 
-        // POST: Farmacia/Delete/5 (Solo administrador, está bien así)
-        [Authorize(Roles = "Administrador")]
+        // POST: Farmacia/Delete/5 (AHORA EL FARMACÉUTICO TAMBIÉN PUEDE EJECUTAR LA ELIMINACIÓN)
+        [Authorize(Roles = "Administrador, Farmacéutico, Farmaceutico")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
