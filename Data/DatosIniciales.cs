@@ -19,7 +19,8 @@ public static class DatosIniciales
         (RolesSistema.Administrador, "Acceso completo al sistema"),
         (RolesSistema.Enfermero, "Enfermeros y cuidadores: registran atenciones y revisan residentes"),
         (RolesSistema.Medico, "Revisa la salud de los residentes"),
-        (RolesSistema.Familiar, "Consulta la información de su familiar")
+        (RolesSistema.Familiar, "Consulta la información de su familiar"),
+        (RolesSistema.Farmaceutico, "Gestiona medicamentos, lotes y existencias de la farmacia")
     };
 
     private static readonly (string Correo, string Rol)[] Usuarios =

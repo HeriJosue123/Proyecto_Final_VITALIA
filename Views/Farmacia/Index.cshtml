@@ -209,9 +209,12 @@
                                             <a asp-action="Edit" asp-route-id="@item.IdMedicamento" class="btn btn-sm btn-light border text-primary rounded-3 shadow-none px-2.5 py-1.5 btn-action-edit" title="Editar">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
+                                            @if (User.IsInRole("Administrador"))
+                                            {
                                             <a asp-action="Delete" asp-route-id="@item.IdMedicamento" class="btn btn-sm btn-light border text-danger rounded-3 shadow-none px-2.5 py-1.5 btn-action-delete" title="Eliminar">
                                                 <i class="bi bi-trash-fill"></i>
                                             </a>
+                                            }
                                         </div>
                                     </td>
                                 </tr>

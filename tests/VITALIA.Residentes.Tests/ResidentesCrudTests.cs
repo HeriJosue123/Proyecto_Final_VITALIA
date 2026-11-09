@@ -53,11 +53,14 @@ public class SesionDePrueba : AuthenticationHandler<AuthenticationSchemeOptions>
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        // Por defecto entra el Administrador (id 1); una prueba puede entrar como otro usuario con estos encabezados
+        string id = Request.Headers["X-Usuario-Prueba"].FirstOrDefault() ?? "1";
+        string rol = Request.Headers["X-Rol-Prueba"].FirstOrDefault() ?? RolesSistema.Administrador;
         var identidad = new ClaimsIdentity(new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.NameIdentifier, id),
             new Claim(ClaimTypes.Name, "Administrador de Pruebas"),
-            new Claim(ClaimTypes.Role, RolesSistema.Administrador)
+            new Claim(ClaimTypes.Role, rol)
         }, Esquema);
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identidad), Esquema)));
     }

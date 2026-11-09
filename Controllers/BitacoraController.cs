@@ -115,6 +115,7 @@ namespace VITALIA.Controllers
         // 2. REGISTRAR NUEVO TIPO DE ATENCIÓN EN LA BD
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
         public async Task<IActionResult> CrearTipoAtencion(string nombre_categoria, string? descripcion)
         {
             if (!string.IsNullOrWhiteSpace(nombre_categoria))
@@ -141,6 +142,7 @@ namespace VITALIA.Controllers
         // 3. CREAR NUEVA ATENCIÓN EN LA BITÁCORA
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
         public async Task<IActionResult> Registrar(int id_residente, int id_empleado, int id_tipo_atencion, string observaciones)
         {
             if (id_residente > 0 && id_empleado > 0 && id_tipo_atencion > 0 && !string.IsNullOrWhiteSpace(observaciones))
@@ -158,6 +160,7 @@ namespace VITALIA.Controllers
         // 4. EDITAR ATENCIÓN EXISTENTE
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
         public async Task<IActionResult> Editar(int id_atencion, int id_tipo_atencion, string observaciones)
         {
             if (id_atencion > 0 && id_tipo_atencion > 0 && !string.IsNullOrWhiteSpace(observaciones))
@@ -173,6 +176,7 @@ namespace VITALIA.Controllers
         // 5. ELIMINAR ATENCIÓN
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador, Medico, Médico, Enfermero")]
         public async Task<IActionResult> Eliminar(int id)
         {
             if (id > 0)

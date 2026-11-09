@@ -239,6 +239,17 @@
             padding-right: 2.8rem;
         }
 
+        /* Se oculta el ojo propio del navegador (Edge/Chrome) para que solo quede el del sistema */
+        .login-campo input[type="password"]::-ms-reveal,
+        .login-campo input[type="password"]::-ms-clear {
+            display: none !important;
+        }
+
+        .login-campo input[type="password"]::-webkit-credentials-auto-fill-button {
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
         .login-ojo {
             position: absolute;
             top: 50%;

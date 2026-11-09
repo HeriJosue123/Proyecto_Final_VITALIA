@@ -20,12 +20,12 @@ public class DatosInicialesTests : IClassFixture<FabricaLogin>
     }
 
     [Fact]
-    public void AlEncender_ExistenLosCuatroRoles()
+    public void AlEncender_ExistenLosCincoRoles()
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VitaliaDbContext>();
 
-        foreach (var rol in new[] { RolesSistema.Administrador, RolesSistema.Enfermero, RolesSistema.Medico, RolesSistema.Familiar })
+        foreach (var rol in new[] { RolesSistema.Administrador, RolesSistema.Enfermero, RolesSistema.Medico, RolesSistema.Familiar, RolesSistema.Farmaceutico })
         {
             Assert.Equal(1, db.Roles.Count(r => r.NombreRol == rol));
         }
@@ -69,8 +69,8 @@ public class DatosInicialesTests : IClassFixture<FabricaLogin>
         await DatosIniciales.CrearSiFaltanAsync(db);
         await DatosIniciales.CrearSiFaltanAsync(db);
 
-        Assert.Equal(4, db.Roles.Count(r => r.NombreRol == RolesSistema.Administrador || r.NombreRol == RolesSistema.Enfermero
-                                          || r.NombreRol == RolesSistema.Medico || r.NombreRol == RolesSistema.Familiar));
+        Assert.Equal(5, db.Roles.Count(r => r.NombreRol == RolesSistema.Administrador || r.NombreRol == RolesSistema.Enfermero
+                                          || r.NombreRol == RolesSistema.Medico || r.NombreRol == RolesSistema.Familiar || r.NombreRol == RolesSistema.Farmaceutico));
         foreach (var correo in CorreosPorDefecto)
         {
             Assert.Equal(1, db.Usuarios.Count(u => u.Correo == correo));

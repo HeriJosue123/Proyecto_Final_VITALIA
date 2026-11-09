@@ -444,12 +444,19 @@ public class AlertasController : Controller
 
     private async Task<Usuario?> ObtenerUsuarioActualAsync()
     {
-        return await _context.Usuarios
+        var consulta = _context.Usuarios
             .AsNoTracking()
             .Include(u => u.IdRolNavigation)
-            .Where(u => u.Estado)
-            .OrderBy(u => u.IdUsuario)
-            .FirstOrDefaultAsync();
+            .Where(u => u.Estado);
+
+        // Es el usuario que inició sesión; así el historial queda a nombre de quien hizo el cambio
+        if (int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var idSesion))
+        {
+            var actual = await consulta.FirstOrDefaultAsync(u => u.IdUsuario == idSesion);
+            if (actual != null) return actual;
+        }
+
+        return await consulta.OrderBy(u => u.IdUsuario).FirstOrDefaultAsync();
     }
 
     private async Task CargarListasAsync(AlertasTableroViewModel modelo)

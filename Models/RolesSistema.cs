@@ -7,6 +7,7 @@ public static class RolesSistema
     public const string Enfermero = "Enfermero";
     public const string Medico = "Médico";
     public const string Familiar = "Familiar";
+    public const string Farmaceutico = "Farmacéutico";
 
     // Roles que atienden a los residentes (Inicio, Residentes, Bitácora y Alertas)
     public const string PersonalClinico = Administrador + "," + Enfermero + "," + Medico;

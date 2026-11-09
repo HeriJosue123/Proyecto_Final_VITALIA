@@ -29,14 +29,24 @@ namespace VITALIA.Controllers
             DateTime hoy = DateTime.Today;
             ViewBag.AtencionesHoy = await _context.AtencionDiaria.CountAsync(a => a.FechaHora >= hoy);
 
-            // Conteo total de Alertas
+            // Solo las alertas que siguen abiertas (Pendiente o En Proceso); las atendidas ya no requieren atención
             try
             {
-                ViewBag.AlertasPendientes = await _context.Alerta.CountAsync();
+                ViewBag.AlertasPendientes = await _context.Alerta.CountAsync(a => a.EstadoActual != AlertaEstados.Atendida);
             }
             catch
             {
                 ViewBag.AlertasPendientes = 0;
+            }
+
+            // Medicamentos activos del catálogo (si la base aún no tiene las tablas de Farmacia, queda en 0)
+            try
+            {
+                ViewBag.TotalMedicamentos = await _context.Medicamentos.CountAsync(m => m.Estado);
+            }
+            catch
+            {
+                ViewBag.TotalMedicamentos = 0;
             }
 
             return View();
