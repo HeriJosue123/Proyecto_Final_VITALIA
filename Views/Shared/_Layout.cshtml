@@ -3,13 +3,6 @@
     // Datos del usuario que inició sesión
     bool esAdministrador = User.IsInRole(RolesSistema.Administrador);
 
-    // "Datos de presentación" solo se ve mientras no se hayan cargados
-    bool mostrarDatosPresentacion = false;
-    if (esAdministrador)
-    {
-        try { mostrarDatosPresentacion = !await VITALIA.Data.DatosPresentacion.CargadosAsync(BaseDatos); }
-        catch { mostrarDatosPresentacion = false; }
-    }
     bool esFamiliar = User.IsInRole(RolesSistema.Familiar);
 
     // Nueva variable para aislar la lógica del farmacéutico
@@ -824,15 +817,6 @@
                             <i class="bi bi-hdd-fill"></i> Respaldos
                         </a>
                     </li>
-                    @if (mostrarDatosPresentacion)
-                    {
-                        <li>
-                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "DatosPresentacion" ? "active" : "")"
-                               asp-controller="DatosPresentacion" asp-action="Index">
-                                <i class="bi bi-database-fill-add"></i> Datos de presentación
-                            </a>
-                        </li>
-                    }
                 </ul>
             }
 
@@ -1022,6 +1006,15 @@
                 document.getElementById("modalCerrarSesion")?.addEventListener("show.bs.modal", () => cerrar(false));
                 document.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(true); });
             })();
+    </script>
+    <script>
+        // Los cuadros de confirmación (modales) se mueven al <body> al abrirse: el contenido principal
+        // tiene una animación que lo vuelve "contenedor" de lo fijo, y dentro de él el cuadro quedaba
+        // centrado en toda la página (fuera de pantalla) y solo se veía la zona gris.
+        document.addEventListener("show.bs.modal", function (e) {
+            var modal = e.target;
+            if (modal && modal.parentElement !== document.body) document.body.appendChild(modal);
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
